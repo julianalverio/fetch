@@ -176,8 +176,6 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
-        Image.fromarray(state).show()
-        import pdb; pdb.set_trace()
         state = state[230:435, 50:460]
         # state = cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
@@ -309,6 +307,10 @@ class Trainer(object):
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
+
+            if self.episode == 1500:
+                print('DONE')
+                return
 
 
     def playback(self, path):
