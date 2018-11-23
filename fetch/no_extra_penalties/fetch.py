@@ -19,9 +19,13 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
+
+
+NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
@@ -271,9 +275,6 @@ class Trainer(object):
             self.penalty = 0
             return reward, False
 
-        # if self.task == 4:
-        #     reward +=
-
 
 
     def train(self):
@@ -307,6 +308,10 @@ class Trainer(object):
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
+
+            if self.episode == NUM_EPISODES:
+                print("DONE")
+                return
 
 
     def playback(self, path):

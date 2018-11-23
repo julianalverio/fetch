@@ -19,9 +19,13 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
+
+
+NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
@@ -256,7 +260,8 @@ class Trainer(object):
         #     return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            reward = 1. / distance
+            # reward = 1. / distance
+            reward = -distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
                 self.score += 1.
@@ -270,9 +275,6 @@ class Trainer(object):
             reward -= self.penalty
             self.penalty = 0
             return reward, False
-
-        # if self.task == 4:
-        #     reward +=
 
 
 
@@ -307,6 +309,10 @@ class Trainer(object):
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
+
+            if self.episode == NUM_EPISODES:
+                print("DONE")
+                return
 
 
     def playback(self, path):
