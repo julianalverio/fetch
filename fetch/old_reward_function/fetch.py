@@ -308,10 +308,6 @@ class Trainer(object):
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
-            if self.episode == 1500:
-                print('DONE')
-                return
-
 
     def playback(self, path):
         target_net = torch.load(path)

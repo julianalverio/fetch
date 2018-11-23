@@ -19,7 +19,6 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
@@ -151,7 +150,7 @@ class Trainer(object):
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
-        # self.penalty = 0.
+        self.penalty = 0.
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
 
@@ -199,10 +198,10 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        # if gripper_position[2] <= 0.416 and action.item() == 5:
-        #     self.penalty += 1.
-        # if gripper_position[2] >= 0.64 and action.item() == 4:
-        #     self.penalty += 1.
+        if gripper_position[2] <= 0.416 and action.item() == 5:
+            self.penalty += 1.
+        if gripper_position[2] >= 0.64 and action.item() == 4:
+            self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
@@ -262,14 +261,14 @@ class Trainer(object):
                 reward += 10.
                 self.score += 1.
                 done = True
-            # reward -= self.penalty
-            # self.penalty = 0
+            reward -= self.penalty
+            self.penalty = 0
             return reward, done
 
         if self.task == 3:
             reward = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
-            # reward -= self.penalty
-            # self.penalty = 0
+            reward -= self.penalty
+            self.penalty = 0
             return reward, False
 
         # if self.task == 4:
@@ -308,10 +307,6 @@ class Trainer(object):
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
-
-            if self.episode == 1500:
-                print("TRAINING COMPLETED")
-                return
 
 
     def playback(self, path):
