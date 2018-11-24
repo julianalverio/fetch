@@ -289,6 +289,7 @@ class Trainer(object):
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
+                self.memory.showCapacity()
                 continue
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
