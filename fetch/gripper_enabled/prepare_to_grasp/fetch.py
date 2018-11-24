@@ -320,7 +320,7 @@ class Trainer(object):
     def train(self):
         import pdb; pdb.set_trace()
         for _ in range(100):
-            self.env.step([0,0,0,1])
+            self.env.step([0,0,0,-1])
         for _ in range(20):
             self.env.render()
         import pdb; pdb.set_trace()
