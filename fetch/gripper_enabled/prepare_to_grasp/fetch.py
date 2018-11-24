@@ -237,8 +237,10 @@ class Trainer(object):
         new_finger_distance = new_right_finger + new_left_finger
         if abs(finger_distance - new_finger_distance) > 1e-4:
             print(new_finger_distance - finger_distance)
-            print(self.convertAction(action))
-            import time; time.sleep(1)
+            # print(self.convertAction(action))
+            # import time; time.sleep(1)
+            if self.env.sim.data.ctrl is not None:
+                import pdb; pdb.set_trace()
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
