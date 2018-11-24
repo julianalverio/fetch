@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="71b82a26-2c32-429c-a337-919f44a54e27" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/fetch.py" beforeDir="false" afterPath="$PROJECT_DIR$/fetch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gym/envs/robotics/fetch_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gym/envs/robotics/fetch_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gym/envs/robotics/robot_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/gym/envs/robotics/robot_env.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -35,23 +33,26 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="256" />
+          <entry key="py" value="258" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="256" />
+          <entry key="Python" value="258" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fetch.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
+            <state relative-caret-position="275">
+              <caret line="31" column="30" selection-start-line="31" selection-start-column="30" selection-end-line="31" selection-end-column="30" />
+              <folding>
+                <element signature="e#23#36#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -59,8 +60,11 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gym/envs/robotics/fetch_env.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="7" selection-start-column="7" selection-end-column="7" />
+            <state relative-caret-position="150">
+              <caret line="10" column="35" lean-forward="true" selection-start-line="10" selection-start-column="35" selection-end-line="10" selection-end-column="35" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -74,11 +78,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gym/envs/robotics/robot_env.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="723">
-              <caret line="156" selection-start-line="156" selection-end-line="156" />
+            <state relative-caret-position="648">
+              <caret line="151" column="31" selection-start-line="151" selection-start-column="31" selection-end-line="151" selection-end-column="31" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -90,7 +94,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>def preprocess</find>
       <find>visualize</find>
       <find>def _render</find>
       <find>render(</find>
@@ -99,6 +102,7 @@
       <find>def prefe</find>
       <find>def train</find>
       <find>import pdb</find>
+      <find>def preprocess</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -108,9 +112,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/gym/envs/robotics/assets/fetch/push.xml" />
-        <option value="$PROJECT_DIR$/fetch.py" />
         <option value="$PROJECT_DIR$/gym/envs/robotics/fetch_env.py" />
         <option value="$PROJECT_DIR$/gym/envs/robotics/robot_env.py" />
+        <option value="$PROJECT_DIR$/fetch.py" />
       </list>
     </option>
   </component>
@@ -245,6 +249,16 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/gym/envs/robotics/fetch_env.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="10" column="35" lean-forward="true" selection-start-line="10" selection-start-column="35" selection-end-line="10" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gym/envs/robotics/assets/fetch/push.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="435">
@@ -252,26 +266,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/fetch.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="7" selection-start-line="2" selection-start-column="7" selection-end-line="2" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gym/envs/robotics/fetch_env.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="7" selection-start-column="7" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gym/envs/robotics/robot_env.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="723">
-          <caret line="156" selection-start-line="156" selection-end-line="156" />
+        <state relative-caret-position="648">
+          <caret line="151" column="31" selection-start-line="151" selection-start-column="31" selection-end-line="151" selection-end-column="31" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fetch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="275">
+          <caret line="31" column="30" selection-start-line="31" selection-start-column="30" selection-end-line="31" selection-end-column="30" />
+          <folding>
+            <element signature="e#23#36#0" expanded="true" />
           </folding>
         </state>
       </provider>

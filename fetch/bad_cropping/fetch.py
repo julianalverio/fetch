@@ -29,7 +29,7 @@ NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
-        'replay_size':      35000,
+        'replay_size':      11000,
         'replay_initial':   10000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
@@ -180,7 +180,7 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
-        state = state[230:435, 50:460]
+        # state = state[230:435, 50:460]
         # state = cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
