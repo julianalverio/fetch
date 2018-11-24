@@ -180,8 +180,6 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
-        Image.fromarray(state).show()
-        import pdb; pdb.set_trace()
         state = state[230:435, 50:460]
         # state = cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
@@ -210,9 +208,6 @@ class Trainer(object):
             self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
-        import pdb; pdb.set_trace()
-        #TODO remove
-        self.env.render()
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
         done = done or self.movement_count == 1500
@@ -291,6 +286,7 @@ class Trainer(object):
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
+                print(len(self.memory)*1./self.params['replay_size'])
                 continue
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
