@@ -180,7 +180,7 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
-        # state = state[230:435, 50:460]
+        state = state[230:435, 50:460]
         # state = cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
@@ -289,7 +289,6 @@ class Trainer(object):
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
-                self.memory.showCapacity()
                 continue
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
