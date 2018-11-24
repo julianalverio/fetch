@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="71b82a26-2c32-429c-a337-919f44a54e27" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/gym/envs/robotics/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/gym/envs/robotics/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gripper_enabled/gym/envs/robotics/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/../gripper_enabled/gym/envs/robotics/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py" beforeDir="false" afterPath="$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -22,47 +22,49 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="24" />
+          <entry key="py" value="26" />
           <entry key="xml" value="5" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="24" />
+          <entry key="Python" value="26" />
           <entry key="XML" value="5" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="2393" />
+          <entry key="py" value="2540" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="2393" />
+          <entry key="Python" value="2540" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../gripper_enabled/prepare_to_grasp/fetch.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="359">
-              <caret line="321" column="28" lean-forward="true" selection-start-line="321" selection-start-column="28" selection-end-line="321" selection-end-column="28" />
+            <state relative-caret-position="404">
+              <caret line="301" column="29" selection-start-line="301" selection-start-column="29" selection-end-line="301" selection-end-column="29" />
               <folding>
-                <marker date="1543103093874" expanded="true" signature="10086:10090" ph="..." />
+                <element signature="e#23#36#0" expanded="true" />
+                <marker date="1543103948359" expanded="true" signature="5976:5982" ph="..." />
+                <marker date="1543103948359" expanded="true" signature="5998:6007" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../gripper_enabled/gym/envs/robotics/utils.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="311">
-              <caret line="28" column="35" lean-forward="true" selection-start-line="28" selection-start-column="35" selection-end-line="28" selection-end-column="35" />
+              <caret line="28" column="33" lean-forward="true" selection-start-line="28" selection-start-column="33" selection-end-line="28" selection-end-column="33" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -83,7 +85,6 @@
       <find>def addexper</find>
       <find>blocked</find>
       <find>makeenv</find>
-      <find>def makeenv</find>
       <find>self.initial_gri</find>
       <find>gripper_position</find>
       <find>gripper</find>
@@ -102,8 +103,9 @@
       <find>_</find>
       <find>sim.data.</find>
       <find>def addexperience</find>
-      <find>def train</find>
       <find>block_gripper</find>
+      <find>def makeenv</find>
+      <find>def train</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -122,11 +124,11 @@
         <option value="$PROJECT_DIR$/../prepare_to_grasp/fetch.py" />
         <option value="$PROJECT_DIR$/../plot_results.py" />
         <option value="$PROJECT_DIR$/../gripper_enabled/regular/fetch.py" />
-        <option value="$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py" />
         <option value="$PROJECT_DIR$/../gripper_enabled/push_block/fetch.py" />
         <option value="$PROJECT_DIR$/../gripper_enabled/prepare_to_grasp/fetch.py" />
         <option value="$PROJECT_DIR$/gym/envs/robotics/utils.py" />
         <option value="$PROJECT_DIR$/../gripper_enabled/gym/envs/robotics/utils.py" />
+        <option value="$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py" />
       </list>
     </option>
   </component>
@@ -376,18 +378,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="381">
-          <caret line="31" column="31" selection-start-line="31" selection-start-column="31" selection-end-line="31" selection-end-column="31" />
-          <folding>
-            <element signature="e#23#36#0" expanded="true" />
-            <marker date="1543097623357" expanded="true" signature="5966:5972" ph="..." />
-            <marker date="1543097623357" expanded="true" signature="5988:5997" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../gripper_enabled/push_block/fetch.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="704">
@@ -438,9 +428,21 @@
     <entry file="file://$PROJECT_DIR$/../gripper_enabled/gym/envs/robotics/utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="311">
-          <caret line="28" column="35" lean-forward="true" selection-start-line="28" selection-start-column="35" selection-end-line="28" selection-end-column="35" />
+          <caret line="28" column="33" lean-forward="true" selection-start-line="28" selection-start-column="33" selection-end-line="28" selection-end-column="33" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../gripper_enabled/touch_block/fetch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="404">
+          <caret line="301" column="29" selection-start-line="301" selection-start-column="29" selection-end-line="301" selection-end-column="29" />
+          <folding>
+            <element signature="e#23#36#0" expanded="true" />
+            <marker date="1543103948359" expanded="true" signature="5976:5982" ph="..." />
+            <marker date="1543103948359" expanded="true" signature="5998:6007" ph="..." />
           </folding>
         </state>
       </provider>
