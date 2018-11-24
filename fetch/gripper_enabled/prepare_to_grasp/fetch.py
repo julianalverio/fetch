@@ -315,6 +315,7 @@ class Trainer(object):
 
     def train(self):
         import pdb; pdb.set_trace()
+        self.env.step([0,0,0,1])
         frame_idx = 0
         while True:
             frame_idx += 1
