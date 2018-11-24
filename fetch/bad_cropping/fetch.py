@@ -29,7 +29,7 @@ NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
-        'replay_size':      11000,
+        'replay_size':      8000,
         'replay_initial':   10000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
