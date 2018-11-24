@@ -19,7 +19,7 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/bad_cropping')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
