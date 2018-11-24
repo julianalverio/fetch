@@ -235,7 +235,7 @@ class Trainer(object):
         new_right_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint'))
         new_left_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint'))
         new_finger_distance = new_right_finger + new_left_finger
-        if abs(finger_distance - new_finger_distance) > 1e5:
+        if abs(finger_distance - new_finger_distance) > 1e4:
             print(new_finger_distance - finger_distance)
             print(self.convertAction(action))
             import time; time.sleep(1)
