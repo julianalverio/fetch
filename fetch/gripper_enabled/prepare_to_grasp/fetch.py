@@ -213,6 +213,10 @@ class Trainer(object):
 
 
     def addExperience(self):
+        right_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint'))
+        left_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint'))
+        finger_distance = right_finger + left_finger
+
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
@@ -227,6 +231,13 @@ class Trainer(object):
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
         done = done or self.movement_count == 1500
+
+        new_right_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint'))
+        new_left_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint'))
+        new_finger_distance = new_right_finger + new_left_finger
+        if finger_distance != new_finger_distance:
+            print(self.convertAction())
+            import time; time.sleep(1)
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
@@ -258,16 +269,6 @@ class Trainer(object):
         # for param in self.policy_net.parameters():
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
-
-
-    def testStep(self, action):
-        import pdb; pdb.set_trace()
-        self.env.step([0,0,0,1])
-        for _ in range(100):
-            self.env.step(action)
-        for _ in range(20):
-            self.env.render()
-            self.env.render(mode='rgb_array')
 
 
     '''
@@ -314,8 +315,6 @@ class Trainer(object):
 
 
     def train(self):
-        import pdb; pdb.set_trace()
-        self.env.step([0,0,0,1])
         frame_idx = 0
         while True:
             frame_idx += 1
