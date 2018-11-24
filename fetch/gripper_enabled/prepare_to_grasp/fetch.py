@@ -312,7 +312,6 @@ class Trainer(object):
 
 
     def train(self):
-        breakpoint()
         import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
