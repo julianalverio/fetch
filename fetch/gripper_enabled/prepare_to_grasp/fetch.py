@@ -261,6 +261,8 @@ class Trainer(object):
 
 
     def testStep(self, action):
+        import pdb; pdb.set_trace()
+        self.env.step([0,0,0,1])
         for _ in range(100):
             self.env.step(action)
         for _ in range(20):
