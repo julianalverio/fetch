@@ -153,11 +153,7 @@ class RobotEnv(gym.GoalEnv):
         """A custom callback that is called before rendering. Can be used
         to implement custom visualizations.
         """
-        import pdb; pdb.set_trace()
-        sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
-        site_id = self.sim.model.site_name2id('target0')
-        self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
-        self.sim.forward()
+        pass
 
     def _step_callback(self):
         """A custom callback that is called after stepping the simulation. Can be used
