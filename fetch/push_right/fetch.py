@@ -341,9 +341,8 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    trainer = Trainer(seed)
+    trainer = Trainer(seed, '../good_models/fetch_seed25_1000.pth')
     print('Trainer Initialized')
-
     print("Prefetching Now...")
     # print('showing example now')
     trainer.train()
