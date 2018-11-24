@@ -135,7 +135,7 @@ class Trainer(object):
         self.env = self.env.unwrapped
 
         self.action_space = 6
-        self.observation_space = [3, 250, 250]
+        self.observation_space = [3, 102, 205]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
         else:
@@ -200,10 +200,7 @@ class Trainer(object):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            try:
-                action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
-            except:
-                import pdb; pdb.set_trace()
+            action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         if gripper_position[2] <= 0.416 and action.item() == 5:
             self.penalty += 1.
