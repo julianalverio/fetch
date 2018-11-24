@@ -135,7 +135,7 @@ class Trainer(object):
         self.env = self.env.unwrapped
 
         self.action_space = 6
-        self.observation_space = [3, 500, 500]
+        self.observation_space = [3, 250, 250]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
         else:
