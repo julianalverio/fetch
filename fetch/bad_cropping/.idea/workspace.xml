@@ -33,12 +33,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="264" />
+          <entry key="py" value="303" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="264" />
+          <entry key="Python" value="303" />
         </counts>
       </usages-collector>
     </session>
@@ -48,8 +48,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/fetch.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="449">
-              <caret line="137" column="45" selection-start-line="137" selection-start-column="45" selection-end-line="137" selection-end-column="45" />
+            <state relative-caret-position="359">
+              <caret line="205" column="43" selection-start-line="205" selection-start-column="43" selection-end-line="205" selection-end-column="43" />
               <folding>
                 <element signature="e#23#36#0" expanded="true" />
               </folding>
@@ -100,10 +100,11 @@
       <find>_render</find>
       <find>_render_callback</find>
       <find>def prefe</find>
-      <find>def train</find>
       <find>import pdb</find>
       <find>def preprocess</find>
       <find>class trainer</find>
+      <find>def train</find>
+      <find>policy_net(</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -279,8 +280,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/fetch.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="449">
-          <caret line="137" column="45" selection-start-line="137" selection-start-column="45" selection-end-line="137" selection-end-column="45" />
+        <state relative-caret-position="359">
+          <caret line="205" column="43" selection-start-line="205" selection-start-column="43" selection-end-line="205" selection-end-column="43" />
           <folding>
             <element signature="e#23#36#0" expanded="true" />
           </folding>

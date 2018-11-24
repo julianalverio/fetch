@@ -200,7 +200,10 @@ class Trainer(object):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
+            try:
+                action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
+            except:
+                import pdb; pdb.set_trace()
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         if gripper_position[2] <= 0.416 and action.item() == 5:
             self.penalty += 1.
@@ -286,7 +289,6 @@ class Trainer(object):
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
-                print(len(self.memory)*1./self.params['replay_size'])
                 continue
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
