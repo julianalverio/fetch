@@ -261,9 +261,9 @@ class Trainer(object):
 
 
     def testStep(self, action):
-        for _ in xrange(100):
+        for _ in range(100):
             self.env.step(action)
-        for _ in xrange(20):
+        for _ in range(20):
             self.env.render()
             self.env.render(mode='rgb_array')
 
