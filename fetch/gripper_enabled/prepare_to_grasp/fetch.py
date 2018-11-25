@@ -308,7 +308,7 @@ class Trainer(object):
 
             # if you're close to the box, get low to the table
             height_vector = gripper_z - 0.412
-            if vector_length < 0.2:
+            if distance_vector < 0.2:
                 reward -= height_vector
 
             # penalty for going too high
