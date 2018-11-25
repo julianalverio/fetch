@@ -217,8 +217,8 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        if gripper_position[2] <= 0.416 and action.item() == 5:
-            self.penalty += 1.
+        # if gripper_position[2] <= 0.416 and action.item() == 5:
+        #     self.penalty += 1.
         if gripper_position[2] >= 0.64 and action.item() == 4:
             self.penalty += 1.
         self.env.step(self.convertAction(action))
@@ -272,8 +272,6 @@ class Trainer(object):
         left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
         finger_distance = right_finger_position + left_finger_position
 
-
-
         # if self.task == 1:
         #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
         #         self.score += 1.
@@ -307,11 +305,19 @@ class Trainer(object):
             self.penalty = 0
             if finger_distance > 0.08:
                 reward -= 10.
+            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+                reward -= 10.
+
 
 
 
 
     def train(self):
+        import pdb; pdb.set_trace()
+        for _ in range(1000):
+            self.env.step([0,0,0,1])
+        for _ in range(10):
+            self.env.render()
         import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
