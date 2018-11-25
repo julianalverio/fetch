@@ -25,7 +25,7 @@ from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 
 
-NUM_EPISODES = 1500
+NUM_EPISODES = 2000
 
 
 HYPERPARAMS = {

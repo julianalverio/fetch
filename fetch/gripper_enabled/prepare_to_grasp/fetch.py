@@ -158,7 +158,7 @@ class Trainer(object):
         self.state = self.preprocess(self.reset())
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 2
+        self.task = 4
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -217,8 +217,8 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        if gripper_position[2] <= 0.416 and action.item() == 5:
-            self.penalty += 1.
+        # if gripper_position[2] <= 0.416 and action.item() == 5:
+        #     self.penalty += 1.
         if gripper_position[2] >= 0.64 and action.item() == 4:
             self.penalty += 1.
         self.env.step(self.convertAction(action))
