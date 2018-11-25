@@ -19,17 +19,17 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/gripper_enabled')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 
 
-NUM_EPISODES = 3000
+NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
-        'replay_size':      35000,
+        'replay_size':      100000,
         'replay_initial':   10000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
@@ -130,11 +130,19 @@ class Trainer(object):
     def __init__(self, seed, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # self.env = gym.make('FetchPush-v1').unwrapped
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
 
-        self.action_space = 6
+        #Actions:
+        # 0 -- increment X
+        # 1 -- decrement X
+        # 2 -- increment Y
+        # 3 -- decrement Y
+        # 4 -- increment Z
+        # 5 -- decrement Z
+        # 6 -- increment gripper
+        # 7 -- decrement gripper
+        self.action_space = 8
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
@@ -150,7 +158,7 @@ class Trainer(object):
         self.state = self.preprocess(self.reset())
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 3 # 3: push to the right
+        self.task = 2
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -166,11 +174,17 @@ class Trainer(object):
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push.xml', has_object=True, block_gripper=True, n_substeps=20,
-            gripper_extra_height=0.0, target_in_the_air=False, target_offset=0.0,
+        env = fetch_env.FetchEnv('fetch/pick_and_place.xml', has_object=True, block_gripper=False, n_substeps=20,
+            gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
         return TimeLimit(env)
+
+
+    def getGripperWidth(self):
+        right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
+        left_finger = self.env.sim.data.get_body_xipos('robot0:l_gripper_finger_link')[2]
+        return abs(right_finger - left_finger)
 
 
     def reset(self):
@@ -185,6 +199,7 @@ class Trainer(object):
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
+
 
     # indices are x, y, z, gripper
     def convertAction(self, action):
@@ -204,8 +219,8 @@ class Trainer(object):
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         if gripper_position[2] <= 0.416 and action.item() == 5:
             self.penalty += 1.
-        # if gripper_position[2] >= 0.64 and action.item() == 4:
-        #     self.penalty += 1.
+        if gripper_position[2] >= 0.64 and action.item() == 4:
+            self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
@@ -244,23 +259,21 @@ class Trainer(object):
         self.optimizer.step()
 
     '''
-    Task 1: Touch the block, discrete reward
+    Task 1: Deprecated
     Task 2: Touch the block, continuous reward
     Task 3: Move the block as far to the right as possible
-    Task 4: Raise the block; possible negative reward if the block goes higher than the gripper
+    Task 4: Prepare to grip the block
     '''
     def getReward(self):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        # if self.task == 1:
-        #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-        #         self.score += 1.
-        #         return 1., True
-        #     return 0., False
+        # right_finger_position = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        # left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        # finger_distance = right_finger_position + left_finger_position
+
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            # reward = 1. / distance
             reward = -distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
@@ -271,11 +284,52 @@ class Trainer(object):
             return reward, done
 
         if self.task == 3:
-            x_reward = object_position[0] - self.initial_object_position[0]
-            y_reward = abs(object_position[1] - self.initial_object_position[1])
-            reward = x_reward - y_reward - self.penalty
+            reward = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
+            reward -= self.penalty
             self.penalty = 0
-            return reward, False
+            # if you knock the block off the table
+            if self.initial_object_position[2] - object_position[2] > 0.1:
+                done = True
+            return reward, done
+
+        # don't move the block
+        # have the gripper open wider than
+        # don't open the fingers wider than 0.04 on either side (0.08 total)
+        # take pentalties for going too high/low into account
+        if self.task == 4:
+            reward = 0.
+
+
+            # get directly over the box
+            object_x, object_y, object_z = object_position
+            gripper_x, gripper_y, gripper_z = gripper_position
+            distance_vector = np.linalg.norm([object_x - gripper_x, object_y - gripper_y])
+            reward -= distance_vector
+
+            # if you're close to the box, get low to the table
+            height_vector = gripper_z - 0.412
+            if vector_length < 0.2:
+                reward -= height_vector
+
+            # penalty for going too high
+            reward -= self.penalty
+            self.penalty = 0
+
+            # termination condition
+            if height_vector < 0.01 and distance_vector < 0.05:
+                reward += 1
+                done = True
+
+            # if you knock the block off the table, restart
+            if self.initial_object_position[2] - object_z > 0.1:
+                done = True
+                reward -= 1
+            return reward, done
+
+
+
+
+
 
 
 
@@ -341,8 +395,9 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    trainer = Trainer(seed, '../good_models/fetch_seed25_1000.pth')
+    trainer = Trainer(seed)
     print('Trainer Initialized')
+
     print("Prefetching Now...")
     # print('showing example now')
     trainer.train()

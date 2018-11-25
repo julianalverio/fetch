@@ -130,7 +130,6 @@ class Trainer(object):
     def __init__(self, seed, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # self.env = gym.make('FetchPush-v1').unwrapped
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
 
@@ -159,7 +158,7 @@ class Trainer(object):
         self.state = self.preprocess(self.reset())
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 3
+        self.task = 2
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -175,7 +174,7 @@ class Trainer(object):
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push.xml', has_object=True, block_gripper=False, n_substeps=20,
+        env = fetch_env.FetchEnv('fetch/pick_and_place.xml', has_object=True, block_gripper=False, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
@@ -213,10 +212,6 @@ class Trainer(object):
 
 
     def addExperience(self):
-        right_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint'))
-        left_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint'))
-        finger_distance = right_finger + left_finger
-
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
@@ -231,16 +226,6 @@ class Trainer(object):
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
         done = done or self.movement_count == 1500
-
-        new_right_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint'))
-        new_left_finger = copy.deepcopy(self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint'))
-        new_finger_distance = new_right_finger + new_left_finger
-        if abs(finger_distance - new_finger_distance) > 1e-5:
-            print(new_finger_distance - finger_distance)
-            # print(self.convertAction(action))
-            # import time; time.sleep(1)
-            if self.env.sim.data.ctrl is not None:
-                import pdb; pdb.set_trace()
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
@@ -273,25 +258,22 @@ class Trainer(object):
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
-
     '''
-    Task 1: Touch the block, discrete reward
+    Task 1: Deprecated
     Task 2: Touch the block, continuous reward
     Task 3: Move the block as far to the right as possible
-    Task 4: get directly over the block with your gripper open, negative reward for moving the block
+    Task 4: Prepare to grip the block
     '''
     def getReward(self):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        # if self.task == 1:
-        #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-        #         self.score += 1.
-        #         return 1., True
-        #     return 0., False
+        # right_finger_position = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        # left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        # finger_distance = right_finger_position + left_finger_position
+
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            # reward = 1. / distance
             reward = -distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
@@ -305,25 +287,53 @@ class Trainer(object):
             reward = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
             reward -= self.penalty
             self.penalty = 0
-            return reward, False
+            # if you knock the block off the table
+            if self.initial_object_position[2] - object_position[2] > 0.1:
+                done = True
+            return reward, done
 
+        # don't move the block
+        # have the gripper open wider than
+        # don't open the fingers wider than 0.04 on either side (0.08 total)
+        # take pentalties for going too high/low into account
         if self.task == 4:
             reward = 0.
-            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-                reward -= 10.
 
-            # if
+
+            # get directly over the box
+            object_x, object_y, object_z = object_position
+            gripper_x, gripper_y, gripper_z = gripper_position
+            distance_vector = np.linalg.norm([object_x - gripper_x, object_y - gripper_y])
+            reward -= distance_vector
+
+            # if you're close to the box, get low to the table
+            height_vector = gripper_z - 0.412
+            if vector_length < 0.2:
+                reward -= height_vector
+
+            # penalty for going too high
+            reward -= self.penalty
+            self.penalty = 0
+
+            # termination condition
+            if height_vector < 0.01 and distance_vector < 0.05:
+                reward += 1
+                done = True
+
+            # if you knock the block off the table, restart
+            if self.initial_object_position[2] - object_z > 0.1:
+                done = True
+                reward -= 1
+            return reward, done
+
+
+
+
 
 
 
 
     def train(self):
-        import pdb; pdb.set_trace()
-        for _ in range(100):
-            self.env.step([0,0,0,-1])
-        for _ in range(20):
-            self.env.render()
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
