@@ -268,6 +268,12 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
+        right_finger_position = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        finger_distance = right_finger_position + left_finger_position
+
+
+
         # if self.task == 1:
         #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
         #         self.score += 1.
@@ -291,9 +297,22 @@ class Trainer(object):
             self.penalty = 0
             return reward, False
 
+        # don't move the block
+        # have the gripper open
+        # don't open the fingers wider than 0.04 on either side (0.08 total)
+        # take pentalties for going too high/low into account
+        if self.task == 4:
+            reward = 0.
+            reward -= self.penalty
+            self.penalty = 0
+            if finger_distance > 0.08:
+                reward -= 10.
+
+
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
