@@ -130,7 +130,6 @@ class Trainer(object):
     def __init__(self, seed, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # self.env = gym.make('FetchPush-v1').unwrapped
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
 
@@ -295,17 +294,6 @@ class Trainer(object):
 
 
     def train(self):
-        import pdb; pdb.set_trace()
-        for _ in range(100):
-            self.env.step([0,0,0,1])
-        for _ in range(10):
-            self.env.render()
-        import pdb; pdb.set_trace()
-        for _ in range(100):
-            self.env.step([0,0,0,-1])
-        for _ in range(20):
-            self.env.render()
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
