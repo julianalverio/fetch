@@ -87,6 +87,9 @@ class RewardTracker:
             self.position = (self.position + 1) % self.length
         self.mean_score = np.mean(self.rewards)
 
+    def clearRewards(self):
+        self.rewards = []
+
     def meanScore(self):
         return self.mean_score
 
@@ -225,6 +228,7 @@ class Trainer(object):
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
+        self.reward_tracker.add(reward)
         done = done or self.movement_count == 1500
 
         if done:
@@ -351,9 +355,16 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                self.reward_tracker.add(self.score)
-                print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
-                self.writer.writerow([self.reward_tracker.meanScore(), round(self.epsilon_tracker._epsilon, 2)])
+                if self.task == 2:
+                    self.reward_tracker.add(self.score)
+                    print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
+                    self.writer.writerow([self.reward_tracker.meanScore()])
+                else:
+                    mean = np.mean(self.reward_tracker.rewards)
+                    print('Episode: %s Mean Score: %s' % (self.episode, mean))
+                    self.writer.writerow([mean])
+                    self.reward_tracker.clearRewards()
+
                 if (self.episode % 100 == 0):
                     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
                     print('Model Saved!')
