@@ -217,8 +217,8 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        # if gripper_position[2] <= 0.416 and action.item() == 5:
-        #     self.penalty += 1.
+        if gripper_position[2] <= 0.416 and action.item() == 5:
+            self.penalty += 1.
         if gripper_position[2] >= 0.64 and action.item() == 4:
             self.penalty += 1.
         self.env.step(self.convertAction(action))
@@ -259,27 +259,21 @@ class Trainer(object):
         self.optimizer.step()
 
     '''
-    Task 1: Touch the block, discrete reward
+    Task 1: Deprecated
     Task 2: Touch the block, continuous reward
     Task 3: Move the block as far to the right as possible
-    Task 4: Raise the block; possible negative reward if the block goes higher than the gripper
+    Task 4: Prepare to grip the block
     '''
     def getReward(self):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        right_finger_position = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
-        left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
-        finger_distance = right_finger_position + left_finger_position
+        # right_finger_position = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        # left_finger_position = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        # finger_distance = right_finger_position + left_finger_position
 
-        # if self.task == 1:
-        #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-        #         self.score += 1.
-        #         return 1., True
-        #     return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            # reward = 1. / distance
             reward = -distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
@@ -293,32 +287,53 @@ class Trainer(object):
             reward = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
             reward -= self.penalty
             self.penalty = 0
-            return reward, False
+            # if you knock the block off the table
+            if self.initial_object_position[2] - object_position[2] > 0.1:
+                done = True
+            return reward, done
 
         # don't move the block
-        # have the gripper open
+        # have the gripper open wider than
         # don't open the fingers wider than 0.04 on either side (0.08 total)
         # take pentalties for going too high/low into account
         if self.task == 4:
             reward = 0.
+
+
+            # get directly over the box
+            object_x, object_y, object_z = object_position
+            gripper_x, gripper_y, gripper_z = gripper_position
+            distance_vector = np.linalg.norm([object_x - gripper_x, object_y - gripper_y])
+            reward -= distance_vector
+
+            # if you're close to the box, get low to the table
+            height_vector = gripper_z - 0.412
+            if vector_length < 0.2:
+                reward -= height_vector
+
+            # penalty for going too high
             reward -= self.penalty
             self.penalty = 0
-            if finger_distance > 0.08:
-                reward -= 10.
-            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-                reward -= 10.
+
+            # termination condition
+            if height_vector < 0.01 and distance_vector < 0.05:
+                reward += 1
+                done = True
+
+            # if you knock the block off the table, restart
+            if self.initial_object_position[2] - object_z > 0.1:
+                done = True
+                reward -= 1
+            return reward, done
+
+
+
 
 
 
 
 
     def train(self):
-        import pdb; pdb.set_trace()
-        for _ in range(1000):
-            self.env.step([0,0,0,1])
-        for _ in range(10):
-            self.env.render()
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
