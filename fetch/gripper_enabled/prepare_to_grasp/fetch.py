@@ -329,14 +329,7 @@ class Trainer(object):
                 done = True
                 reward -= 1
 
-
             return reward, done
-
-
-
-
-
-
 
 
     def train(self):
@@ -354,12 +347,11 @@ class Trainer(object):
                 print("Done Prefetching.")
                 self.reset()
 
-
             # is this round over?
             if done:
                 if self.task == 2:
                     self.reward_tracker.add(self.score)
-                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
+                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode, self.score, self.reward_tracker.meanScore()))
                     self.writer.writerow([self.reward_tracker.meanScore()])
                 else:
                     mean = np.mean(self.reward_tracker.rewards)
@@ -384,15 +376,15 @@ class Trainer(object):
 
 
     def playback(self, path):
-        target_net = torch.load(path)
-        state = self.preprocess(self.reset())
-        self.env.render()
+        self.target_net = torch.load(path)
+        for _ in range(4):
+            self.env.render()
         done = False
         while not done:
             self.env.render(mode='human')
-            action = self.convertAction(torch.argmax(target_net(state), dim=1).to(self.device))
+            action = self.convertAction(torch.argmax(self.target_net(self.state), dim=1).to(self.device))
             self.env.step(action)
-            state = self.preprocess(self.env.render(mode='rgb_array'))
+            self.state = self.preprocess(self.env.render(mode='rgb_array'))
 
 
 if __name__ == "__main__":
@@ -411,10 +403,10 @@ if __name__ == "__main__":
     trainer = Trainer(seed)
     print('Trainer Initialized')
 
-    print("Prefetching Now...")
-    # print('showing example now')
-    trainer.train()
-    # trainer.playback('fetch_seed25_8500.pth')
+    # print("Prefetching Now...")
+    print('showing example now')
+    # trainer.train()
+    trainer.playback('fetch_seed7_1500.pth')
 
 
 
