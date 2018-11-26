@@ -397,7 +397,7 @@ if __name__ == "__main__":
     # print("Prefetching Now...")
     print('showing example now')
     # trainer.train()
-    trainer.playback('fetch_seed40_1100.pth')
+    trainer.playback('fetch_seed40_1000.pth')
 
 
 
