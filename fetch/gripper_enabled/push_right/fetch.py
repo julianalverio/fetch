@@ -399,10 +399,10 @@ if __name__ == "__main__":
     trainer = Trainer(seed)
     print('Trainer Initialized')
 
-    print("Prefetching Now...")
-    # print('showing example now')
-    trainer.train()
-    # trainer.playback('fetch_seed25_8500.pth')
+    # print("Prefetching Now...")
+    print('showing example now')
+    # trainer.train()
+    trainer.playback('fetch_seed40_1000.pth')
 
 
 
