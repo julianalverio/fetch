@@ -1,27 +1,24 @@
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns; sns.set()
+import pandas as pd
 
 
-plt.ylim(0, 1.1)
-# seeds = [25, 33, 42, 50, 51, 68, 90]
-seeds = [68, 25]
-for seed in seeds:
-	scores = []
-	mean_scores = []
-	csv_file = open('seed%s_scores.csv' % seed, 'r')
-	reader = csv.reader(csv_file)
-	for idx, row in enumerate(reader):
-		mean_score = row[0]
-		scores.append(float(mean_score))
-		if idx < 100:
-			mean_scores.append(sum(scores) * 1. / len(scores))
-		else:
-			mean_scores.append(sum(scores[idx-100:]) / 100.)
+csv_files = ['small_buffer/seed87_scores.csv'] # TODO
+all_mean_scores = []
+for csv_file in csv_files:
+    mean_scores = []
+    reader = csv.reader(open(csv_file, 'r'))
+    for row in reader:
+        mean_scores.append(row[0])
+    all_mean_scores.append(mean_scores)
 
-	
-	plt.plot(mean_scores)
-
-plt.legend(['Seed 68', 'Seed 25'])
+df = pd.DataFrame(all_mean_scores[0], index=np.arange(0, 1500), columns=['small buffer']) #TODO
+df['index'] = pd.Series(np.arange(0, 1500))
+df = df.astype(float)
+ax = df.plot(x='index', y='short_buffer')
+ax.set_xlabel("Epochs")
+ax.set_ylabel("Avg Score at End of Epoch")
 plt.show()
 
