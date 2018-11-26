@@ -385,6 +385,7 @@ class Trainer(object):
             action = self.convertAction(torch.argmax(self.target_net(self.state), dim=1).to(self.device))
             self.env.step(action)
             self.state = self.preprocess(self.env.render(mode='rgb_array'))
+            reward, done = self.getReward()
 
 
 if __name__ == "__main__":
