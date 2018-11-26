@@ -303,6 +303,7 @@ class Trainer(object):
         if self.task == 4:
             reward = 0.
 
+
             # get directly over the box
             object_x, object_y, object_z = object_position
             gripper_x, gripper_y, gripper_z = gripper_position
@@ -310,7 +311,7 @@ class Trainer(object):
             reward -= distance_vector
 
             # if you're close to the box, get low to the table
-            height_vector = gripper_z - 0.416
+            height_vector = gripper_z - 0.412
             if distance_vector < 0.2:
                 reward -= height_vector
 
@@ -322,14 +323,11 @@ class Trainer(object):
             if height_vector < 0.01 and distance_vector < 0.05:
                 reward += 1
                 done = True
-                self.score = 1.
 
             # if you knock the block off the table, restart
             if self.initial_object_position[2] - object_z > 0.1:
                 done = True
                 reward -= 1
-
-
             return reward, done
 
 
@@ -359,7 +357,7 @@ class Trainer(object):
             if done:
                 if self.task == 2:
                     self.reward_tracker.add(self.score)
-                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
+                    print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
                     self.writer.writerow([self.reward_tracker.meanScore()])
                 else:
                     mean = np.mean(self.reward_tracker.rewards)

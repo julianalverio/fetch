@@ -351,9 +351,10 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                self.reward_tracker.add(self.score)
-                print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
-                self.writer.writerow([self.reward_tracker.meanScore(), round(self.epsilon_tracker._epsilon, 2)])
+                final_distance = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
+                self.reward_tracker.add(final_distance)
+                print('Episode: %s Distance: %s Average Distance: %s' % (self.episode, final_distance, self.reward_tracker.meanScore()))
+                self.writer.writerow([final_distance, self.reward_tracker.meanScore()])
                 if (self.episode % 100 == 0):
                     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
                     print('Model Saved!')

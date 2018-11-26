@@ -87,9 +87,6 @@ class RewardTracker:
             self.position = (self.position + 1) % self.length
         self.mean_score = np.mean(self.rewards)
 
-    def clearRewards(self):
-        self.rewards = []
-
     def meanScore(self):
         return self.mean_score
 
@@ -161,7 +158,7 @@ class Trainer(object):
         self.state = self.preprocess(self.reset())
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 4
+        self.task = 3
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -228,7 +225,6 @@ class Trainer(object):
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
-        self.reward_tracker.add(reward)
         done = done or self.movement_count == 1500
 
         if done:
@@ -303,6 +299,7 @@ class Trainer(object):
         if self.task == 4:
             reward = 0.
 
+
             # get directly over the box
             object_x, object_y, object_z = object_position
             gripper_x, gripper_y, gripper_z = gripper_position
@@ -310,8 +307,8 @@ class Trainer(object):
             reward -= distance_vector
 
             # if you're close to the box, get low to the table
-            height_vector = gripper_z - 0.416
-            if distance_vector < 0.2:
+            height_vector = gripper_z - 0.412
+            if vector_length < 0.2:
                 reward -= height_vector
 
             # penalty for going too high
@@ -322,14 +319,11 @@ class Trainer(object):
             if height_vector < 0.01 and distance_vector < 0.05:
                 reward += 1
                 done = True
-                self.score = 1.
 
             # if you knock the block off the table, restart
             if self.initial_object_position[2] - object_z > 0.1:
                 done = True
                 reward -= 1
-
-
             return reward, done
 
 
@@ -357,16 +351,9 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                if self.task == 2:
-                    self.reward_tracker.add(self.score)
-                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
-                    self.writer.writerow([self.reward_tracker.meanScore()])
-                else:
-                    mean = np.mean(self.reward_tracker.rewards)
-                    print('Episode: %s Mean Score: %s' % (self.episode, mean))
-                    self.writer.writerow([mean])
-                    self.reward_tracker.clearRewards()
-
+                self.reward_tracker.add(self.score)
+                print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
+                self.writer.writerow([self.reward_tracker.meanScore(), round(self.epsilon_tracker._epsilon, 2)])
                 if (self.episode % 100 == 0):
                     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
                     print('Model Saved!')
