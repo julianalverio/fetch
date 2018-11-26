@@ -327,12 +327,6 @@ class Trainer(object):
             return reward, done
 
 
-
-
-
-
-
-
     def train(self):
         frame_idx = 0
         while True:
@@ -372,15 +366,16 @@ class Trainer(object):
 
 
     def playback(self, path):
-        target_net = torch.load(path)
-        state = self.preprocess(self.reset())
-        self.env.render()
+        self.target_net = torch.load(path)
+        for _ in range(4):
+            self.env.render()
         done = False
         while not done:
             self.env.render(mode='human')
-            action = self.convertAction(torch.argmax(target_net(state), dim=1).to(self.device))
+            action = self.convertAction(torch.argmax(self.target_net(state), dim=1).to(self.device))
             self.env.step(action)
-            state = self.preprocess(self.env.render(mode='rgb_array'))
+            self.state = self.preprocess(self.env.render(mode='rgb_array'))
+            reward, done = self.getReward()
 
 
 if __name__ == "__main__":
