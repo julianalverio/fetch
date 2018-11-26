@@ -372,7 +372,7 @@ class Trainer(object):
         done = False
         while not done:
             self.env.render(mode='human')
-            action = self.convertAction(torch.argmax(self.target_net(state), dim=1).to(self.device))
+            action = self.convertAction(torch.argmax(self.target_net(self.state), dim=1).to(self.device))
             self.env.step(action)
             self.state = self.preprocess(self.env.render(mode='rgb_array'))
             reward, done = self.getReward()
