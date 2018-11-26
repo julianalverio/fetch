@@ -260,7 +260,7 @@ class Trainer(object):
         #     return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            reward = 1. / distance
+            reward = -1 * distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
                 self.score += 1.
@@ -286,7 +286,6 @@ class Trainer(object):
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
-                self.memory.showCapacity()
                 continue
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
