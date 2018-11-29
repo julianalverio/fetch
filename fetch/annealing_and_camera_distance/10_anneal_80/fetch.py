@@ -166,7 +166,7 @@ class Trainer(object):
         self.remaining_anneals = anneal_count
 
         self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
-        self.current_radius = self.getRewardRadius()
+        self.current_radius = self.updateRewardRadius()
 
 
     def updateRewardRadius(self):
