@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import random
 import numpy as np
 import torch
@@ -23,6 +24,7 @@ sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
+from tensorboardX import SummaryWriter
 
 
 NUM_EPISODES = 1500
@@ -132,6 +134,7 @@ class Trainer(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
+        self.writer = SummaryWriter('results')
 
         self.action_space = 6
         self.observation_space = [3, 102, 205]
@@ -149,7 +152,7 @@ class Trainer(object):
         self.state = self.preprocess(self.reset())
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 2
+        self.task = 3
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -157,9 +160,8 @@ class Trainer(object):
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
 
-        import pdb; pdb.set_trace()
         initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
-        self.min_radius = None #TODO
+        self.min_radius = 0.038
         self.anneal_count = anneal_count
         self.remaining_anneals = anneal_count
 
@@ -195,7 +197,6 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
-        # state = cv2.cvtColor(state, cv2.COLOR_RGB2GRAY)
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -251,18 +252,15 @@ class Trainer(object):
         next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
+        import pdb; pdb.set_trace()
+        # make sure the line below works
+        self.writer.add_scalar("loss for episode", loss, self.episode)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
-    def userControl(self):
-        command = raw_input('Type length-4 command:')
-        for _ in range(4):
-            self.env.step(command)
-        for _ in range(4):
-            self.env.render()
 
     '''
     Task 1: Touch the block, discrete reward
@@ -299,19 +297,18 @@ class Trainer(object):
                     reward += 1
                 if self.reward_tracker.meanScore() >= 0.9:
                     done = True
+                    self.remaining_anneals -= 1
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10
                 done = True
                 self.score = 1
+            print('reward: ', reward)
+            if done:
+                print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
             return reward, done
 
 
-
-
-
-
     def train(self):
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
@@ -326,10 +323,10 @@ class Trainer(object):
                 print("Done Prefetching.")
                 self.reset()
 
-
             # is this round over?
             if done:
                 self.reward_tracker.add(self.score)
+                self.writer.add_scalar('score for epoch', self.score, '')
                 print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
                 self.writer.writerow([self.reward_tracker.meanScore(), round(self.epsilon_tracker._epsilon, 2)])
                 # if (self.episode % 100 == 0):
