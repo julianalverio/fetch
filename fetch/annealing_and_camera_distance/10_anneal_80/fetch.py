@@ -157,6 +157,7 @@ class Trainer(object):
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
 
+        import pdb; pdb.set_trace()
         initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
         self.min_radius = None #TODO
         self.anneal_count = anneal_count
