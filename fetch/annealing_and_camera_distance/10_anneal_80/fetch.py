@@ -127,7 +127,7 @@ class ReplayMemory(object):
 
 
 class Trainer(object):
-    def __init__(self, seed, warm_start_path=''):
+    def __init__(self, seed, anneal_count, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
@@ -156,6 +156,20 @@ class Trainer(object):
         self.penalty = 0.
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
+
+        initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+        self.min_radius = None #TODO
+        self.anneal_count = anneal_count
+        self.remaining_anneals = anneal_count
+
+        self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
+        self.current_radius = self.getRewardRadius()
+
+
+    def updateRewardRadius(self):
+        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_radius
+        current_radius = (0.75 * current_volume / np.pi) ** (1/3)
+        self.current_radius = current_radius
 
 
     def makeEnv(self):
@@ -242,21 +256,27 @@ class Trainer(object):
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
 
+    def userControl(self):
+        command = raw_input('Type length-4 command:')
+        for _ in range(4):
+            self.env.step(command)
+        for _ in range(4):
+            self.env.render()
+
     '''
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
-    Task 3: Move the block as far to the right as possible
-    Task 4: Raise the block; possible negative reward if the block goes higher than the gripper
+    Task 3: Annealing Binary Reward. Done if touch block or success >= 90%
     '''
     def getReward(self):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        # if self.task == 1:
-        #     if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-        #         self.score += 1.
-        #         return 1., True
-        #     return 0., False
+        if self.task == 1:
+            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+                self.score += 1.
+                return 1., True
+            return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
             # reward = 1. / distance
@@ -270,10 +290,22 @@ class Trainer(object):
             return reward, done
 
         if self.task == 3:
-            reward = self.env.sim.data.get_site_xpos('object0')[0] - self.initial_object_position[0]
-            reward -= self.penalty
-            self.penalty = 0
-            return reward, False
+            reward = 0
+            done = False
+            if self.remaining_anneals >= 1:
+                if np.linalg.norm(gripper_position - object_position) < self.current_radius:
+                    self.score = 1
+                    reward += 1
+                if self.reward_tracker.meanScore() >= 0.9:
+                    done = True
+            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+                reward += 10
+                done = True
+                self.score = 1
+            return reward, done
+
+
+
 
 
 
@@ -330,8 +362,12 @@ class Trainer(object):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
+    parser.add_argument('anneal_count', type=int, default='10')
     args = parser.parse_args()
     gpu_num = args.gpu
+    anneal_count = args.anneal_count
+    print('GPU:', gpu_num)
+    print('ANNEALS:', anneal_count)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
     print('RANDOM SEED: ', seed)
@@ -340,7 +376,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    trainer = Trainer(seed)
+    trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
 
     print("Prefetching Now...")
