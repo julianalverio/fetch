@@ -200,12 +200,12 @@ class Trainer(object):
             self.env.render()
             counter += 1
         self.env.sim.nsubsteps = 2
-        self.viewer.cam.lookat[0] = 1.
-        self.viewer.cam.lookat[1] = 1.5
-        self.viewer.cam.lookat[2] = 1.1
-        self.viewer.cam.azimuth = 165.
-        self.viewer.cam.elevation = 10.
-        self.viewer.cam.distance = 2.5
+        self.env.viewer.cam.lookat[0] = 1.
+        self.env.viewer.cam.lookat[1] = 1.5
+        self.env.viewer.cam.lookat[2] = 1.1
+        self.env.viewer.cam.azimuth = 165.
+        self.env.viewer.cam.elevation = 10.
+        self.env.viewer.cam.distance = 2.5
         import pdb; pdb.set_trace()
         return self.env.render(mode='rgb_array')
 
