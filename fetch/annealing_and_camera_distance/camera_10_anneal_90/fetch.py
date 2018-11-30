@@ -210,8 +210,12 @@ class Trainer(object):
         data = image.load()
         for y in range(height):
             for x in range(width):
-                r, g, b = image.getpixel((x, y))
-                image
+                r, g, b = data[x, y]
+                if r > 200 and g > 200 and b > 200:
+                    data[x, y] = (255, 0, 0)
+        import pdb; pdb.set_trace()
+        image.show()
+        Image(data).show()
         data = image.getdata()
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
