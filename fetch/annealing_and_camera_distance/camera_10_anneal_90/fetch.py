@@ -206,7 +206,7 @@ class Trainer(object):
         import pdb; pdb.set_trace()
         image = Image.fromarray(state)
         image.show()
-        width, height = image.size()
+        width, height = image.size
         for y in range(height):
             for x in range(width):
                 pixel = image.getpixel((x, y))
