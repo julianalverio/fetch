@@ -213,8 +213,9 @@ class Trainer(object):
                 r, g, b = data[x, y]
                 if 120 > r > 100 and 120 > g > 100 and 120 > b > 100:
                     data[x, y] = (255, 0, 0)
-        import pdb; pdb.set_trace()
         image.show()
+        import sys; sys.exit()
+        import pdb; pdb.set_trace()
         Image(data).show()
         data = image.getdata()
         state = state[230:435, 50:460]
