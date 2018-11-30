@@ -160,12 +160,12 @@ class Trainer(object):
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
 
-        initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+        self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
         self.min_radius = 0.038
         self.anneal_count = anneal_count
         self.remaining_anneals = anneal_count + 1
 
-        self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
+        self.initial_differential_radius = np.linalg.norm(self.initial_gripper_position - self.initial_object_position) - self.min_radius
         self.initial_differential_volume = 4./3 * np.pi * self.initial_differential_radius ** 3
         self.current_radius = None
         self.updateRewardRadius()
@@ -195,8 +195,12 @@ class Trainer(object):
 
     def reset(self):
         self.env.reset()
-        for _ in range(6):
+        counter = 0
+        while np.linalg.norm(self.env.sim.data.get_site_xpos('robot0:grip') - self.initial_gripper_position) > 1e-3:
             self.env.render()
+            counter += 1
+        print('I HAD TO RESET %s TIMES' % counter)
+        import pdb; pdb.set_trace()
         self.env.sim.nsubsteps = 2
         return self.env.render(mode='rgb_array')
 
@@ -234,7 +238,6 @@ class Trainer(object):
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
-            print("I SHOULD'VE JUST RESET")
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
             self.episode += 1
