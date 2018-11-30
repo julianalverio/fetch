@@ -195,6 +195,7 @@ class Trainer(object):
 
     def reset(self):
         self.env.reset()
+        self.env.render(mode='rgb_array')
         counter = 0
         while np.linalg.norm(self.env.sim.data.get_site_xpos('robot0:grip') - self.initial_gripper_position) > 1e-3:
             self.env.render()
