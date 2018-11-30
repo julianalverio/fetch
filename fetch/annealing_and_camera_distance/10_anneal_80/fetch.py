@@ -152,6 +152,7 @@ class Trainer(object):
         self.episode = 0
         self.state = self.preprocess(self.reset())
         self.tb_writer = SummaryWriter('results')
+        self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
         self.task = 3
