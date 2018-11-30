@@ -179,7 +179,6 @@ class Trainer(object):
         import pdb; pdb.set_trace()
 
 
-
     def makeEnv(self):
         initial_qpos = {
             'robot0:slide0': 0.405,
@@ -200,8 +199,6 @@ class Trainer(object):
         while np.linalg.norm(self.env.sim.data.get_site_xpos('robot0:grip') - self.initial_gripper_position) > 1e-3:
             self.env.render()
             counter += 1
-        print('I HAD TO RESET %s TIMES' % counter)
-        import pdb; pdb.set_trace()
         self.env.sim.nsubsteps = 2
         return self.env.render(mode='rgb_array')
 
