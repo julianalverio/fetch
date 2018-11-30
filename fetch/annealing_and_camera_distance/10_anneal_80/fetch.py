@@ -167,6 +167,7 @@ class Trainer(object):
 
         self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
         self.initial_differential_volume = 4./3 * np.pi * self.initial_differential_radius ** 3
+        import pdb; pdb.set_trace()
         self.current_radius = self.updateRewardRadius()
 
 
