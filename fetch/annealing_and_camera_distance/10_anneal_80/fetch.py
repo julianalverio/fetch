@@ -306,7 +306,6 @@ class Trainer(object):
                 self.score = 1
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
-            print(reward)
             return reward, done
 
 
