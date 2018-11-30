@@ -136,6 +136,8 @@ class Trainer(object):
         self.env = self.env.unwrapped
         self.tb_writer = SummaryWriter('results')
 
+        self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+
         self.action_space = 6
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
@@ -160,7 +162,6 @@ class Trainer(object):
         csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(csv_file)
 
-        self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
         self.min_radius = 0.038
         self.anneal_count = anneal_count
         self.remaining_anneals = anneal_count + 1
