@@ -163,7 +163,7 @@ class Trainer(object):
         initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
         self.min_radius = 0.038
         self.anneal_count = anneal_count
-        self.remaining_anneals = anneal_count
+        self.remaining_anneals = anneal_count + 1
 
         self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
         self.initial_differential_volume = 4./3 * np.pi * self.initial_differential_radius ** 3
@@ -172,9 +172,10 @@ class Trainer(object):
 
 
     def updateRewardRadius(self):
+        import pdb; pdb.set_trace()
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
-        current_radius = (0.75 * current_volume / np.pi) ** (1/3)
-        self.current_radius = current_radius
+        current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
+        self.current_radius = current_differential_radius + self.min_radius
 
 
     def makeEnv(self):
@@ -291,17 +292,17 @@ class Trainer(object):
             return reward, done
 
         if self.task == 3:
-            reward = 0
+            reward = 0.
             done = False
             if self.remaining_anneals >= 1:
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
                     self.score = 1.
-                    reward += 1
+                    reward += 1.
                 if self.reward_tracker.meanScore() >= 0.9:
                     done = True
                     self.remaining_anneals -= 1
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-                reward += 10
+                reward += 10.
                 done = True
                 self.score = 1
             if done:
