@@ -206,6 +206,10 @@ class Trainer(object):
         import pdb; pdb.set_trace()
         image = Image.fromarray(state)
         image.show()
+        width, height = image.size()
+        for y in range(height):
+            for x in range(width):
+                pixel = image.getpixel((x, y))
         data = image.getdata()
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
