@@ -328,7 +328,7 @@ class Trainer(object):
             if done:
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
-                print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
+                print('Episode: %s Score: %s Mean Score: %s' % (self.episode ,self.score, self.reward_tracker.meanScore()))
                 self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
                 # if (self.episode % 100 == 0):
                 #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
