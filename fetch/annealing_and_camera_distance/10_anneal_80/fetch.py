@@ -134,7 +134,7 @@ class Trainer(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
-        self.writer = SummaryWriter('results')
+        self.tb_writer = SummaryWriter('results')
 
         self.action_space = 6
         self.observation_space = [3, 102, 205]
@@ -248,6 +248,7 @@ class Trainer(object):
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
         state_batch = torch.cat(list(batch.state))
         action_batch = torch.cat(list(batch.action))
+        import pdb; pdb.set_trace()
         reward_batch = torch.cat(list(batch.reward))
         state_action_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
         next_state_values = torch.zeros(self.batch_size, device=self.device)
@@ -256,7 +257,7 @@ class Trainer(object):
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         import pdb; pdb.set_trace()
         # make sure the line below works
-        self.writer.add_scalar("loss for episode", loss, self.episode)
+        self.tb_writer.add_scalar("loss for episode", loss, self.episode)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -295,12 +296,12 @@ class Trainer(object):
             if self.remaining_anneals >= 1:
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
                     self.score = 1.
-                    reward += 1.
+                    reward += 1
                 if self.reward_tracker.meanScore() >= 0.9:
                     done = True
                     self.remaining_anneals -= 1
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-                reward += 10.
+                reward += 10
                 done = True
                 self.score = 1
             if done:
@@ -326,9 +327,9 @@ class Trainer(object):
             # is this round over?
             if done:
                 self.reward_tracker.add(self.score)
-                self.writer.add_scalar('score for epoch', self.score, '')
+                self.tb_writer.add_scalar('score for epoch', self.score, '')
                 print('Episode: %s Epsilon: %s Score: %s Mean Score: %s' % (self.episode, round(self.epsilon_tracker._epsilon, 2) ,self.score, self.reward_tracker.meanScore()))
-                self.writer.writerow([self.reward_tracker.meanScore(), round(self.epsilon_tracker._epsilon, 2)])
+                self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
                 # if (self.episode % 100 == 0):
                 #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
                 #     print('Model Saved!')
