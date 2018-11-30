@@ -167,7 +167,6 @@ class Trainer(object):
 
         self.initial_differential_radius = np.linalg.norm(initial_gripper_position - self.initial_object_position) - self.min_radius
         self.initial_differential_volume = 4./3 * np.pi * self.initial_differential_radius ** 3
-        import pdb; pdb.set_trace()
         self.current_radius = None
         self.updateRewardRadius()
 
@@ -292,7 +291,6 @@ class Trainer(object):
             return reward, done
 
         if self.task == 3:
-            import pdb; pdb.set_trace()
             reward = 0
             done = False
             if self.remaining_anneals >= 1:
