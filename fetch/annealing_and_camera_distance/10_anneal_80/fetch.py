@@ -134,7 +134,6 @@ class Trainer(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
-        self.tb_writer = SummaryWriter('results')
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
 
@@ -152,6 +151,7 @@ class Trainer(object):
         self.memory = ReplayMemory(self.params['replay_size'], self.transition)
         self.episode = 0
         self.state = self.preprocess(self.reset())
+        self.tb_writer = SummaryWriter('results')
         self.score = 0
         self.batch_size = self.params['batch_size']
         self.task = 3
@@ -176,7 +176,6 @@ class Trainer(object):
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_differential_radius + self.min_radius
-        import pdb; pdb.set_trace()
 
 
     def makeEnv(self):
@@ -348,7 +347,7 @@ class Trainer(object):
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
             if self.episode == NUM_EPISODES:
-                print("DONE")
+                print("DONE WITH ALL EPISODES")
                 return
 
 
