@@ -171,7 +171,7 @@ class Trainer(object):
 
 
     def updateRewardRadius(self):
-        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_dsifferential_volume
+        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
         current_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_radius
 
