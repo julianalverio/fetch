@@ -172,10 +172,11 @@ class Trainer(object):
 
 
     def updateRewardRadius(self):
-        import pdb; pdb.set_trace()
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_differential_radius + self.min_radius
+        import pdb; pdb.set_trace()
+
 
 
     def makeEnv(self):
