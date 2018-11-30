@@ -207,9 +207,11 @@ class Trainer(object):
         image = Image.fromarray(state)
         image.show()
         width, height = image.size
+        data = image.load()
         for y in range(height):
             for x in range(width):
-                pixel = image.getpixel((x, y))
+                r, g, b = image.getpixel((x, y))
+                image
         data = image.getdata()
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
