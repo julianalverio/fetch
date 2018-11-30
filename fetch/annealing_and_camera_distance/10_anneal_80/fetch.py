@@ -280,7 +280,6 @@ class Trainer(object):
             return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
-            # reward = 1. / distance
             reward = -distance
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
@@ -295,13 +294,13 @@ class Trainer(object):
             done = False
             if self.remaining_anneals >= 1:
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
-                    self.score = 1
-                    reward += 1
+                    self.score = 1.
+                    reward += 1.
                 if self.reward_tracker.meanScore() >= 0.9:
                     done = True
                     self.remaining_anneals -= 1
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
-                reward += 10
+                reward += 10.
                 done = True
                 self.score = 1
             print('reward: ', reward)
