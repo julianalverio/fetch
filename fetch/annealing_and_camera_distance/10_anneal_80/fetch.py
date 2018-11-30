@@ -308,6 +308,9 @@ class Trainer(object):
                 self.score = 1
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
+                if self.reward_tracker.meanScore() >= 0.9:
+                    self.updateRewardRadius()
+
             return reward, done
 
 
