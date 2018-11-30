@@ -31,8 +31,8 @@ NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
-        'replay_size':      35000,
-        'replay_initial':   10000,
+        'replay_size':      8000,
+        'replay_initial':   7900,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
@@ -73,12 +73,10 @@ class DQN(nn.Module):
 
 
 class RewardTracker:
-    def __init__(self, length=100, stop_reward=20):
-        self.stop_reward = stop_reward
+    def __init__(self, length=100):
         self.length = length
         self.rewards = []
         self.position = 0
-        self.stop_reward = stop_reward
         self.mean_score = 0
 
     def add(self, reward):
@@ -155,7 +153,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 1
+        self.task = 3
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -260,7 +258,7 @@ class Trainer(object):
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         # make sure the line below works
-        self.tb_writer.add_scalar("loss for episode", loss.item(), self.episode)
+        self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -300,18 +298,17 @@ class Trainer(object):
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
                     self.score = 1.
                     reward += 1.
-                if self.reward_tracker.meanScore() >= 0.9:
+                if self.reward_tracker.meanScore() >= 0.8:
                     done = True
                     self.remaining_anneals -= 1
+                    self.updateRewardRadius()
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
                 done = True
                 self.score = 1
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
-                if self.reward_tracker.meanScore() >= 0.9:
-                    self.updateRewardRadius()
-
+            self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
 
@@ -334,5 +331,63 @@ class Trainer(object):
             if done:
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
+                self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
                 print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
-                s
+                self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
+                # if (self.episode % 100 == 0):
+                #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
+                #     print('Model Saved!')
+                self.score = 0
+                self.movement_count = 0
+
+            self.optimizeModel()
+            if frame_idx % self.params['target_net_sync'] == 0:
+                self.target_net.load_state_dict(self.policy_net.state_dict())
+
+            if self.episode == NUM_EPISODES:
+                print("DONE WITH ALL EPISODES")
+                return
+
+
+    def playback(self, path):
+        target_net = torch.load(path)
+        state = self.preprocess(self.reset())
+        self.env.render()
+        done = False
+        while not done:
+            self.env.render(mode='human')
+            action = self.convertAction(torch.argmax(target_net(state), dim=1).to(self.device))
+            self.env.step(action)
+            state = self.preprocess(self.env.render(mode='rgb_array'))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('gpu', type=int)
+    parser.add_argument('anneal_count', type=int, default='10')
+    args = parser.parse_args()
+    gpu_num = args.gpu
+    anneal_count = args.anneal_count
+    print('GPU:', gpu_num)
+    print('ANNEALS:', anneal_count)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
+    seed = random.randrange(0, 100)
+    print('RANDOM SEED: ', seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    trainer = Trainer(seed, anneal_count)
+    print('Trainer Initialized')
+
+    print("Prefetching Now...")
+    # print('showing example now')
+    trainer.train()
+    # trainer.playback('fetch_seed25_8500.pth')
+
+
+
+
+
+
