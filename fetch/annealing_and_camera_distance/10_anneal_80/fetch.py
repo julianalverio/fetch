@@ -171,11 +171,9 @@ class Trainer(object):
 
 
     def updateRewardRadius(self):
-        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
+        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_dsifferential_volume
         current_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_radius
-        import pdb; pdb.set_trace()
-        print('CURRENT RADIUS: ', current_radius)
 
 
     def makeEnv(self):
@@ -292,6 +290,7 @@ class Trainer(object):
             return reward, done
 
         if self.task == 3:
+            import pdb; pdb.set_trace()
             reward = 0
             done = False
             if self.remaining_anneals >= 1:
