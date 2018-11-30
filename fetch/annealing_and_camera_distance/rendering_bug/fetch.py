@@ -200,6 +200,7 @@ class Trainer(object):
         while np.linalg.norm(self.env.sim.data.get_site_xpos('robot0:grip') - self.initial_gripper_position) > 1e-3:
             self.env.render()
             counter += 1
+        import pdb; pdb.set_trace()
         self.env.sim.nsubsteps = 2
         self.env.viewer.cam.lookat[0] = 1.
         self.env.viewer.cam.lookat[1] = 1.5
