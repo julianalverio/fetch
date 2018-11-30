@@ -195,7 +195,8 @@ class Trainer(object):
 
     def reset(self):
         self.env.reset()
-        self.env.render()
+        for _ in range(6):
+            self.env.render()
         self.env.sim.nsubsteps = 2
         return self.env.render(mode='rgb_array')
 
@@ -233,6 +234,7 @@ class Trainer(object):
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
+            print("I SHOULD'VE JUST RESET")
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
             self.episode += 1
@@ -328,7 +330,7 @@ class Trainer(object):
             if done:
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
-                print('Episode: %s Score: %s Mean Score: %s' % (self.episode ,self.score, self.reward_tracker.meanScore()))
+                print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
                 self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
                 # if (self.episode % 100 == 0):
                 #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
