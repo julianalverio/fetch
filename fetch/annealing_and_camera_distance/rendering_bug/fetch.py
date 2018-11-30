@@ -155,7 +155,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 3
+        self.task = 2
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -200,6 +200,13 @@ class Trainer(object):
             self.env.render()
             counter += 1
         self.env.sim.nsubsteps = 2
+        self.viewer.cam.lookat[0] = 1.
+        self.viewer.cam.lookat[1] = 1.5
+        self.viewer.cam.lookat[2] = 1.1
+        self.viewer.cam.azimuth = 165.
+        self.viewer.cam.elevation = 10.
+        self.viewer.cam.distance = 2.5
+        import pdb; pdb.set_trace()
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
