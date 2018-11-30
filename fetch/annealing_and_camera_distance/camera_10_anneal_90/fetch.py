@@ -178,13 +178,6 @@ class Trainer(object):
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_differential_radius + self.min_radius
 
-    def cameraDistance(self):
-        import pdb; pdb.set_trace()
-        image = Image.fromarray(self.state)
-        image.show()
-        data = image.getdata()
-
-
 
     def makeEnv(self):
         initial_qpos = {
@@ -210,6 +203,10 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
+        import pdb; pdb.set_trace()
+        image = Image.fromarray(state)
+        image.show()
+        data = image.getdata()
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
