@@ -211,7 +211,7 @@ class Trainer(object):
         for y in range(height):
             for x in range(width):
                 r, g, b = data[x, y]
-                if 200 < r < 100 and 200 < g < 100 and 200 < b < 100:
+                if 120 > r > 100 and 120 > g > 100 and 120 > b > 100:
                     data[x, y] = (255, 0, 0)
         import pdb; pdb.set_trace()
         image.show()
