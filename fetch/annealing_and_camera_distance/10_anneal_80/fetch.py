@@ -250,16 +250,14 @@ class Trainer(object):
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
         state_batch = torch.cat(list(batch.state))
         action_batch = torch.cat(list(batch.action))
-        import pdb; pdb.set_trace()
         reward_batch = torch.cat(list(batch.reward))
         state_action_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
         next_state_values = torch.zeros(self.batch_size, device=self.device)
         next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
-        import pdb; pdb.set_trace()
         # make sure the line below works
-        self.tb_writer.add_scalar("loss for episode", loss, self.episode)
+        self.tb_writer.add_scalar("loss for episode", loss.item(), self.episode)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -308,6 +306,7 @@ class Trainer(object):
                 self.score = 1
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
+            print(reward)
             return reward, done
 
 
