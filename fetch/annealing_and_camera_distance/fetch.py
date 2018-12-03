@@ -337,7 +337,7 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                print('actual mean score:', self.reward_tracker.mean_score)
+                print('actual mean score:', np.mean(self.reward_tracker.rewards))
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
                 self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
