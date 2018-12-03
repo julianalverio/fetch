@@ -335,6 +335,9 @@ class Trainer(object):
 
             # is this round over?
             if done:
+                for _ in range(20):
+                    print('\a')
+                import pdb; pdb.set_trace()
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
                 self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
