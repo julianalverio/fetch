@@ -21,7 +21,7 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
@@ -352,6 +352,7 @@ class Trainer(object):
                 self.movement_count = 0
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+                import pdb; pdb.set_trace()
                 self.updateRewardRadius()
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
