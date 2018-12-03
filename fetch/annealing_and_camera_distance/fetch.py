@@ -304,12 +304,16 @@ class Trainer(object):
             done = False
             if self.remaining_anneals >= 1:
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
+                    if self.score == 0:
+                        print('First Reward Acheived!')
                     self.score = 1.
                     reward += 1.
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
                 done = True
-                self.score = 1
+                if self.score == 0:
+                    print('First Reward Acheived!')
+                self.score = 1.
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
             self.tb_writer.add_scalar('reward', reward, self.movement_count)
@@ -329,15 +333,11 @@ class Trainer(object):
             if len(self.memory) == self.params['replay_initial']:
                 self.episode, self.movement_count, self.score = 0, 0, 0
                 print("Done Prefetching.")
-                time.sleep(3)
-                print('\a\a\a\a')
                 self.reset()
 
             # is this round over?
             if done:
-                for _ in range(20):
-                    print('\a')
-                import pdb; pdb.set_trace()
+                print('actual mean score:', self.reward_tracker.mean_score)
                 self.reward_tracker.add(self.score)
                 self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
                 self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
@@ -351,7 +351,6 @@ class Trainer(object):
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
                 self.updateRewardRadius()
-                self.remaining_anneals -= 1
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
 
