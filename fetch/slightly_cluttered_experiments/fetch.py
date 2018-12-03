@@ -22,11 +22,8 @@ import time
 
 
 sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
-from gym_slightly_cluttered.ens.robots import fetch_env
-# from gym.envs.robotics import fetch_env
-from gym_slightly_cluttered import utils
-# from gym import utils
-from gym_slightly_cluttered.wrappers.time_limit import TimeLimit
+from gym.envs.robotics import fetch_env
+from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 
 
