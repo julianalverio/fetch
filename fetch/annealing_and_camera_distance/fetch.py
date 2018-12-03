@@ -351,7 +351,7 @@ class Trainer(object):
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
             else:
-                print('no good')
+                print(self.reward_tracker.meanScore())
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
