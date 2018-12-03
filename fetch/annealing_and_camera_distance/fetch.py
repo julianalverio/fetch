@@ -182,6 +182,7 @@ class Trainer(object):
         self.current_radius = current_differential_radius + self.min_radius
         self.remaining_anneals -= 1
         self.reward_tracker.rewards = []
+        self.reward_tracker.mean_score = 0
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
 
 
@@ -399,6 +400,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     print('cleaning up...')
+    import pdb; pdb.set_trace()
     cleanup()
     trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
