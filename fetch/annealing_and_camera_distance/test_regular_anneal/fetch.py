@@ -15,18 +15,16 @@ import time
 import argparse
 import shutil
 import csv
-
 import os
-
 import sys
-# sys.path.pop(0)
-# import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch')
+from tensorboardX import SummaryWriter
+import time
+
+
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
-from tensorboardX import SummaryWriter
-import time
 
 
 NUM_EPISODES = 700
@@ -98,6 +96,7 @@ class RewardTracker:
 
 class EpsilonTracker:
     def __init__(self, params):
+        self.epsilon_params = params
         self._epsilon = params['epsilon_start']
         self.epsilon_final = params['epsilon_final']
         self.epsilon_delta = 1.0 * (params['epsilon_start'] - params['epsilon_final']) / params['epsilon_frames']
@@ -106,6 +105,9 @@ class EpsilonTracker:
         old_epsilon = self._epsilon
         self._epsilon -= self.epsilon_delta
         return max(old_epsilon, self.epsilon_final)
+
+    def reset_epsilon(self):
+        self._epsilon = self.epsilon_params['epsilon_start']
 
 
 class ReplayMemory(object):
@@ -193,7 +195,7 @@ class Trainer(object):
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push.xml', has_object=True, block_gripper=True, n_substeps=20,
+        env = fetch_env.FetchEnv('fetch/push_slightly_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
@@ -226,9 +228,7 @@ class Trainer(object):
 
 
     def addExperience(self):
-        epsilon = self.epsilon_tracker.epsilon()
-        self.tb_writer.add_scalar('epsilon', epsilon, self.episode)
-        if random.random() < epsilon:
+        if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
@@ -247,7 +247,6 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-            self.episode += 1
             self.movement_count = 0
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
@@ -269,7 +268,7 @@ class Trainer(object):
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         # make sure the line below works
-        self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
+        # self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -317,7 +316,9 @@ class Trainer(object):
                 if self.score == 0:
                     print('First Reward Acheived!')
                 self.score = 1.
-            self.tb_writer.add_scalar('reward', reward, self.movement_count)
+            if done:
+                print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
+            # self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
 
@@ -338,20 +339,33 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                print('actual mean score:', np.mean(self.reward_tracker.rewards))
                 self.reward_tracker.add(self.score)
-                self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
-                print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
-                self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
+
+                print('Episode Completed:', self.episode)
+                print('Score:', self.score)
+                print('Perceived Mean Score', self.reward_tracker.meanScore())
+                print('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                print('Remaining Anneals:', self.remaining_anneals)
+                print('Steps in this episode:', self.movement_count)
+                print('Epsilon:', self.epsilon_tracker._epsilon)
+
+                self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon)
+
+                self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
-                # if (self.episode % 100 == 0):
-                #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
-                #     print('Model Saved!')
+
                 self.score = 0
                 self.movement_count = 0
+                self.episode += 1
+                print('Starting Episode:', self.episode)
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+                import pdb; pdb.set_trace()
                 self.updateRewardRadius()
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return

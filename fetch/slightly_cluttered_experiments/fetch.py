@@ -243,7 +243,6 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-            self.episode += 1
             self.movement_count = 0
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
@@ -265,7 +264,7 @@ class Trainer(object):
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         # make sure the line below works
-        self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
+        # self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -315,7 +314,7 @@ class Trainer(object):
                 self.score = 1.
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
-            self.tb_writer.add_scalar('reward', reward, self.movement_count)
+            # self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
 
@@ -336,18 +335,30 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                print('actual mean score:', np.mean(self.reward_tracker.rewards))
                 self.reward_tracker.add(self.score)
-                self.tb_writer.add_scalar('score for epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
-                print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
-                self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
+
+                print('Episode Completed:', self.episode)
+                print('Score:', self.score)
+                print('Perceived Mean Score', self.reward_tracker.meanScore())
+                print('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                print('Remaining Anneals:', self.remaining_anneals)
+                print('Steps in this episode:', self.movement_count)
+                print('Epsilon:', self.epsilon_tracker._epsilon)
+
+                self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon)
+
+                self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
-                # if (self.episode % 100 == 0):
-                #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
-                #     print('Model Saved!')
+
                 self.score = 0
                 self.movement_count = 0
+                self.episode += 1
+                print('Starting Episode:', self.episode)
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
                 import pdb; pdb.set_trace()
