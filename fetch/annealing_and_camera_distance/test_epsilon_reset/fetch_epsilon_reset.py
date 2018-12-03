@@ -363,7 +363,6 @@ class Trainer(object):
                 print('Starting Episode:', self.episode)
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
-                import pdb; pdb.set_trace()
                 self.updateRewardRadius()
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
