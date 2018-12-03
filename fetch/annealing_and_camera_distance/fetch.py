@@ -312,8 +312,6 @@ class Trainer(object):
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
             self.tb_writer.add_scalar('reward', reward, self.movement_count)
-            if reward > 0:
-                print(reward)
             return reward, done
 
 
@@ -331,6 +329,7 @@ class Trainer(object):
                 self.episode, self.movement_count, self.score = 0, 0, 0
                 print("Done Prefetching.")
                 time.sleep(3)
+                print('\a\a\a\a')
                 self.reset()
 
             # is this round over?
