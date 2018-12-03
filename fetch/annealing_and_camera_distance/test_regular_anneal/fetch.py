@@ -350,11 +350,11 @@ class Trainer(object):
                 print('Epsilon:', self.epsilon_tracker._epsilon)
 
                 self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards)
-                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards))
-                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals)
-                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards, self.episode)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
 
                 self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
