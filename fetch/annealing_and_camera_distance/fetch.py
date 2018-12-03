@@ -313,6 +313,8 @@ class Trainer(object):
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
             self.tb_writer.add_scalar('reward', reward, self.movement_count)
+            if reward > 0:
+                print(reward)
             return reward, done
 
 
