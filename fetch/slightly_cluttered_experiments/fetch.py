@@ -27,7 +27,7 @@ from gym_slightly_cluttered.envs.robots import fetch_env
 from gym_slightly_cluttered import utils
 # from gym import utils
 from gym_slightly_cluttered.wrappers.time_limit import TimeLimit
-from gym.wrappers.time_limit import TimeLimit
+# from gym.wrappers.time_limit import TimeLimit
 
 
 NUM_EPISODES = 700
