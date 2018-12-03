@@ -179,6 +179,7 @@ class Trainer(object):
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_differential_radius + self.min_radius
+        self.remaining_anneals -= 1
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
         time.sleep(0.5)
 
@@ -304,10 +305,6 @@ class Trainer(object):
                 if np.linalg.norm(gripper_position - object_position) < self.current_radius:
                     self.score = 1.
                     reward += 1.
-                if self.reward_tracker.meanScore() >= 0.8:
-                    done = True
-                    self.remaining_anneals -= 1
-                    self.updateRewardRadius()
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 reward += 10.
                 done = True
@@ -347,6 +344,14 @@ class Trainer(object):
                 #     print('Model Saved!')
                 self.score = 0
                 self.movement_count = 0
+
+            if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+                self.updateRewardRadius()
+                self.remaining_anneals -= 1
+            if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
+                return
+            else:
+                print('no good')
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
