@@ -163,8 +163,8 @@ class Trainer(object):
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
-        csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
-        self.writer = csv.writer(csv_file)
+        self.csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
+        self.writer = csv.writer(self.csv_file)
 
         self.min_radius = 0.038
         self.anneal_count = anneal_count
@@ -343,6 +343,7 @@ class Trainer(object):
                 self.tb_writer.add_scalar('remaining anneals', self.remaining_anneals, self.episode)
                 print('Episode: %s Score: %s Mean Score: %s' % (self.episode,self.score, self.reward_tracker.meanScore()))
                 self.writer.writerow([self.reward_tracker.meanScore(), self.remaining_anneals])
+                self.csv_file.flush()
                 # if (self.episode % 100 == 0):
                 #     torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
                 #     print('Model Saved!')
