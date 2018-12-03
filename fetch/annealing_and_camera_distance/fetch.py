@@ -181,6 +181,7 @@ class Trainer(object):
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
         self.current_radius = current_differential_radius + self.min_radius
         self.remaining_anneals -= 1
+        self.reward_tracker.rewards = []
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
         time.sleep(0.5)
 
