@@ -350,7 +350,7 @@ class Trainer(object):
                 print('Epsilon:', self.epsilon_tracker._epsilon)
 
                 self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards, self.episode)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
                 self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
