@@ -402,7 +402,6 @@ if __name__ == "__main__":
     torch.cuda.manual_seed_all(seed)
     print('cleaning up...')
     cleanup()
-    import pdb; pdb.set_trace()
     trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
     print("Prefetching Now...")
