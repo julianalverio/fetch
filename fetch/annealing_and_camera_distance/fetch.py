@@ -13,6 +13,7 @@ from torch.autograd import Variable
 import cv2
 import time
 import argparse
+import shutil
 import csv
 
 import os
@@ -350,8 +351,6 @@ class Trainer(object):
                 self.remaining_anneals -= 1
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
-            else:
-                print(self.reward_tracker.meanScore())
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
@@ -373,6 +372,10 @@ class Trainer(object):
             self.env.step(action)
             state = self.preprocess(self.env.render(mode='rgb_array'))
 
+def cleanup():
+    if os.path.isdir('results'):
+        shutil.rmtree('results')
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -391,9 +394,10 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    print('cleaning up...')
+    cleanup()
     trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
-
     print("Prefetching Now...")
     # print('showing example now')
     trainer.train()
