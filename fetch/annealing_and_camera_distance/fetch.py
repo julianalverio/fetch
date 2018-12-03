@@ -34,7 +34,7 @@ NUM_EPISODES = 700
 
 HYPERPARAMS = {
         'replay_size':      8000,
-        'replay_initial':   7900,
+        'replay_initial':   100,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
@@ -75,7 +75,7 @@ class DQN(nn.Module):
 
 
 class RewardTracker:
-    def __init__(self, length=20):
+    def __init__(self, length=3): #was previously 20
         self.length = length
         self.rewards = []
         self.position = 0
@@ -183,7 +183,6 @@ class Trainer(object):
         self.remaining_anneals -= 1
         self.reward_tracker.rewards = []
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
-        time.sleep(0.5)
 
 
     def makeEnv(self):
@@ -352,6 +351,7 @@ class Trainer(object):
                 self.movement_count = 0
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+                import pdb; pdb.set_trace()
                 self.updateRewardRadius()
             if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
                 return
