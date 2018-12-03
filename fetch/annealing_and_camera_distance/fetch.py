@@ -322,7 +322,6 @@ class Trainer(object):
 
 
     def train(self):
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
