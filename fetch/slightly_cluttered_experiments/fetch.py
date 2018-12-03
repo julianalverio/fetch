@@ -15,18 +15,19 @@ import time
 import argparse
 import shutil
 import csv
-
 import os
-
 import sys
-# sys.path.pop(0)
-# import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
-from gym.envs.robotics import fetch_env
-from gym import utils
-from gym.wrappers.time_limit import TimeLimit
 from tensorboardX import SummaryWriter
 import time
+
+
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
+from gym_slightly_cluttered.ens.robots import fetch_env
+# from gym.envs.robotics import fetch_env
+from gym_slightly_cluttered import utils
+# from gym import utils
+from gym_slightly_cluttered.wrappers.time_limit import TimeLimit
+from gym.wrappers.time_limit import TimeLimit
 
 
 NUM_EPISODES = 700
@@ -193,7 +194,7 @@ class Trainer(object):
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push.xml', has_object=True, block_gripper=True, n_substeps=20,
+        env = fetch_env.FetchEnv('fetch/push_slightly_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
@@ -322,6 +323,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
