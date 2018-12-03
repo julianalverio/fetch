@@ -107,6 +107,9 @@ class EpsilonTracker:
         self._epsilon -= self.epsilon_delta
         return max(old_epsilon, self.epsilon_final)
 
+    def reset_epsilon(self):
+        self._epsilon = params['epsilon_start']
+
 
 class ReplayMemory(object):
     def __init__(self, capacity, transition):
@@ -183,6 +186,7 @@ class Trainer(object):
         self.remaining_anneals -= 1
         self.reward_tracker.rewards = []
         self.reward_tracker.mean_score = 0
+        self.epsilon_tracker.reset_epsilon()
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
 
 
