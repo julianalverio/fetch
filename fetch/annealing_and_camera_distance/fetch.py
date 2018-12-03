@@ -34,7 +34,7 @@ NUM_EPISODES = 700
 
 HYPERPARAMS = {
         'replay_size':      8000,
-        'replay_initial':   100,
+        'replay_initial':   7900,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
@@ -75,7 +75,7 @@ class DQN(nn.Module):
 
 
 class RewardTracker:
-    def __init__(self, length=3): #was previously 20
+    def __init__(self, length=20):
         self.length = length
         self.rewards = []
         self.position = 0
@@ -380,6 +380,7 @@ class Trainer(object):
 def cleanup():
     if os.path.isdir('results'):
         shutil.rmtree('results')
+    assert not os.path.isdir('results')
 
 
 if __name__ == "__main__":
