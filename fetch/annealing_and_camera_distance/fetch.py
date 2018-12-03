@@ -226,7 +226,9 @@ class Trainer(object):
 
 
     def addExperience(self):
-        if random.random() < self.epsilon_tracker.epsilon():
+        epsilon = self.epsilon_tracker.epsilon()
+        self.tb_writer.add_scalar('epsilon', epsilon, self.episode)
+        if random.random() < epsilon:
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
