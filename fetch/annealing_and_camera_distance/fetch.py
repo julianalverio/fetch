@@ -315,8 +315,6 @@ class Trainer(object):
                 if self.score == 0:
                     print('First Reward Acheived!')
                 self.score = 1.
-            if done:
-                print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
             self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
