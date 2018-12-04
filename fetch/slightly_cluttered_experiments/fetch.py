@@ -158,7 +158,7 @@ class Trainer(object):
         self.batch_size = self.params['batch_size']
         self.task = 3
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_joint_qpos('object0'))
+        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_joint_qpos('object0:joint'))
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -283,7 +283,7 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        object_1_position = self.env.sim.data.get_joint_qpos('object1')
+        object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
