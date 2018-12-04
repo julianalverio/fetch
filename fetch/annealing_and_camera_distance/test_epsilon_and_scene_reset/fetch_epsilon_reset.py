@@ -309,6 +309,8 @@ class Trainer(object):
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
                 self.score = 1.
                 return 10., True
+            else:
+                return 0., False
 
 
     def train(self):
