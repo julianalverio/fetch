@@ -158,6 +158,7 @@ class Trainer(object):
         self.batch_size = self.params['batch_size']
         self.task = 3
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
+        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_joint_qpos('object0'))
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -209,7 +210,6 @@ class Trainer(object):
         return self.env.render(mode='rgb_array')
 
     def preprocess(self, state):
-        import pdb; pdb.set_trace()
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
@@ -283,6 +283,10 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
+        object_1_position = self.env.sim.data.get_joint_qpos('object1')
+        if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
+            self.score = -1.
+            return -1., True
         if self.task == 1:
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 self.score += 1.
