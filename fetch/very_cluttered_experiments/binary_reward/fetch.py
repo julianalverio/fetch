@@ -284,9 +284,9 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
-        object_2_position = self.env.sim.data.get_joint_qpos('object2:joint')
-        object_3_position = self.env.sim.data.get_joint_qpos('object3:joint')
+        object_1_position = self.env.sim.data.get_site_xpos('object1')
+        object_2_position = self.env.sim.data.get_site_xpos('object2')
+        object_3_position = self.env.sim.data.get_site_xpos('object3')
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
