@@ -156,7 +156,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 3
+        self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.initial_object_1_position = None
         self.movement_count = 0
