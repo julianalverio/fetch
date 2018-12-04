@@ -137,6 +137,7 @@ class Trainer(object):
         self.env = self.env.unwrapped
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+        import pdb; pdb.set_trace()
 
         self.action_space = 6
         self.observation_space = [3, 102, 205]
