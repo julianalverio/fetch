@@ -150,7 +150,7 @@ class FetchEnv(robot_env.RobotEnv):
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
             extra_object_1_qpos = self.sim.data.get_joint_qpos('object1:joint')
-            extra_object_1_qpos[:2] = [1.38, 0.80]
+            extra_object_1_qpos[:2] = [1.38, 0.85]
             self.sim.data.set_joint_qpos('object1:joint', extra_object_1_qpos)
 
             # object_xpos = self.initial_gripper_xpos[:2]
