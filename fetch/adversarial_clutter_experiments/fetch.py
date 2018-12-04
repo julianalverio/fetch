@@ -195,7 +195,8 @@ class Trainer(object):
             'object3:joint': [1.3, 0.85, 0.4, 1., 0., 0., 0.],
         }
         import pdb; pdb.set_trace()
-        env = fetch_env.FetchEnv('fetch/push_extreme_clutter.xml', has_object=True, block_gripper=True, n_substeps=20,
+        path = '/storage/jalverio/venv/fetch/fetch/adversarial_clutter_experiments/gym/envs/robotics/assets/fetch/push_adversarial_clutter.xml'
+        env = fetch_env.FetchEnv(path, has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
