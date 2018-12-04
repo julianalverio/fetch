@@ -145,13 +145,22 @@ class FetchEnv(robot_env.RobotEnv):
         self.sim.set_state(self.initial_state)
         # Randomize start position of object.
         if self.has_object:
-            object_qpos = self.sim.data.get_joint_qpos('object0:joint')
+            object_qpos = self.sim.data.get_joint_qposf('object0:joint')
             object_qpos[:2] = [1.38, 0.65]
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
             extra_object_1_qpos = self.sim.data.get_joint_qpos('object1:joint')
-            extra_object_1_qpos[:2] = [1.38, 0.85]
+            extra_object_1_qpos[:2] = [1.38, 0.80]
             self.sim.data.set_joint_qpos('object1:joint', extra_object_1_qpos)
+
+            extra_object_2_qpos = self.sim.data.get_joint_qpos('object2:joint')
+            extra_object_2_qpos[:2] = [1.3, 0.65]
+            self.sim.data.set_joint_qpos('object2:joint', extra_object_2_qpos)
+
+            extra_object_3_qpos = self.sim.data.get_joint_qpos('object3:joint')
+            extra_object_3_qpos[:2] = [1.3, 0.85]
+            self.sim.data.set_joint_qpos('object3:joint', extra_object_3_qpos)
+
 
             # object_xpos = self.initial_gripper_xpos[:2]
             # while np.linalg.norm(object_xpos - self.initial_gripper_xpos[:2]) < 0.1:
