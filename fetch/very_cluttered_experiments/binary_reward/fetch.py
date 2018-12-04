@@ -195,7 +195,7 @@ class Trainer(object):
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
             'object1:joint': [1.38, 0.80, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push_slightly_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
+        env = fetch_env.FetchEnv('fetch/push_very_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
@@ -267,8 +267,6 @@ class Trainer(object):
         next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
-        # make sure the line below works
-        # self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -336,7 +334,6 @@ class Trainer(object):
                 self.score = 1.
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
-            # self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
 
@@ -368,11 +365,11 @@ class Trainer(object):
                 print('Epsilon:', self.epsilon_tracker._epsilon)
 
                 self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards)
-                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards))
-                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals)
-                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
 
                 self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
