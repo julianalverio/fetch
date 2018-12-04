@@ -159,7 +159,6 @@ class Trainer(object):
         self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
-        import pdb; pdb.set_trace()
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -282,8 +281,6 @@ class Trainer(object):
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
         object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
-        if self.initial_object_1_position is None:
-            self.initial_object_1_position = object_1_position
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
