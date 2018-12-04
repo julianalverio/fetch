@@ -280,6 +280,8 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
+        import pdb; pdb.set_trace()
+        object_1_position = self.env.sim.daata.get_site_xpos('object1')
         object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
         if self.initial_object_1_position is None:
             self.initial_object_1_position = object_1_position
