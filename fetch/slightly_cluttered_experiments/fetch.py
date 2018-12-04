@@ -190,7 +190,9 @@ class Trainer(object):
             'robot0:slide1': 0.48,
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
+            'object1:joint': [1.38, 0.85, 0.4, 1., 0., 0., 0.],
         }
+        import pdb; pdb.set_trace()
         env = fetch_env.FetchEnv('fetch/push_slightly_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
