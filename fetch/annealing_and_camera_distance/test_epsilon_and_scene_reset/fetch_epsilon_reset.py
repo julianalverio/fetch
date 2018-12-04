@@ -320,7 +320,6 @@ class Trainer(object):
         while True:
             frame_idx += 1
             # execute one move
-            import pdb; pdb.set_trace()
             done = self.addExperience()
 
             # are we done prefetching?
