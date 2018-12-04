@@ -43,7 +43,6 @@ HYPERPARAMS = {
 }
 
 
-
 class DQN(nn.Module):
     def __init__(self, input_shape, n_actions, device):
         super(DQN, self).__init__()
@@ -197,7 +196,6 @@ class Trainer(object):
             'object2:joint': [1.30, 0.65, 0.4, 1., 0., 0., 0.],
             'object3:joint': [1.3, 0.85, 0.4, 1., 0., 0., 0.],
         }
-        import pdb; pdb.set_trace()
         path = '/storage/jalverio/venv/fetch/fetch/adversarial_clutter_experiments/gym/envs/robotics/assets/fetch/push_adversarial_clutter.xml'
         env = fetch_env.FetchEnv(path, has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
