@@ -277,7 +277,6 @@ class Trainer(object):
     Task 3: Annealing Binary Reward. Done if touch block or success >= 90%
     '''
     def getReward(self):
-        import pdb; pdb.set_trace()
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
