@@ -158,7 +158,8 @@ class Trainer(object):
         self.batch_size = self.params['batch_size']
         self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        self.initial_object_1_position = None
+        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
+        import pdb; pdb.set_trace()
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
