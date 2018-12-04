@@ -284,6 +284,7 @@ class Trainer(object):
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
         object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
+        import pdb; pdb.set_trace()
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
