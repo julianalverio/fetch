@@ -158,9 +158,9 @@ class Trainer(object):
         self.batch_size = self.params['batch_size']
         self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        self.initial_object_1_position = None
-        self.initial_object_2_position = None
-        self.initial_object_3_position = None
+        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
+        self.initial_object_2_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object2'))
+        self.initial_object_3_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object3'))
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -287,12 +287,6 @@ class Trainer(object):
         object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
         object_2_position = self.env.sim.data.get_joint_qpos('object2:joint')
         object_3_position = self.env.sim.data.get_joint_qpos('object3:joint')
-        if self.initial_object_1_position is None:
-            self.initial_object_1_position = object_1_position
-        if self.initial_object_2_position is None:
-            self.initial_object_2_position = object_2_position
-        if self.initial_object_3_position is None:
-            self.initial_object_3_position = object_3_position
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
