@@ -245,7 +245,6 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-            self.movement_count = 0
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
             self.state = next_state
