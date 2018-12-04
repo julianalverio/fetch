@@ -159,6 +159,8 @@ class Trainer(object):
         self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.initial_object_1_position = None
+        self.initial_object_2_position = None
+        self.initial_object_3_position = None
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -265,6 +267,8 @@ class Trainer(object):
         next_state_values[non_final_mask] = self.target_net(non_final_next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
+        # make sure the line below works
+        # self.tb_writer.add_scalar("loss", loss.item(), self.movement_count)
         self.optimizer.zero_grad()
         loss.backward()
         # for param in self.policy_net.parameters():
@@ -282,9 +286,21 @@ class Trainer(object):
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
         object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
+        object_2_position = self.env.sim.data.get_joint_qpos('object2:joint')
+        object_3_position = self.env.sim.data.get_joint_qpos('object3:joint')
         if self.initial_object_1_position is None:
             self.initial_object_1_position = object_1_position
+        if self.initial_obj_2_position is None:
+            self.initial_object_2_position = object_2_position
+        if self.initial_object_3_position is None:
+            self.initial_object_3_position = object_3_position
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
+            self.score = -1.
+            return -1., True
+        if np.linalg.norm(object_2_position - self.initial_object_2_position) > 1e-3:
+            self.score = -1.
+            return -1., True
+        if np.linalg.norm(object_3_position - self.initial_object_3_position) > 1e-3:
             self.score = -1.
             return -1., True
         if self.task == 1:
@@ -320,6 +336,7 @@ class Trainer(object):
                 self.score = 1.
             if done:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
+            # self.tb_writer.add_scalar('reward', reward, self.movement_count)
             return reward, done
 
 
@@ -351,11 +368,11 @@ class Trainer(object):
                 print('Epsilon:', self.epsilon_tracker._epsilon)
 
                 self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
-                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
-                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
-                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.rewards)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon)
 
                 self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
