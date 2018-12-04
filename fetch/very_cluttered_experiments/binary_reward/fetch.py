@@ -133,7 +133,6 @@ class Trainer(object):
     def __init__(self, seed, anneal_count, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        import pdb; pdb.set_trace()
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
 
