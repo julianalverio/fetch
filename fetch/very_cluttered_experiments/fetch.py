@@ -288,7 +288,7 @@ class Trainer(object):
         object_3_position = self.env.sim.data.get_joint_qpos('object3:joint')
         if self.initial_object_1_position is None:
             self.initial_object_1_position = object_1_position
-        if self.initial_obj_2_position is None:
+        if self.initial_object_2_position is None:
             self.initial_object_2_position = object_2_position
         if self.initial_object_3_position is None:
             self.initial_object_3_position = object_3_position
