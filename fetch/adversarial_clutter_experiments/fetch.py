@@ -21,7 +21,7 @@ from tensorboardX import SummaryWriter
 import time
 
 
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/adversarial_clutter_experiments')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
