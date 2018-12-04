@@ -21,7 +21,7 @@ from tensorboardX import SummaryWriter
 import time
 
 
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/slightly_cluttered_experiments')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/very_cluttered_experiments')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
@@ -137,6 +137,7 @@ class Trainer(object):
         self.env = self.env.unwrapped
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+        import pdb; pdb.set_trace()
 
         self.action_space = 6
         self.observation_space = [3, 102, 205]
@@ -158,9 +159,9 @@ class Trainer(object):
         self.batch_size = self.params['batch_size']
         self.task = 1
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        self.initial_object_1_position = None
-        self.initial_object_2_position = None
-        self.initial_object_3_position = None
+        self.initial_object_1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
+        self.initial_object_2_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object2'))
+        self.initial_object_3_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object3'))
         self.movement_count = 0
         self.seed = seed
         self.penalty = 0.
@@ -192,8 +193,10 @@ class Trainer(object):
             'robot0:slide0': 0.405,
             'robot0:slide1': 0.48,
             'robot0:slide2': 0.0,
-            'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
+            'object0:joint': [1.38, 0.65, 0.4, 1., 0., 0., 0.],
             'object1:joint': [1.38, 0.80, 0.4, 1., 0., 0., 0.],
+            'object2:joint': [1.30, 0.65, 0.4, 1., 0., 0., 0.],
+            'object3:joint': [1.3, 0.85, 0.4, 1., 0., 0., 0.],
         }
         env = fetch_env.FetchEnv('fetch/push_very_cluttered.xml', has_object=True, block_gripper=True, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
@@ -247,7 +250,6 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-            self.movement_count = 0
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
             self.state = next_state
@@ -283,15 +285,9 @@ class Trainer(object):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
-        object_1_position = self.env.sim.data.get_joint_qpos('object1:joint')
-        object_2_position = self.env.sim.data.get_joint_qpos('object2:joint')
-        object_3_position = self.env.sim.data.get_joint_qpos('object3:joint')
-        if self.initial_object_1_position is None:
-            self.initial_object_1_position = object_1_position
-        if self.initial_object_2_position is None:
-            self.initial_object_2_position = object_2_position
-        if self.initial_object_3_position is None:
-            self.initial_object_3_position = object_3_position
+        object_1_position = self.env.sim.data.get_site_xpos('object1')
+        object_2_position = self.env.sim.data.get_site_xpos('object2')
+        object_3_position = self.env.sim.data.get_site_xpos('object3')
         if np.linalg.norm(object_1_position - self.initial_object_1_position) > 1e-3:
             self.score = -1.
             return -1., True
