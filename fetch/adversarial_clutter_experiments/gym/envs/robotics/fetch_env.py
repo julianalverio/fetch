@@ -145,7 +145,7 @@ class FetchEnv(robot_env.RobotEnv):
         self.sim.set_state(self.initial_state)
         # Randomize start position of object.
         if self.has_object:
-            object_qpos = self.sim.data.get_joint_qposf('object0:joint')
+            object_qpos = self.sim.data.get_joint_qpos('object0:joint')
             object_qpos[:2] = [1.38, 0.65]
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
