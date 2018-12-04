@@ -287,7 +287,7 @@ class Trainer(object):
         if self.task == 1:
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 self.score += 1.
-                return 1., True
+                return 5., True
             return 0., False
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
