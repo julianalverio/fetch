@@ -21,6 +21,7 @@ from tensorboardX import SummaryWriter
 import time
 
 
+
 sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/')
 from gym.envs.robotics import fetch_env
 from gym import utils
