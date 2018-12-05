@@ -29,18 +29,19 @@ import pandas as pd
 # plt.show()
 
 
-# csv_file = 'gripper_enabled/prepare_to_grasp/seed7_scores.csv'
-csv_file = 'gripper_enabled/push_right/seed40_scores.csv'
-reader = csv.reader(open(csv_file, 'r'))
-data = []
-for row in reader:
-    data.append((row[0]))
-df = pd.DataFrame(data)
-df.columns = ['prepare to grasp']
-df['index'] = pd.Series(np.arange(0, 1500))
-df = df.astype(float)
-ax = df.plot(x='index', y='prepare to grasp')
-ax.set_xlabel("Epochs")
-ax.set_ylabel("Avg Score at End of Epoch")
-plt.title("Preparing to Grasp Block")
-plt.show()
+# # csv_file = 'gripper_enabled/prepare_to_grasp/seed7_scores.csv'
+# csv_file = 'gripper_enabled/push_right/seed40_scores.csv'
+# reader = csv.reader(open(csv_file, 'r'))
+# data = []
+# for row in reader:
+#     data.append((row[0]))
+# df = pd.DataFrame(data)
+# df.columns = ['prepare to grasp']
+# df['index'] = pd.Series(np.arange(0, 1500))
+# df = df.astype(float)
+# ax = df.plot(x='index', y='prepare to grasp')
+# ax.set_xlabel("Epochs")
+# ax.set_ylabel("Avg Score at End of Epoch")
+# plt.title("Preparing to Grasp Block")
+# plt.show()
+
