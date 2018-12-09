@@ -385,7 +385,9 @@ class Trainer(object):
 def cleanup():
     if os.path.isdir('results'):
         shutil.rmtree('results')
-    assert not os.path.isdir('results')
+    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
+    for csv_txt_file in csv_txt_files:
+        os.remove(csv_txt_file)
 
 
 if __name__ == "__main__":
