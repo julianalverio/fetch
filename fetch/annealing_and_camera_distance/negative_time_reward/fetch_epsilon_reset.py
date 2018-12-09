@@ -305,13 +305,13 @@ class Trainer(object):
                     self.score = 1.
                     return 1., True
                 else:
-                    return 0., False
+                    return -self.movement_count / 300.
             elif np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
                 self.score = 1.
                 return 10., True
             else:
-                return 0., False
+                return -self.movement_count / 300.
 
 
     def train(self):
