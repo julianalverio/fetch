@@ -240,7 +240,6 @@ class Trainer(object):
             self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
-        print(self.movement_count)
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
         done = done or self.movement_count == 1500
