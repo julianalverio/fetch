@@ -240,7 +240,7 @@ class Trainer(object):
             self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
-        print(movement_count)
+        print(self.movement_count)
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
         done = done or self.movement_count == 1500
@@ -249,7 +249,6 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
             self.state = self.preprocess(self.reset())
             self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-            self.movement_count = 0
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
             self.state = next_state
@@ -349,6 +348,7 @@ class Trainer(object):
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
                 self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
+                print('Steps in this episode:', self.movement_count)
 
                 self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
                 self.csv_file.flush()
