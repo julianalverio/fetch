@@ -305,7 +305,6 @@ class Trainer(object):
                     self.score = 1.
                     return 1., True
                 else:
-                    import pdb; pdb.set_trace()
                     return -self.movement_count / 300., False
             elif np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
