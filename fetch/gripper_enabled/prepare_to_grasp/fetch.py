@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import random
 import numpy as np
 import torch
@@ -13,21 +12,21 @@ from torch.autograd import Variable
 import cv2
 import time
 import argparse
-import shutil
 import csv
-import os
-import sys
 from tensorboardX import SummaryWriter
-import time
 
+import os
 
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/')
+import sys
+# sys.path.pop(0)
+# import gym
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/gripper_enabled')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 
 
-NUM_EPISODES = 700
+NUM_EPISODES = 1500
 
 
 HYPERPARAMS = {
@@ -140,9 +139,20 @@ class Trainer(object):
         self.env = self.makeEnv()
         self.env = self.env.unwrapped
 
+        #Actions:
+        # 0 -- increment X
+        # 1 -- decrement X
+        # 2 -- increment Y
+        # 3 -- decrement Y
+        # 4 -- increment Z
+        # 5 -- decrement Z
+        # 6 -- increment gripper
+        # 7 -- decrement gripper
+
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
 
-        self.action_space = 6
+
+        self.action_space = 8
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
@@ -160,11 +170,10 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 3
+        self.task = 4
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
-        self.penalty = 0.
         self.csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
         self.writer = csv.writer(self.csv_file)
 
@@ -172,17 +181,15 @@ class Trainer(object):
         self.anneal_count = anneal_count
         self.remaining_anneals = anneal_count + 1
 
-        self.initial_differential_radius = np.linalg.norm(self.initial_gripper_position - self.initial_object_position) - self.min_radius
-        self.initial_differential_volume = 4./3 * np.pi * self.initial_differential_radius ** 3
+        self.initial_differential_radius = np.linalg.norm(
+            self.initial_gripper_position - self.initial_object_position) - self.min_radius
+        self.initial_differential_volume = 4. / 3 * np.pi * self.initial_differential_radius ** 3
         self.current_radius = None
         self.updateRewardRadius()
 
-        self.task_part_1 = True
-
-
     def updateRewardRadius(self):
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
-        current_differential_radius = (0.75 * current_volume / np.pi) ** (1/3)
+        current_differential_radius = (0.75 * current_volume / np.pi) ** (1 / 3)
         self.current_radius = current_differential_radius + self.min_radius
         self.remaining_anneals -= 1
         self.reward_tracker.rewards = []
@@ -198,19 +205,22 @@ class Trainer(object):
             'robot0:slide2': 0.0,
             'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
         }
-        env = fetch_env.FetchEnv('fetch/push.xml', has_object=True, block_gripper=True, n_substeps=20,
+        env = fetch_env.FetchEnv('fetch/pick_and_place.xml', has_object=True, block_gripper=False, n_substeps=20,
             gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
             obj_range=0.15, target_range=0.15, distance_threshold=0.05,
             initial_qpos=initial_qpos, reward_type='sparse')
         return TimeLimit(env)
 
 
+    def getGripperWidth(self):
+        right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
+        left_finger = self.env.sim.data.get_body_xipos('robot0:l_gripper_finger_link')[2]
+        return abs(right_finger - left_finger)
+
+
     def reset(self):
         self.env.reset()
-        counter = 0
-        while np.linalg.norm(self.env.sim.data.get_site_xpos('robot0:grip') - self.initial_gripper_position) > 1e-3:
-            self.env.render()
-            counter += 1
+        self.env.render()
         self.env.sim.nsubsteps = 2
         return self.env.render(mode='rgb_array')
 
@@ -219,6 +229,7 @@ class Trainer(object):
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
+
 
     # indices are x, y, z, gripper
     def convertAction(self, action):
@@ -236,14 +247,11 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        if gripper_position[2] <= 0.416 and action.item() == 5:
-            self.penalty += 1.
-        if gripper_position[2] >= 0.64 and action.item() == 4:
-            self.penalty += 1.
         self.env.step(self.convertAction(action))
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
+        self.reward_tracker.add(reward)
         done = done or self.movement_count == 1500
 
         if done:
@@ -271,16 +279,13 @@ class Trainer(object):
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         self.optimizer.zero_grad()
         loss.backward()
-        # for param in self.policy_net.parameters():
-        #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
-
 
     '''
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
     Task 3: Annealing Binary Reward. Done if goal sphere entered or success >= 90%
-    Task 4: 
+    Task 4: Prepare to grip the block
     '''
     def getReward(self):
         done = False
@@ -291,6 +296,7 @@ class Trainer(object):
                 self.score += 1.
                 return 1., True
             return 0., False
+
         if self.task == 2:
             distance = np.linalg.norm(gripper_position - object_position)
             reward = -distance
@@ -298,8 +304,6 @@ class Trainer(object):
                 reward += 10.
                 self.score += 1.
                 done = True
-            reward -= self.penalty
-            self.penalty = 0
             return reward, done
 
         if self.task == 3:
@@ -316,17 +320,35 @@ class Trainer(object):
             else:
                 return -self.movement_count / 300., False
 
+        # First get directly over the block without moving it
+        # Have the gripper open wider than the block
+        # Then raise it up any amount
         if self.task == 4:
             reward = 0.
-            if self.task_part_1:
-                # Get directly over the block
-                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-                reward -= xy_distance
 
-                # Don't be too high up
-                
+            # get directly over the box
+            object_x, object_y, object_z = object_position
+            gripper_x, gripper_y, gripper_z = gripper_position
+            distance_vector = np.linalg.norm([object_x - gripper_x, object_y - gripper_y])
+            reward -= distance_vector
 
+            # if you're close to the box, get low to the table
+            height_vector = gripper_z - 0.416
+            if distance_vector < 0.2:
+                reward -= height_vector
 
+            # termination condition
+            if height_vector < 0.01 and distance_vector < 0.05:
+                reward += 1
+                done = True
+                self.score = 1.
+
+            # if you knock the block off the table, restart
+            if self.initial_object_position[2] - object_z > 0.1:
+                done = True
+                reward -= 1
+
+            return reward, done
 
 
     def train(self):
@@ -346,74 +368,50 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                self.reward_tracker.add(self.score)
+                if self.task == 2:
+                    self.reward_tracker.add(self.score)
+                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode, self.score, self.reward_tracker.meanScore()))
+                    self.writer.writerow([self.reward_tracker.meanScore()])
+                else:
+                    mean = np.mean(self.reward_tracker.rewards)
+                    print('Episode: %s Mean Score: %s' % (self.episode, mean))
+                    self.writer.writerow([mean])
+                    self.reward_tracker.clearRewards()
 
-                print('Episode Completed:', self.episode)
-                print('Score:', self.score)
-                print('Perceived Mean Score', self.reward_tracker.meanScore())
-                print('Actual Mean Score', np.mean(self.reward_tracker.rewards))
-                print('Remaining Anneals:', self.remaining_anneals)
-                print('Steps in this episode:', self.movement_count)
-                print('Epsilon:', self.epsilon_tracker._epsilon)
-
-                self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
-                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
-                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
-                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
-                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
-                print('Steps in this episode:', self.movement_count)
-
-                self.writer.writerow([self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards), self.remaining_anneals, self.epsilon_tracker._epsilon])
-                self.csv_file.flush()
-
+                if (self.episode % 100 == 0):
+                    torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
+                    print('Model Saved!')
                 self.score = 0
                 self.movement_count = 0
-                self.episode += 1
-                print('Starting Episode:', self.episode)
 
-            if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
-                self.updateRewardRadius()
-            if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
-                return
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
             if self.episode == NUM_EPISODES:
-                print("DONE WITH ALL EPISODES")
+                print("DONE")
                 return
 
 
     def playback(self, path):
-        target_net = torch.load(path)
-        state = self.preprocess(self.reset())
-        self.env.render()
+        self.target_net = torch.load(path)
+        for _ in range(4):
+            self.env.render()
         done = False
         while not done:
             self.env.render(mode='human')
-            action = self.convertAction(torch.argmax(target_net(state), dim=1).to(self.device))
+            action = self.convertAction(torch.argmax(self.target_net(self.state), dim=1).to(self.device))
             self.env.step(action)
-            state = self.preprocess(self.env.render(mode='rgb_array'))
-
-def cleanup():
-    if os.path.isdir('results'):
-        shutil.rmtree('results')
-    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
-    for csv_txt_file in csv_txt_files:
-        os.remove(csv_txt_file)
+            self.state = self.preprocess(self.env.render(mode='rgb_array'))
+            # reward, done = self.getReward()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    parser.add_argument('anneal_count', type=int, default='10')
     args = parser.parse_args()
     gpu_num = args.gpu
-    anneal_count = args.anneal_count
-    print('GPU:', gpu_num)
-    print('ANNEALS:', anneal_count)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
     print('RANDOM SEED: ', seed)
@@ -422,15 +420,13 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    print('cleaning up...')
-    cleanup()
-    print('Creating Trainer Object')
-    trainer = Trainer(seed, anneal_count)
+    trainer = Trainer(seed)
     print('Trainer Initialized')
-    print("Prefetching Now...")
-    # print('showing example now')
-    trainer.train()
-    # trainer.playback('fetch_seed25_8500.pth')
+
+    # print("Prefetching Now...")
+    print('showing example now')
+    # trainer.train()
+    trainer.playback('fetch_seed7_1000.pth')
 
 
 
