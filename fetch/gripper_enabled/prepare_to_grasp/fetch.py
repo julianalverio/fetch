@@ -256,7 +256,7 @@ class Trainer(object):
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
-        self.reward_tracker.add(reward)
+        self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
 
         if done:
@@ -393,7 +393,7 @@ class Trainer(object):
                 self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
+                self.tb_writer.add_scalar('Epsilon', max(self.epsilon_tracker._epsilon, self.params['epsilon_final'], self.episode)
 
                 self.writer.writerow(
                     [self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards),
