@@ -393,7 +393,7 @@ class Trainer(object):
                 self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
-                self.tb_writer.add_scalar('Epsilon', max(self.epsilon_tracker._epsilon, self.params['epsilon_final'], self.episode)
+                self.tb_writer.add_scalar('Epsilon', max(self.epsilon_tracker._epsilon, self.params['epsilon_final']), self.episode)
 
                 self.writer.writerow(
                     [self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards),
