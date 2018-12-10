@@ -290,7 +290,7 @@ class Trainer(object):
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
     Task 3: Annealing Binary Reward. Done if goal sphere entered or success >= 90%
-    Task 4: Prepare to grip the block
+    Task 4: Grip the block and raise it
     '''
     def getReward(self):
         done = False
@@ -348,19 +348,16 @@ class Trainer(object):
                 return reward, False
 
             else:
-                height_delta = object_position[2] - self.initial_object_position[2]
-                if height_delta > 0.02:
-                    self.score = 2
-                    self.elevated_count += 1
-                else:
-                    self.elevated_count = 0
-                reward += max(self.elevated_count, 10)
-                return reward, self.elevated_count > 30
+                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
+                if xy_distance > 0.01:
+                    reward -= 2
+                height_difference = object_position[2] - 0.55
+                reward -= height_difference
 
+                if height_difference < 0.02:
+                    reward += 5
 
-
-
-
+                return reward, object_position[2] >= 0.54
 
 
 
@@ -398,7 +395,6 @@ class Trainer(object):
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
                 self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
-                print('Steps in this episode:', self.movement_count)
 
                 self.writer.writerow(
                     [self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards),
@@ -408,6 +404,8 @@ class Trainer(object):
                 self.score = 0
                 self.movement_count = 0
                 self.episode += 1
+
+                self.task_part_1 = True
                 print('Starting Episode:', self.episode)
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
