@@ -316,18 +316,6 @@ class Trainer(object):
             else:
                 return -self.movement_count / 300., False
 
-        if self.task == 4:
-            reward = 0.
-            if self.task_part_1:
-                # Get directly over the block
-                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-                reward -= xy_distance
-
-                # Don't be too high up
-                
-
-
-
 
     def train(self):
         frame_idx = 0

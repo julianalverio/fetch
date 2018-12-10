@@ -14,6 +14,7 @@ import time
 import argparse
 import csv
 from tensorboardX import SummaryWriter
+import shutil
 
 import os
 
@@ -187,6 +188,9 @@ class Trainer(object):
         self.current_radius = None
         self.updateRewardRadius()
 
+        self.task_part_1 = True
+
+
     def updateRewardRadius(self):
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
         current_differential_radius = (0.75 * current_volume / np.pi) ** (1 / 3)
@@ -323,35 +327,22 @@ class Trainer(object):
         # First get directly over the block without moving it
         # Have the gripper open wider than the block
         # Then raise it up any amount
+        # ALSO UPDATE SCORE
         if self.task == 4:
             reward = 0.
+            if self.task_part_1:
+                # Get directly over the block
+                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
+                reward -= xy_distance
 
-            # get directly over the box
-            object_x, object_y, object_z = object_position
-            gripper_x, gripper_y, gripper_z = gripper_position
-            distance_vector = np.linalg.norm([object_x - gripper_x, object_y - gripper_y])
-            reward -= distance_vector
+                # Don't be too high up
 
-            # if you're close to the box, get low to the table
-            height_vector = gripper_z - 0.416
-            if distance_vector < 0.2:
-                reward -= height_vector
 
-            # termination condition
-            if height_vector < 0.01 and distance_vector < 0.05:
-                reward += 1
-                done = True
-                self.score = 1.
-
-            # if you knock the block off the table, restart
-            if self.initial_object_position[2] - object_z > 0.1:
-                done = True
-                reward -= 1
-
-            return reward, done
+            # return reward, done
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
@@ -368,29 +359,45 @@ class Trainer(object):
 
             # is this round over?
             if done:
-                if self.task == 2:
-                    self.reward_tracker.add(self.score)
-                    print('Episode: %s Score: %s Mean Score: %s' % (self.episode, self.score, self.reward_tracker.meanScore()))
-                    self.writer.writerow([self.reward_tracker.meanScore()])
-                else:
-                    mean = np.mean(self.reward_tracker.rewards)
-                    print('Episode: %s Mean Score: %s' % (self.episode, mean))
-                    self.writer.writerow([mean])
-                    self.reward_tracker.clearRewards()
+                self.reward_tracker.add(self.score)
 
-                if (self.episode % 100 == 0):
-                    torch.save(self.target_net, 'fetch_seed%s_%s.pth' % (self.seed, self.episode))
-                    print('Model Saved!')
+                print('Episode Completed:', self.episode)
+                print('Score:', self.score)
+                print('Perceived Mean Score', self.reward_tracker.meanScore())
+                print('Actual Mean Score', np.mean(self.reward_tracker.rewards))
+                print('Remaining Anneals:', self.remaining_anneals)
+                print('Steps in this episode:', self.movement_count)
+                print('Epsilon:', self.epsilon_tracker._epsilon)
+
+                self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
+                self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
+                self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
+                self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
+                self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
+                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker._epsilon, self.episode)
+                print('Steps in this episode:', self.movement_count)
+
+                self.writer.writerow(
+                    [self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards),
+                     self.remaining_anneals, self.epsilon_tracker._epsilon])
+                self.csv_file.flush()
+
                 self.score = 0
                 self.movement_count = 0
+                self.episode += 1
+                print('Starting Episode:', self.episode)
 
+            if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+                self.updateRewardRadius()
+            if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
+                return
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
                 self.target_net.load_state_dict(self.policy_net.state_dict())
 
             if self.episode == NUM_EPISODES:
-                print("DONE")
+                print("DONE WITH ALL EPISODES")
                 return
 
 
@@ -406,12 +413,23 @@ class Trainer(object):
             self.state = self.preprocess(self.env.render(mode='rgb_array'))
             # reward, done = self.getReward()
 
+def cleanup():
+    if os.path.isdir('results'):
+        shutil.rmtree('results')
+    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
+    for csv_txt_file in csv_txt_files:
+        os.remove(csv_txt_file)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
+    parser.add_argument('anneal_count', type=int, default='10')
     args = parser.parse_args()
     gpu_num = args.gpu
+    anneal_count = args.anneal_count
+    print('GPU:', gpu_num)
+    print('ANNEALS:', anneal_count)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
     print('RANDOM SEED: ', seed)
@@ -420,14 +438,15 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    trainer = Trainer(seed)
+    print('cleaning up...')
+    cleanup()
+    print('Creating Trainer Object')
+    trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
-
-    # print("Prefetching Now...")
-    print('showing example now')
-    # trainer.train()
-    trainer.playback('fetch_seed7_1000.pth')
-
+    print("Prefetching Now...")
+    # print('showing example now')
+    trainer.train()
+    # trainer.playback('fetch_seed25_8500.pth')
 
 
 
