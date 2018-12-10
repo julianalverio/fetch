@@ -174,7 +174,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 4
+        self.task = 5
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -294,6 +294,7 @@ class Trainer(object):
     Task 2: Touch the block, continuous reward
     Task 3: Annealing Binary Reward. Done if goal sphere entered or success >= 90%
     Task 4: Grip the block and raise it
+    Task 5: Raise the block up to a certain height, must be stable
     '''
     def getReward(self):
         done = False
@@ -361,6 +362,17 @@ class Trainer(object):
                     reward += 5
 
                 return reward, object_position[2] >= 0.54
+
+        if self.task == 5:
+            reward = 0.
+            delta_z = object_position[2] - self.initial_object_position[2]
+            if delta_z > 0.02:
+                self.elevated_count += 1
+            if self.elevated_count > 20:
+                reward += delta_z
+            return rewared, (delta_z > 0.02 and self.elevated_count > 20)
+
+
 
 
 
