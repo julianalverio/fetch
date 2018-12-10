@@ -408,6 +408,7 @@ if __name__ == "__main__":
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     print('cleaning up...')
+    import pdb; pdb.set_trace()
     cleanup()
     trainer = Trainer(seed, anneal_count)
     print('Trainer Initialized')
