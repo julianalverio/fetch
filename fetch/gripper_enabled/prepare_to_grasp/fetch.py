@@ -189,6 +189,7 @@ class Trainer(object):
         self.updateRewardRadius()
 
         self.task_part_1 = True
+        self.elevated_count = 0
 
 
     def updateRewardRadius(self):
@@ -331,14 +332,36 @@ class Trainer(object):
         if self.task == 4:
             reward = 0.
             if self.task_part_1:
+                reward -= self.movement_count / 300.
+
                 # Get directly over the block
                 xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
                 reward -= xy_distance
 
-                # Don't be too high up
+                # Don't be too high up. Lower bound: 0.4125. Upper bound: 0.44. Ideal: 0.42
+                z_distance = abs(gripper_position[2] - 0.42)
+                reward -= z_distance
+
+                if z_distance <= 0.02 and xy_distance < 0.01:
+                    self.score = 1.
+                self.task_part_1 = False
+                return reward, False
+
+            else:
+                height_delta = object_position[2] - self.initial_object_position[2]
+                if height_delta > 0.02:
+                    self.score = 2
+                    self.elevated_count += 1
+                else:
+                    self.elevated_count = 0
+                reward += max(self.elevated_count, 10)
+                return reward, self.elevated_count > 30
 
 
-            # return reward, done
+
+
+
+
 
 
     def train(self):
