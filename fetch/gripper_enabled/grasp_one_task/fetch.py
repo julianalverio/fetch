@@ -289,12 +289,27 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
+    # figure out how generous to be on xy constraint
+    # figure out how generous to be with finger pinching constraint
+    # what is the height threshold?
     '''
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
     Task 3: Annealing Binary Reward. Done if goal sphere entered or success >= 90%
-    Task 4: Grip the block and raise it
-    Task 5: Raise the block up to a certain height, must be stable
+    *** All Tasks Below Are To Pick Up The Block ***
+    Task 4: 1 stage continuous reward
+    Task 5: 2 stage continuous reward
+    Task 6: 3 stage continuous reward
+    Task 7: 3 stage continuous reward, penalty for opening fingers while holding block
+    Task 8: 3 stage continuous reward, penalty for decreasing in height while holding block
+    Task 9: 1 stage binary reward
+    Task 10: 2 stage binary reward
+    Task 11: 3 stage binary reward
+    Task 12: 3 stage binary reward, penalty for opening fingers
+    Task 13: 3 stage binary reward, penalty for decreasing in height
+    
+    For old xy reward function
+    https://github.com/julianalverio/fetch/blob/ea076c97ec7e7e15fcd49136ae43188e231ffac6/fetch/old_experiments/gripper_enabled/prepare_to_grasp/fetch.py
     '''
     def getReward(self):
         done = False
@@ -329,10 +344,11 @@ class Trainer(object):
             else:
                 return -self.movement_count / 300., False
 
-        # First get directly over the block without moving it
-        # Have the gripper open wider than the block
-        # Then raise it up any amount
-        # ALSO UPDATE SCORE
+        # continuous reward as one task
+        if self.task == 4:
+            reward = 0.
+
+
         if self.task == 4:
             reward = 0.
             if self.task_part_1:
@@ -377,6 +393,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
