@@ -191,8 +191,10 @@ class Trainer(object):
         self.current_radius = None
         self.updateRewardRadius()
 
-        self.task_part_1 = True
-        self.elevated_count = 0
+        self.stage_count = 0
+        self.target_height = 0.55
+        self.xy_threshold = None  # TODO
+        self.finger_threshold = None  # TODO
 
 
     def updateRewardRadius(self):
@@ -291,7 +293,7 @@ class Trainer(object):
 
     # figure out how generous to be on xy constraint
     # figure out how generous to be with finger pinching constraint
-    # what is the height threshold?
+    # what is the height threshold? How high should I try to raise this up?
     '''
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
@@ -388,10 +390,6 @@ class Trainer(object):
                 reward += delta_z
             return rewared, (delta_z > 0.02 and self.elevated_count > 20)
 
-
-
-
-
     def train(self):
         import pdb; pdb.set_trace()
         frame_idx = 0
@@ -451,6 +449,10 @@ class Trainer(object):
             if self.episode == NUM_EPISODES:
                 print("DONE WITH ALL EPISODES")
                 return
+
+    def renderALot(self, count=200):
+        for _ in range(count):
+            self.env.render()
 
 
     def playback(self, path):
