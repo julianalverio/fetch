@@ -471,7 +471,7 @@ class Trainer(object):
 
     def rise(self, count=30):
         for _ in range(count):
-            self.env.step([0, 0, 0, 1])
+            self.env.step([0, 0, 0, -1])
             self.env.step([0, 0, 1, 0])
         self.renderalot()
 
