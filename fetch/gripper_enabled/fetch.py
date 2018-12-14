@@ -302,12 +302,10 @@ class Trainer(object):
     Task 4: 1 stage continuous reward
     Task 5: 2 stage continuous reward
     Task 6: 3 stage continuous reward
-    Task 7: 3 stage continuous reward, penalty for opening fingers while holding block
     Task 8: 3 stage continuous reward, penalty for decreasing in height while holding block
     Task 9: 1 stage binary reward
     Task 10: 2 stage binary reward
     Task 11: 3 stage binary reward
-    Task 12: 3 stage binary reward, penalty for opening fingers
     Task 13: 3 stage binary reward, penalty for decreasing in height
     
     For old xy reward function
