@@ -450,7 +450,7 @@ class Trainer(object):
                 print("DONE WITH ALL EPISODES")
                 return
 
-    def renderALot(self, count=200):
+    def renderalot(self, count=200):
         for _ in range(count):
             self.env.render()
 
