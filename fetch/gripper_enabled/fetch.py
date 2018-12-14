@@ -470,6 +470,12 @@ class Trainer(object):
             self.env.step([0, 0, 1, 0])
         self.renderalot()
 
+    def getFingerWidth(self, count=30):
+        right = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        left = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        return right + left
+
+
     def renderalot(self, count=200):
         for _ in range(count):
             self.env.render()
