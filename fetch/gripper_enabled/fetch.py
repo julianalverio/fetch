@@ -500,6 +500,7 @@ class Trainer(object):
 
 
     def train(self):
+        self.grabBlock()
         frame_idx = 0
         while True:
             frame_idx += 1
