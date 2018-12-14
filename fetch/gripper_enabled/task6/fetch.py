@@ -383,7 +383,7 @@ class Trainer(object):
                 if self.validGrip(object_position, gripper_position):
                     self.score = 1
                     self.stage_count = 1
-                    return 5, False
+                    return 5., False
                 return reward, False
             if self.stage_count == 1:
                 if not self.validGrip(object_position, gripper_position):
@@ -393,6 +393,8 @@ class Trainer(object):
                     self.score = 2
                     self.stage_count = 2
                     return 5., False
+                else:
+                    return reward, False
             if self.stage_count == 2:
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
