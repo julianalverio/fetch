@@ -27,7 +27,7 @@ from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 
 
-NUM_EPISODES = 1500
+NUM_EPISODES = 3000
 
 
 HYPERPARAMS = {
@@ -137,7 +137,7 @@ class ReplayMemory(object):
 
 
 class Trainer(object):
-    def __init__(self, seed, anneal_count, warm_start_path=''):
+    def __init__(self, seed, anneal_count=3, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
@@ -192,9 +192,12 @@ class Trainer(object):
         self.updateRewardRadius()
 
         self.stage_count = 0
-        self.target_height = 0.55
-        self.xy_threshold = None  # TODO
-        self.finger_threshold = None  # TODO
+        self.target_height = 0.47  # get the block at least this high
+        self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
+        self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
+        self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
+        self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
+        self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
 
     def updateRewardRadius(self):
@@ -302,11 +305,9 @@ class Trainer(object):
     Task 4: 1 stage continuous reward
     Task 5: 2 stage continuous reward
     Task 6: 3 stage continuous reward
-    Task 8: 3 stage continuous reward, penalty for decreasing in height while holding block
-    Task 9: 1 stage binary reward
-    Task 10: 2 stage binary reward
-    Task 11: 3 stage binary reward
-    Task 13: 3 stage binary reward, penalty for decreasing in height
+    Task 7: 1 stage binary reward
+    Task 8: 2 stage binary reward
+    Task 9: 3 stage binary reward
     
     For old xy reward function
     https://github.com/julianalverio/fetch/blob/ea076c97ec7e7e15fcd49136ae43188e231ffac6/fetch/old_experiments/gripper_enabled/prepare_to_grasp/fetch.py
@@ -346,50 +347,159 @@ class Trainer(object):
 
         # continuous reward as one task
         if self.task == 4:
-            reward = 0.
+            if not self.validGrip(object_position, gripper_position):
+                return 0., False
+            reward = object_position[2] - self.initial_object_position[2]
+            if object_position[2] > self.target_height:
+                return reward + 1, True
+            return reward, False
 
-
-        if self.task == 4:
-            reward = 0.
-            if self.task_part_1:
-                reward -= self.movement_count / 300.
-
-                # Get directly over the block
-                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-                reward -= xy_distance
-
-                # Don't be too high up. Lower bound: 0.4125. Upper bound: 0.44. Ideal: 0.42
-                z_distance = abs(gripper_position[2] - 0.42)
-                reward -= z_distance
-
-                if z_distance <= 0.02 and xy_distance < 0.01:
-                    self.score = 1.
-                self.task_part_1 = False
+        # 2 stage continuous reward
+        if self.task == 5:
+            reward = -self.movement_count / 1000.
+            if self.stage_count == 0:
+                distance = np.linalg.norm(gripper_position - object_position)
+                reward -= distance
+                if self.validGrip(object_position, gripper_position):
+                    self.score = 1
+                    self.stage_count = 1
+                return reward, False
+            elif self.stage_count == 1:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return reward - 5., False
+                reward += object_position[2] - self.initial_object_position[2]
+                if object_position[2] > self.target_height:
+                    self.score = 2
+                    return reward, True
                 return reward, False
 
+        # 3 stage continuous reward
+        if self.task == 6:
+            reward = -self.movement_count / 1000.
+            if self.stage_count == 0:
+                distance = np.linalg.norm(gripper_position - object_position)
+                reward -= distance
+                if self.validGrip(object_position, gripper_position):
+                    self.score = 1
+                    self.stage_count = 1
+                    return 5, False
+                return reward, False
+            if self.stage_count == 1:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return reward - 5., False
+                if self.getFingerWidth() <= 0.0508578:
+                    self.score = 2
+                    self.stage_count = 2
+                    return 5., False
+            if self.stage_count == 2:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return reward - 5., False
+                reward += object_position[2] - self.initial_object_position[2]
+                if object_position[2] > self.target_height:
+                    self.score = 3
+                    return reward, True
+                return reward, False
+
+        # 1 stage binary reward
+        if self.task == 7:
+            if self.validGrip(object_position, gripper_position) and object_position[2] >= self.target_height:
+                self.score = 1
+                return 1., True
             else:
-                xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-                if xy_distance > 0.01:
-                    reward -= 2
-                height_difference = object_position[2] - 0.55
-                reward -= height_difference
+                return 0., False
 
-                if height_difference < 0.02:
-                    reward += 5
+        # 2-stage binary reward
+        if self.task == 8:
+            reward = -self.movement_count / 1000.
+            if self.stage_count == 0:
+                if self.validGrip(object_position, gripper_position):
+                    self.score = 1
+                    self.stage_count = 1
+                    return 5., False
+                else:
+                    return reward, False
+            if self.stage_count == 1:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return -1., False
+                if object_position[2] >= self.target_height:
+                    self.score = 2
+                    return 5., True
+                return reward, False
 
-                return reward, object_position[2] >= 0.54
+        if self.task == 9:
+            reward = -self.movement_count / 1000.
+            if self.stage_count == 0:
+                if self.validGrip(object_position, gripper_position):
+                    self.score = 1
+                    self.stage_count = 1
+                    return 5., False
+                else:
+                    return reward, False
+            if self.stage_count == 1:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return -1., False
+                if self.getFingerWidth() <= 0.0508578:
+                    self.score = 2
+                    self.stage_count = 2
+                    return 5., False
+                else:
+                    return reward, False
+            if self.stage_count == 2:
+                if not self.validGrip(object_position, gripper_position):
+                    self.stage_count = 0
+                    return -1., False
+                if object_position[2] >= self.target_height:
+                    self.score = 2
+                    return 5., True
+                else:
+                    return reward, False
 
-        if self.task == 5:
-            reward = 0.
-            delta_z = object_position[2] - self.initial_object_position[2]
-            if delta_z > 0.02:
-                self.elevated_count += 1
-            if self.elevated_count > 20:
-                reward += delta_z
-            return reward, (delta_z > 0.02 and self.elevated_count > 20)
+
+        # if self.task == 4:
+        #     reward = 0.
+        #     if self.task_part_1:
+        #         reward -= self.movement_count / 300.
+        #
+        #         # Get directly over the block
+        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
+        #         reward -= xy_distance
+        #
+        #         # Don't be too high up. Lower bound: 0.4125. Upper bound: 0.44. Ideal: 0.42
+        #         z_distance = abs(gripper_position[2] - 0.42)
+        #         reward -= z_distance
+        #
+        #         if z_distance <= 0.02 and xy_distance < 0.01:
+        #             self.score = 1.
+        #         self.task_part_1 = False
+        #         return reward, False
+        #
+        #     else:
+        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
+        #         if xy_distance > 0.01:
+        #             reward -= 2
+        #         height_difference = object_position[2] - 0.55
+        #         reward -= height_difference
+        #
+        #         if height_difference < 0.02:
+        #             reward += 5
+        #
+        #         return reward, object_position[2] >= 0.54
+
+
+
+    def validGrip(self, object_position, gripper_position):
+        x_difference = abs(object_position[0] - gripper_position[0])
+        y_difference = abs(object_position[1] - object_position[1])
+        return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
+               and self.getFingerWidth() > self.finger_threshold
+
 
     def train(self):
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
@@ -432,7 +542,7 @@ class Trainer(object):
                 self.movement_count = 0
                 self.episode += 1
 
-                self.task_part_1 = True
+                self.stage_count = 0
                 print('Starting Episode:', self.episode)
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
@@ -475,7 +585,7 @@ class Trainer(object):
             self.env.step([0, 0, 1, 0])
         self.renderalot()
 
-    def getFingerWidth(self, count=30):
+    def getFingerWidth(self):
         right = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
         left = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
         return right + left
@@ -509,12 +619,9 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    parser.add_argument('anneal_count', type=int, default='10')
     args = parser.parse_args()
     gpu_num = args.gpu
-    anneal_count = args.anneal_count
     print('GPU:', gpu_num)
-    print('ANNEALS:', anneal_count)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
     print('RANDOM SEED: ', seed)
@@ -526,12 +633,10 @@ if __name__ == "__main__":
     print('cleaning up...')
     cleanup()
     print('Creating Trainer Object')
-    trainer = Trainer(seed, anneal_count)
+    trainer = Trainer(seed)
     print('Trainer Initialized')
     print("Prefetching Now...")
-    # print('showing example now')
     trainer.train()
-    # trainer.playback('fetch_seed25_8500.pth')
 
 
 
