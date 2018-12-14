@@ -620,6 +620,7 @@ class Trainer(object):
         self.drop()
         self.close()
         self.rise()
+        self.rise()
         self.renderalot()
 
         import pdb; pdb.set_trace()
