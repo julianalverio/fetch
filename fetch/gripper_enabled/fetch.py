@@ -137,7 +137,7 @@ class ReplayMemory(object):
 
 
 class Trainer(object):
-    def __init__(self, seed, anneal_count=3, warm_start_path=''):
+    def __init__(self, seed, task_num, anneal_count=3, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
@@ -174,7 +174,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 5
+        self.task = task_num
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -500,6 +500,7 @@ class Trainer(object):
 
 
     def train(self):
+        self.grabBlock()
         frame_idx = 0
         while True:
             frame_idx += 1
@@ -595,6 +596,37 @@ class Trainer(object):
         for _ in range(count):
             self.env.render()
 
+    def grabBlock(self):
+        self.open()
+        object_position = self.env.sim.data.get_site_xpos('object0')
+        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.rise()
+        while gripper_position[0] > object_position[0]:
+            self.env.step([-1, 0, 0, 0])
+            self.env.render()
+        while gripper_position[0] < object_position[0]:
+            self.env.step([1, 0, 0, 0])
+            self.env.render()
+
+        while gripper_position[1] > object_position[1]:
+            self.env.step([0, -1, 0, 0])
+            self.env.render()
+        while gripper_position[1] < object_position[1]:
+            self.env.step([0, 1, 0, 0])
+            self.env.render()
+
+        self.open()
+        self.drop()
+        self.drop()
+        self.close()
+        self.rise()
+        self.rise()
+        self.renderalot()
+
+        import pdb; pdb.set_trace()
+
+
+
 
     def playback(self, path):
         self.target_net = torch.load(path)
@@ -619,8 +651,10 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
+    parser.add_argument('task', type=int)
     args = parser.parse_args()
     gpu_num = args.gpu
+    task_num = args.task
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
@@ -633,7 +667,7 @@ if __name__ == "__main__":
     print('cleaning up...')
     cleanup()
     print('Creating Trainer Object')
-    trainer = Trainer(seed)
+    trainer = Trainer(seed, task_num)
     print('Trainer Initialized')
     print("Prefetching Now...")
     trainer.train()
