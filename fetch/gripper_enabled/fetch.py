@@ -450,6 +450,16 @@ class Trainer(object):
                 print("DONE WITH ALL EPISODES")
                 return
 
+    def close(self, count=200):
+        for _ in range(count):
+            self.env.step([0, 0, 0, -1])
+        self.renderalot()
+
+    def rise(self, count=30):
+        for _ in range(count):
+            self.env.step([0, 0, 1, 0])
+        self.renderalot()
+
     def renderalot(self, count=200):
         for _ in range(count):
             self.env.render()
