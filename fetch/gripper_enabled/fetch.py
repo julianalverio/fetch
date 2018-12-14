@@ -386,7 +386,7 @@ class Trainer(object):
                 self.elevated_count += 1
             if self.elevated_count > 20:
                 reward += delta_z
-            return rewared, (delta_z > 0.02 and self.elevated_count > 20)
+            return reward, (delta_z > 0.02 and self.elevated_count > 20)
 
     def train(self):
         import pdb; pdb.set_trace()
@@ -447,6 +447,12 @@ class Trainer(object):
             if self.episode == NUM_EPISODES:
                 print("DONE WITH ALL EPISODES")
                 return
+
+    def getDistances(self):
+        object_position = self.env.sim.data.get_site_xpos('object0')
+        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        return object_position[:2] - gripper_position[:2]
+
 
     def close(self, count=200):
         for _ in range(count):
