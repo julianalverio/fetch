@@ -626,6 +626,8 @@ class Trainer(object):
         self.drop()
         self.drop()
         self.close()
+        import pdb; pdb.set_trace()
+        self.env.step([0,0,1,0])
         # self.rise()
         self.wait(1000)
         self.renderalot(10)
