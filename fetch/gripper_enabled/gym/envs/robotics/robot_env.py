@@ -57,6 +57,7 @@ class RobotEnv(gym.GoalEnv):
     def step(self, action):
         action = np.clip(action, self.action_space.low, self.action_space.high)
         self._set_action(action)
+        import pdb; pdb.set_trace()
         self.sim.step()
         self._step_callback()
         obs = self._get_obs()
