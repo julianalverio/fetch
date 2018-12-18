@@ -45,6 +45,8 @@
         <exclude body1="robot0:torso_lift_link" body2="robot0:torso_fixed_link"></exclude>
         <exclude body1="robot0:torso_lift_link" body2="robot0:shoulder_pan_link"></exclude>
     </contact>
+
+    <option solver="elliptic"></option>
     
     <default>
         <default class="robot0:fetch">
@@ -53,7 +55,7 @@
             
             <default class="robot0:fetchGripper">
                 <geom condim="4" margin="0.001" type="box" user="0" rgba="0.356 0.361 0.376 1.0"></geom>
-                <joint armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide" solver="elliptic"></joint>
+                <joint armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide"></joint>
             </default>
 
             <default class="robot0:grey">
