@@ -597,6 +597,13 @@ class Trainer(object):
         for _ in range(count):
             self.env.render()
 
+
+    def wait(self, count=200):
+        for _ in range(count):
+            self.env.step([0,0,0,0])
+            self.env.render()
+
+
     def grabBlock(self):
         object_position = self.env.sim.data.get_site_xpos('object0')
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
@@ -620,8 +627,8 @@ class Trainer(object):
         self.drop()
         self.close()
         self.rise()
-        self.rise()
-        self.renderalot()
+        self.wait()
+        self.renderalot(10)
 
         import pdb; pdb.set_trace()
 
