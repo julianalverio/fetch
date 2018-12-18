@@ -36,8 +36,8 @@
     </asset>
 
     <equality>
-        <weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.95 0.95 0.01" solref="0.02 1" solver="elliptic></weld>
-        <!--<weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.9 0.95 0.001" solref="0.02 1"></weld>-->
+        <!--<weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.95 0.95 0.01" solref="0.02 1"></weld>-->
+        <weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.9 0.95 0.001" solref="0.02 1"></weld>
     </equality>
     
     <contact>
@@ -53,7 +53,7 @@
             
             <default class="robot0:fetchGripper">
                 <geom condim="4" margin="0.001" type="box" user="0" rgba="0.356 0.361 0.376 1.0"></geom>
-                <joint armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide"></joint>
+                <joint armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide" solver="elliptic"></joint>
             </default>
 
             <default class="robot0:grey">
