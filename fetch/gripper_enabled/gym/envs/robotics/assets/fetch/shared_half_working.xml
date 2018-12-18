@@ -47,7 +47,7 @@
 
     <!--IGNORE ABOVE THIS LINE-->
 
-    <option cone="elliptic" impratio="5" timestep="0.002"/>
+    <option cone="elliptic" impratio="300" timestep="0.002"/>
 
 
     <default>
