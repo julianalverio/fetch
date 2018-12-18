@@ -631,7 +631,7 @@ class Trainer(object):
         self.renderalot(100)
         for _ in range(20):
             self.env.step([0, 1, 0, 0])
-            self.renderalot(10)
+            self.renderalot(30)
         import pdb; pdb.set_trace()
         # self.rise()
         self.wait(1000)
