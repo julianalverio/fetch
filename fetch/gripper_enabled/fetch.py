@@ -308,6 +308,7 @@ class Trainer(object):
     Task 7: 1 stage binary reward
     Task 8: 2 stage binary reward
     Task 9: 3 stage binary reward
+    Task 10: 3 stage binary reward. Additional contrainsts
     
     For old xy reward function
     https://github.com/julianalverio/fetch/blob/ea076c97ec7e7e15fcd49136ae43188e231ffac6/fetch/old_experiments/gripper_enabled/prepare_to_grasp/fetch.py
@@ -582,7 +583,7 @@ class Trainer(object):
 
     def rise(self, count=30):
         for _ in range(count):
-            self.env.step([0, 0, 0, -1])
+            # self.env.step([0, 0, 0, -1])
             self.env.step([0, 0, 1, 0])
         self.renderalot()
 
@@ -597,7 +598,6 @@ class Trainer(object):
             self.env.render()
 
     def grabBlock(self):
-        self.open()
         object_position = self.env.sim.data.get_site_xpos('object0')
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.rise()
