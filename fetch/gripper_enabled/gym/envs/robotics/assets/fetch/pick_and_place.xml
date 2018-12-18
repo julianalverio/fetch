@@ -24,7 +24,7 @@
 		
 		<body name="object0" pos="0.025 0.025 0.025">
 			<joint name="object0:joint" type="free" damping="0.01"></joint>
-			<geom condim="4" contype="4" solimp="0.99 0.99 0.99" solref="0.01 0.01" size="0.025 0.025 0.025" type="box" name="object0" material="block_mat" mass="1"></geom>
+			<geom condim="4" contype="3" solimp="0.99 0.99 0.99" solref="0.01 0.01" size="0.025 0.025 0.025" type="box" name="object0" material="block_mat" mass="1"></geom>
 			<site name="object0" pos="0 0 0" size="0.02 0.02 0.02" rgba="1 0 0 1" type="sphere"></site>
 		</body>
 
