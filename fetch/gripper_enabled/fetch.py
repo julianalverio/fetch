@@ -627,8 +627,8 @@ class Trainer(object):
         self.drop()
         # self.close()
         self.rise(5)
-        for _ in range(3):
-            self.env.step([0, 0, 0, -1])
+        self.close(10)
+        self.wait(100)
         for _ in range(20):
             self.env.step([0, 1, 0, 0])
             self.env.render()
