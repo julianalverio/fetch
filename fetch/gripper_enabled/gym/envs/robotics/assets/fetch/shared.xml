@@ -39,6 +39,9 @@
         <!--<weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.95 0.95 0.01" solref="0.02 1"></weld>-->
         <weld body1="robot0:mocap" body2="robot0:gripper_link" solimp="0.9 0.95 0.001" solref="0.02 1"></weld>
     </equality>
+
+    <!--<option condim="4" contyp="4"-->
+    <option solver="CG"></option>
     
     <contact>
         <exclude body1="robot0:r_gripper_finger_link" body2="robot0:l_gripper_finger_link"></exclude>
