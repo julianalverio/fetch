@@ -52,7 +52,7 @@
 
     <default>
         <default class="robot0:fetch">
-            <geom condim="4" contype="4" solimp="0.99 0.99 0.99" solref="0.01 1" margin="0.001" material="robot0:geomMat" rgba="1 1 1 1" type="mesh" user="0"></geom>
+            <geom condim="4" contype="4" solimp="0.99 0.99 0.99" solref="0.01 0.01" margin="0.001" material="robot0:geomMat" rgba="1 1 1 1" type="mesh" user="0"></geom>
             <joint armature="1" damping="50" frictionloss="0" stiffness="0"></joint>
             
             <default class="robot0:fetchGripper">
