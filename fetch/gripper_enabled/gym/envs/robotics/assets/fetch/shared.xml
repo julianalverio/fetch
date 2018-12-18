@@ -47,7 +47,7 @@
 
     <!--WE WILL IGNORE EVERYTHING ABOVE THIS COMMENT-->
 
-    <option solver="Newton" cone="elliptic"></option>
+    <option solver="Newton" cone="elliptic" impratio="100"></option>
 
 
     <default>
