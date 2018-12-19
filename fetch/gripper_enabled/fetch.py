@@ -508,7 +508,7 @@ class Trainer(object):
 
     def train(self):
         widths = []
-        previous_width = self.getFingerWidth()
+        previous_width = None
         while self.getFingerWidth() != previous_width:
             previous_width = self.getFingerWidth()
             self.env.step([0, 0, 0, 1])
