@@ -199,7 +199,7 @@ class Trainer(object):
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
-        self.current_finger_distance = 0.
+        self.desired_finger_width = self.getFingerWidth()
 
 
     def updateRewardRadius(self):
@@ -265,7 +265,7 @@ class Trainer(object):
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        # gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.env.step(self.convertAction(action))
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
@@ -507,6 +507,17 @@ class Trainer(object):
 
 
     def train(self):
+        widths = []
+        previous_width = self.getFingerWidth()
+        while self.getFingerWidth() != previous_width:
+            previous_width = self.getFingerWidth()
+            self.env.step([0, 0, 0, 1])
+            widths.append(previous_width)
+        print(np.mean(widths))
+        import pdb; pdb.set_trace()
+
+
+        np.mean([self.env.step([0, 0, 0, 1])])
         import pdb; pdb.set_trace()
         self.grabBlock()
         frame_idx = 0
