@@ -136,6 +136,7 @@ class ReplayMemory(object):
         print('Buffer Capacity:', len(self.memory) * 1. / self.capacity)
 
 
+
 class Trainer(object):
     def __init__(self, seed, task_num, anneal_count=3, warm_start_path=''):
         self.params = HYPERPARAMS
@@ -258,6 +259,9 @@ class Trainer(object):
         elif action.item() == 5:
             self.current_finger_distance -= 0.05
         return movement
+
+    def openGripper(self):
+        pass
 
 
     def addExperience(self):
@@ -507,6 +511,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         widths = []
         previous_width = None
         while self.getFingerWidth() != previous_width:
@@ -657,9 +662,6 @@ class Trainer(object):
 
         import pdb; pdb.set_trace()
 
-
-
-
     def playback(self, path):
         self.target_net = torch.load(path)
         for _ in range(4):
@@ -671,6 +673,8 @@ class Trainer(object):
             self.env.step(action)
             self.state = self.preprocess(self.env.render(mode='rgb_array'))
             # reward, done = self.getReward()
+
+
 
 def cleanup():
     if os.path.isdir('results'):
