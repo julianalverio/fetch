@@ -199,6 +199,8 @@ class Trainer(object):
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
+        self.current_finger_distance = 0.
+
 
     def updateRewardRadius(self):
         current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
@@ -251,6 +253,10 @@ class Trainer(object):
             movement[action.item() // 2] += 1
         else:
             movement[action.item() // 2] -= 1
+        if action.item() == 4:
+            self.current_finger_distance += 0.05
+        elif action.item() == 5:
+            self.current_finger_distance -= 0.05
         return movement
 
 
@@ -501,6 +507,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         self.grabBlock()
         frame_idx = 0
         while True:
