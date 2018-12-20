@@ -268,21 +268,22 @@ class Trainer(object):
         self.env.render()
         self.gripper_state = 0
 
+    def doAction(self, action):
+        converted = self.convertAction(action)
+        if converted[-1] == 0:
+            pass
+
+
+
 
     def addExperience(self):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
-        # gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        if action.item() == 6:
-            self.openGripper()
-        elif action.item() == 7:
-            self.closeGripper()
-        else:
-            action_converted = self.convertAction(action)
-            action_converted[-1] = self.gripper_state
-            self.env.step(action_converted)
+        action_converted = self.convertAction(action)
+        action_converted[-1] = self.gripper_state
+        self.env.step(action_converted)
 
 
         self.movement_count += 1
@@ -499,6 +500,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1

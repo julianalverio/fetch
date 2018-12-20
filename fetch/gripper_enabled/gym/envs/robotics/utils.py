@@ -28,6 +28,7 @@ def ctrl_set_action(sim, action):
         _, action = np.split(action, (sim.model.nmocap * 7, ))
     if sim.data.ctrl is not None:
         for i in range(action.shape[0]):
+            import pdb; pdb.set_trace()
             if sim.model.actuator_biastype[i] == 0:
                 sim.data.ctrl[i] = action[i]
             else:

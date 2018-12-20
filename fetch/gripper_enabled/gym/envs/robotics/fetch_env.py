@@ -75,8 +75,8 @@ class FetchEnv(robot_env.RobotEnv):
         rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
         assert gripper_ctrl.shape == (2,)
-        if self.block_gripper:
-            gripper_ctrl = np.zeros_like(gripper_ctrl)
+        # if self.block_gripper:
+        #     gripper_ctrl = np.zeros_like(gripper_ctrl)
         action = np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl])
 
         # Apply action to simulation.
