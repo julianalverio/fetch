@@ -200,7 +200,7 @@ class Trainer(object):
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
-        self.desired_finger_width = self.getFingerWidth()
+        self.gripper_state = 0
 
 
     def updateRewardRadius(self):
@@ -254,14 +254,19 @@ class Trainer(object):
             movement[action.item() // 2] += 1
         else:
             movement[action.item() // 2] -= 1
-        if action.item() == 4:
-            self.current_finger_distance += 0.05
-        elif action.item() == 5:
-            self.current_finger_distance -= 0.05
         return movement
 
     def openGripper(self):
-        pass
+        while self.getFingerWidth() < 0.1:
+            self.env.step([0, 0, 0, 1])
+        self.env.render()
+        self.gripper_state = 1
+
+    def closeGripper(self):
+        while self.getFingerWidth() > 0.001:
+            self.env.step([0, 0, 0, -1])
+        self.env.render()
+        self.gripper_state = 0
 
 
     def addExperience(self):
@@ -270,7 +275,16 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         # gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        self.env.step(self.convertAction(action))
+        if action.item() == 6:
+            self.openGripper()
+        elif action.item() == 7:
+            self.closeGripper()
+        else:
+            action = self.convertAction(action)
+            action[-1] = self.gripper_state
+            self.env.step(action)
+
+
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
@@ -471,38 +485,6 @@ class Trainer(object):
                     return reward, False
 
 
-        # if self.task == 4:
-        #     reward = 0.
-        #     if self.task_part_1:
-        #         reward -= self.movement_count / 300.
-        #
-        #         # Get directly over the block
-        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-        #         reward -= xy_distance
-        #
-        #         # Don't be too high up. Lower bound: 0.4125. Upper bound: 0.44. Ideal: 0.42
-        #         z_distance = abs(gripper_position[2] - 0.42)
-        #         reward -= z_distance
-        #
-        #         if z_distance <= 0.02 and xy_distance < 0.01:
-        #             self.score = 1.
-        #         self.task_part_1 = False
-        #         return reward, False
-        #
-        #     else:
-        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-        #         if xy_distance > 0.01:
-        #             reward -= 2
-        #         height_difference = object_position[2] - 0.55
-        #         reward -= height_difference
-        #
-        #         if height_difference < 0.02:
-        #             reward += 5
-        #
-        #         return reward, object_position[2] >= 0.54
-
-
-
     def validGrip(self, object_position, gripper_position):
         x_difference = abs(object_position[0] - gripper_position[0])
         y_difference = abs(object_position[1] - object_position[1])
@@ -510,21 +492,17 @@ class Trainer(object):
                and self.getFingerWidth() > self.finger_threshold
 
 
+    def openGripper(self):
+
+
+
     def train(self):
-        import pdb; pdb.set_trace()
-        widths = []
-        previous_width = None
-        while self.getFingerWidth() != previous_width:
-            previous_width = self.getFingerWidth()
-            self.env.step([0, 0, 0, 1])
-            widths.append(previous_width)
-        print(np.mean(widths))
-        import pdb; pdb.set_trace()
-
-
-        np.mean([self.env.step([0, 0, 0, 1])])
-        import pdb; pdb.set_trace()
         self.grabBlock()
+        for _ in range(20):
+            self.drop(30)
+            self.rise(30)
+
+        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
@@ -601,14 +579,13 @@ class Trainer(object):
 
     def drop(self, count=30):
         for _ in range(count):
-            self.env.step([0, 0, -1, 0])
-        self.renderalot()
+            self.env.step([0, 0, -1, 1])
+        self.renderalot(5)
 
     def rise(self, count=15):
         for _ in range(count):
-            # self.env.step([0, 0, 0, -1])
-            self.env.step([0, 0, 1, 0])
-        self.renderalot()
+            self.env.step([0, 0, 1, 1])
+        self.renderalot(5)
 
     def getFingerWidth(self):
         right = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
