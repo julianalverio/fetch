@@ -29,6 +29,7 @@ def ctrl_set_action(sim, action):
     if sim.data.ctrl is not None:
         for i in range(action.shape[0]):
             if sim.model.actuator_biastype[i] == 0:
+                print('I GOT TO THIS WEIRD IF STATEMENT')
                 sim.data.ctrl[i] = action[i]
             else:  # this case is the only one used
                 idx = sim.model.jnt_qposadr[sim.model.actuator_trnid[i, 0]]
