@@ -492,10 +492,6 @@ class Trainer(object):
                and self.getFingerWidth() > self.finger_threshold
 
 
-    def openGripper(self):
-
-
-
     def train(self):
         self.grabBlock()
         for _ in range(20):
