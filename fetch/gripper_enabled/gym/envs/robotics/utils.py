@@ -29,7 +29,6 @@ def ctrl_set_action(sim, action):
     if sim.data.ctrl is not None:
         for i in range(action.shape[0]):
             if sim.model.actuator_biastype[i] == 0:
-                print('I GOT TO THIS WEIRD IF STATEMENT')
                 sim.data.ctrl[i] = action[i]
             else:  # this case is the only one used
                 idx = sim.model.jnt_qposadr[sim.model.actuator_trnid[i, 0]]
@@ -47,6 +46,7 @@ def mocap_set_action(sim, action):
     constraint optimizer tries to center the welded body on the mocap.
     """
     if sim.model.nmocap > 0:
+        import pdb; pdb.set_trace()
         action, _ = np.split(action, (sim.model.nmocap * 7, ))
         action = action.reshape(sim.model.nmocap, 7)
 
