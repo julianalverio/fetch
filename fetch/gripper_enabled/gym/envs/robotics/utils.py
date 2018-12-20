@@ -35,7 +35,7 @@ def ctrl_set_action(sim, action):
                 import pdb; pdb.set_trace()
                 idx = sim.model.jnt_qposadr[sim.model.actuator_trnid[i, 0]]
                 sim.data.ctrl[i] = sim.data.qpos[idx] + action[i]
-            print(sim.data.ctrl)
+    print(sim.data.ctrl)
 
 
 def mocap_set_action(sim, action):
