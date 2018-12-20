@@ -414,6 +414,7 @@ class Trainer(object):
                     return 5, False
                 return reward, False
             if self.stage_count == 1:
+                import pdb; pdb.set_trace()
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
                     return reward - 5., False
@@ -421,6 +422,8 @@ class Trainer(object):
                     self.score = 2
                     self.stage_count = 2
                     return 5., False
+                else:
+                    return reward, False
             if self.stage_count == 2:
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
