@@ -494,9 +494,10 @@ class Trainer(object):
 
     def train(self):
         self.grabBlock()
+        self.move([0, 0, 1, -1], count=40)
         for _ in range(20):
-            self.drop(30)
-            self.rise(30)
+            self.move([0, 0, -1, -1], count=30)
+            self.move([0, 0, 11, -1], count=30)
 
         import pdb; pdb.set_trace()
         frame_idx = 0
@@ -575,12 +576,12 @@ class Trainer(object):
 
     def drop(self, count=30):
         for _ in range(count):
-            self.env.step([0, 0, -1, -1])
+            self.env.step([0, 0, -1, 0])
         self.renderalot(5)
 
     def rise(self, count=15):
         for _ in range(count):
-            self.env.step([0, 0, 1, -1])
+            self.env.step([0, 0, 1, 0])
         self.renderalot(5)
 
     def getFingerWidth(self):
@@ -598,6 +599,12 @@ class Trainer(object):
         for _ in range(count):
             self.env.step([0,0,0,0])
             self.env.render()
+
+    def move(self, movement, count=200):
+        for _ in range(count):
+            self.env.step(movement)
+            self.env.render()
+
 
 
     def grabBlock(self):
@@ -623,7 +630,6 @@ class Trainer(object):
         self.drop()
         # self.close()
         self.close(100)
-        self.rise(50)
 
 
     def playback(self, path):
