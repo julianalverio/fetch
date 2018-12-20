@@ -493,13 +493,6 @@ class Trainer(object):
 
 
     def train(self):
-        self.grabBlock()
-        self.move([0, 0, 1, -1], count=40)
-        for _ in range(19):
-            self.move([0, 0, -1, -1], count=30)
-            self.move([0, 0, 1, -1], count=30)
-
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
