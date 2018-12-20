@@ -623,10 +623,8 @@ class Trainer(object):
         self.drop()
         # self.close()
         self.close(100)
-        import pdb; pdb.set_trace()
         self.rise(50)
 
-        import pdb; pdb.set_trace()
 
     def playback(self, path):
         self.target_net = torch.load(path)
