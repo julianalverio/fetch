@@ -28,12 +28,12 @@ def ctrl_set_action(sim, action):
         _, action = np.split(action, (sim.model.nmocap * 7, ))
     if sim.data.ctrl is not None:
         for i in range(action.shape[0]):
-            import pdb; pdb.set_trace()
             if sim.model.actuator_biastype[i] == 0:
                 sim.data.ctrl[i] = action[i]
             else:  # this case is the only one used
                 idx = sim.model.jnt_qposadr[sim.model.actuator_trnid[i, 0]]
                 sim.data.ctrl[i] = sim.data.qpos[idx] + action[i]
+            print(sim.data.ctrl)
 
 
 def mocap_set_action(sim, action):
