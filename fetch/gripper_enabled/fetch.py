@@ -575,12 +575,12 @@ class Trainer(object):
 
     def drop(self, count=30):
         for _ in range(count):
-            self.env.step([0, 0, -1, 1])
+            self.env.step([0, 0, -1, -1])
         self.renderalot(5)
 
     def rise(self, count=15):
         for _ in range(count):
-            self.env.step([0, 0, 1, 1])
+            self.env.step([0, 0, 1, -1])
         self.renderalot(5)
 
     def getFingerWidth(self):
