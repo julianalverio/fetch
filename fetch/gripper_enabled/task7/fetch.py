@@ -136,8 +136,9 @@ class ReplayMemory(object):
         print('Buffer Capacity:', len(self.memory) * 1. / self.capacity)
 
 
+
 class Trainer(object):
-    def __init__(self, seed, anneal_count=3, warm_start_path=''):
+    def __init__(self, seed, task_num, anneal_count=3, warm_start_path=''):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
@@ -174,7 +175,7 @@ class Trainer(object):
         self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
         self.score = 0
         self.batch_size = self.params['batch_size']
-        self.task = 7
+        self.task = task_num
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
@@ -198,6 +199,8 @@ class Trainer(object):
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
+
+        self.gripper_state = 0
 
 
     def updateRewardRadius(self):
@@ -253,14 +256,35 @@ class Trainer(object):
             movement[action.item() // 2] -= 1
         return movement
 
+    def openGripper(self):
+        while self.getFingerWidth() < 0.1:
+            self.env.step([0, 0, 0, 1])
+        self.env.render()
+        self.gripper_state = 1
+
+    def closeGripper(self):
+        while self.getFingerWidth() > 0.001:
+            self.env.step([0, 0, 0, -1])
+        self.env.render()
+        self.gripper_state = 0
+
 
     def addExperience(self):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        self.env.step(self.convertAction(action))
+        # gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        if action.item() == 6:
+            self.openGripper()
+        elif action.item() == 7:
+            self.closeGripper()
+        else:
+            action_converted = self.convertAction(action)
+            action_converted[-1] = self.gripper_state
+            self.env.step(action_converted)
+
+
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
@@ -308,6 +332,7 @@ class Trainer(object):
     Task 7: 1 stage binary reward
     Task 8: 2 stage binary reward
     Task 9: 3 stage binary reward
+    Task 10: 3 stage binary reward. Additional contrainsts
     
     For old xy reward function
     https://github.com/julianalverio/fetch/blob/ea076c97ec7e7e15fcd49136ae43188e231ffac6/fetch/old_experiments/gripper_enabled/prepare_to_grasp/fetch.py
@@ -460,38 +485,6 @@ class Trainer(object):
                     return reward, False
 
 
-        # if self.task == 4:
-        #     reward = 0.
-        #     if self.task_part_1:
-        #         reward -= self.movement_count / 300.
-        #
-        #         # Get directly over the block
-        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-        #         reward -= xy_distance
-        #
-        #         # Don't be too high up. Lower bound: 0.4125. Upper bound: 0.44. Ideal: 0.42
-        #         z_distance = abs(gripper_position[2] - 0.42)
-        #         reward -= z_distance
-        #
-        #         if z_distance <= 0.02 and xy_distance < 0.01:
-        #             self.score = 1.
-        #         self.task_part_1 = False
-        #         return reward, False
-        #
-        #     else:
-        #         xy_distance = np.linalg.norm(gripper_position[:2] - object_position[:2])
-        #         if xy_distance > 0.01:
-        #             reward -= 2
-        #         height_difference = object_position[2] - 0.55
-        #         reward -= height_difference
-        #
-        #         if height_difference < 0.02:
-        #             reward += 5
-        #
-        #         return reward, object_position[2] >= 0.54
-
-
-
     def validGrip(self, object_position, gripper_position):
         x_difference = abs(object_position[0] - gripper_position[0])
         y_difference = abs(object_position[1] - object_position[1])
@@ -547,8 +540,8 @@ class Trainer(object):
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
                 self.updateRewardRadius()
-            # if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
-            #     return
+            if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
+                return
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
@@ -577,13 +570,12 @@ class Trainer(object):
     def drop(self, count=30):
         for _ in range(count):
             self.env.step([0, 0, -1, 0])
-        self.renderalot()
+        self.renderalot(5)
 
-    def rise(self, count=30):
+    def rise(self, count=15):
         for _ in range(count):
-            self.env.step([0, 0, 0, -1])
             self.env.step([0, 0, 1, 0])
-        self.renderalot()
+        self.renderalot(5)
 
     def getFingerWidth(self):
         right = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
@@ -594,6 +586,43 @@ class Trainer(object):
     def renderalot(self, count=200):
         for _ in range(count):
             self.env.render()
+
+
+    def wait(self, count=200):
+        for _ in range(count):
+            self.env.step([0,0,0,0])
+            self.env.render()
+
+    def move(self, movement, count=200):
+        for _ in range(count):
+            self.env.step(movement)
+            self.env.render()
+
+
+
+    def grabBlock(self):
+        object_position = self.env.sim.data.get_site_xpos('object0')
+        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.rise()
+        while gripper_position[0] > object_position[0]:
+            self.env.step([-1, 0, 0, 0])
+            self.env.render()
+        while gripper_position[0] < object_position[0]:
+            self.env.step([1, 0, 0, 0])
+            self.env.render()
+
+        while gripper_position[1] > object_position[1]:
+            self.env.step([0, -1, 0, 0])
+            self.env.render()
+        while gripper_position[1] < object_position[1]:
+            self.env.step([0, 1, 0, 0])
+            self.env.render()
+
+        self.open()
+        self.drop()
+        self.drop()
+        # self.close()
+        self.close(100)
 
 
     def playback(self, path):
@@ -608,6 +637,8 @@ class Trainer(object):
             self.state = self.preprocess(self.env.render(mode='rgb_array'))
             # reward, done = self.getReward()
 
+
+
 def cleanup():
     if os.path.isdir('results'):
         shutil.rmtree('results')
@@ -619,8 +650,10 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
+    parser.add_argument('task', type=int)
     args = parser.parse_args()
     gpu_num = args.gpu
+    task_num = args.task
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
@@ -633,7 +666,7 @@ if __name__ == "__main__":
     print('cleaning up...')
     cleanup()
     print('Creating Trainer Object')
-    trainer = Trainer(seed)
+    trainer = Trainer(seed, task_num)
     print('Trainer Initialized')
     print("Prefetching Now...")
     trainer.train()
