@@ -593,7 +593,7 @@ class Trainer(object):
         return right + left
 
 
-    def renderalot(self, count=200):
+    def renderalot(self, count=10):
         for _ in range(count):
             self.env.render()
 
