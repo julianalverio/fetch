@@ -280,9 +280,9 @@ class Trainer(object):
         elif action.item() == 7:
             self.closeGripper()
         else:
-            action = self.convertAction(action)
-            action[-1] = self.gripper_state
-            self.env.step(action)
+            action_converted = self.convertAction(action)
+            action_converted[-1] = self.gripper_state
+            self.env.step(action_converted)
 
 
         self.movement_count += 1
