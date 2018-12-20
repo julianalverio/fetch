@@ -401,7 +401,6 @@ class Trainer(object):
 
         # 3 stage continuous reward
         if self.task == 6:
-            import pdb; pdb.set_trace()
             reward = -self.movement_count / 1000.
             if self.stage_count == 0:
                 distance = np.linalg.norm(gripper_position - object_position)
