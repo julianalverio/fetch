@@ -31,7 +31,7 @@ def ctrl_set_action(sim, action):
             import pdb; pdb.set_trace()
             if sim.model.actuator_biastype[i] == 0:
                 sim.data.ctrl[i] = action[i]
-            else:
+            else:  # this case is the only one used
                 idx = sim.model.jnt_qposadr[sim.model.actuator_trnid[i, 0]]
                 sim.data.ctrl[i] = sim.data.qpos[idx] + action[i]
 
