@@ -287,7 +287,10 @@ class Trainer(object):
 
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        reward, done = self.getReward()
+        try:
+            reward, done = self.getReward()
+        except:
+            import pdb; pdb.set_trace()
         self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
 
