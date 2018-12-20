@@ -493,7 +493,7 @@ class Trainer(object):
 
     def validGrip(self, object_position, gripper_position):
         x_difference = abs(object_position[0] - gripper_position[0])
-        y_difference = abs(object_position[1] - object_position[1])
+        y_difference = abs(object_position[1] - gripper_position[1])
         return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
                and self.getFingerWidth() > self.finger_threshold
 
