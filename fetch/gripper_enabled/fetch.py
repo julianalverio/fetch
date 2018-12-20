@@ -592,6 +592,12 @@ class Trainer(object):
         left = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
         return right + left
 
+    def slightOpen(self, amount=1.):
+        start = self.getFingerWidth()
+        self.env.step([0, 0, 0, amount])
+        end = self.getFingerWidth()
+        print(end - start)
+
 
     def renderalot(self, count=10):
         for _ in range(count):
