@@ -298,6 +298,7 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         action_converted = self.convertAction(action)
+        print(action_converted)
         action_converted[-1] = self.gripper_state
         self.env.step(action_converted)
 
