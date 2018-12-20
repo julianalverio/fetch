@@ -263,7 +263,7 @@ class Trainer(object):
         self.gripper_state = 1
 
     def closeGripper(self):
-        while self.getFingerWidth() > 0.001:
+        while self.getFingerWidth() > 0.01:
             self.env.step([0, 0, 0, -1])
         self.env.render()
         self.gripper_state = 0
