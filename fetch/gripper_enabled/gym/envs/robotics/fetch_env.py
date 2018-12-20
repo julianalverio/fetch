@@ -81,7 +81,7 @@ class FetchEnv(robot_env.RobotEnv):
 
         # Apply action to simulation.
         utils.ctrl_set_action(self.sim, action)
-        utils.mocap_set_action(self.sim, action)
+        # utils.mocap_set_action(self.sim, action)
 
     def _get_obs(self):
         # positions
