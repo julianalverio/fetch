@@ -153,11 +153,12 @@ class Trainer(object):
         # 5 -- decrement Z
         # 6 -- increment gripper
         # 7 -- decrement gripper
+        # 8 -- open gripper until specified otherwise
+        # 9 -- close gripper until specified otherwise
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
 
-
-        self.action_space = 8
+        self.action_space = 10
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
@@ -200,7 +201,8 @@ class Trainer(object):
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
-        self.gripper_state = 0
+        self.closing = False
+        self.opening = False
 
 
     def updateRewardRadius(self):
@@ -250,10 +252,24 @@ class Trainer(object):
     # indices are x, y, z, gripper
     def convertAction(self, action):
         movement = np.zeros(4)
+        if action.item() == 8:
+            self.opening = True
+            self.closing = False
+            movement[-1] = -1.
+            return movement
+        if action.item() == 9:
+            self.opening = False
+            self.closing = True
+            movement[-1] = 1.
+            return movement
         if action.item() % 2 == 0:
             movement[action.item() // 2] += 1
         else:
             movement[action.item() // 2] -= 1
+        if self.opening:
+            movement[-1] = 1
+        elif self.closing:
+            movement[-1] = -1
         return movement
 
     def openGripper(self):
