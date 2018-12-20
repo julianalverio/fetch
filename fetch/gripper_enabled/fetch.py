@@ -517,11 +517,6 @@ class Trainer(object):
 
 
     def train(self):
-        self.grabBlock()
-        self.rise(40)
-        import pdb; pdb.set_trace()
-        self.env.step([0, 0, 0, -1])
-        import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
             frame_idx += 1
