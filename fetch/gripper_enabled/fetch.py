@@ -500,6 +500,7 @@ class Trainer(object):
 
 
     def train(self):
+        self.env.step([0, 0, 0, -1])
         import pdb; pdb.set_trace()
         frame_idx = 0
         while True:
