@@ -516,6 +516,8 @@ class Trainer(object):
 
 
     def train(self):
+        self.grabBlock()
+        self.rise(40)
         import pdb; pdb.set_trace()
         self.env.step([0, 0, 0, -1])
         import pdb; pdb.set_trace()
@@ -655,6 +657,7 @@ class Trainer(object):
         self.drop()
         # self.close()
         self.close(100)
+        self.closing = True
 
 
     def playback(self, path):
