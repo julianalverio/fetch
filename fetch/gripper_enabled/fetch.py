@@ -255,12 +255,12 @@ class Trainer(object):
         if action.item() == 8:
             self.opening = True
             self.closing = False
-            movement[-1] = -1.
+            movement[-1] = -1
             return movement
         if action.item() == 9:
             self.opening = False
             self.closing = True
-            movement[-1] = 1.
+            movement[-1] = 1
             return movement
         if action.item() % 2 == 0:
             movement[action.item() // 2] += 1
@@ -298,8 +298,6 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         action_converted = self.convertAction(action)
-        print(action_converted)
-        action_converted[-1] = self.gripper_state
         self.env.step(action_converted)
 
 
