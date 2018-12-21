@@ -514,7 +514,7 @@ class Trainer(object):
         x_difference = abs(object_position[0] - gripper_position[0])
         y_difference = abs(object_position[1] - gripper_position[1])
         return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
-               and self.getFingerWidth() > self.finger_threshold
+               and self.getFingerWidth() > self.finger_threshold and gripper_position[2] <= 0.435
 
 
     def train(self):
