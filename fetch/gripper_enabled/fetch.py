@@ -433,7 +433,7 @@ class Trainer(object):
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
                     return reward - 5., False
-                if self.getFingerWidth() <= 0.0508578:
+                if self.getFingerWidth() <= 0.0508578 and self.closing:
                     self.score = 2
                     self.stage_count = 2
                     return 5., False
