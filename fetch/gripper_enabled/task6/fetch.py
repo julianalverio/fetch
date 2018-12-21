@@ -300,15 +300,15 @@ class Trainer(object):
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
 
-
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        try:
-            reward, done = self.getReward()
-        except:
-            import pdb; pdb.set_trace()
+        reward, done = self.getReward()
         self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
+
+        if self.initial_object_position[2] - self.env.sim.data.get_site_xpos('object0')[2] > 0.01:
+            done = True
+            reward -= 10
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
@@ -427,14 +427,13 @@ class Trainer(object):
                 if self.validGrip(object_position, gripper_position):
                     self.score = 1
                     self.stage_count = 1
-                    return 5, False
+                    return 5., False
                 return reward, False
             if self.stage_count == 1:
-                import pdb; pdb.set_trace()
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
                     return reward - 5., False
-                if self.getFingerWidth() <= 0.0508578:
+                if self.getFingerWidth() <= 0.0508578 and self.closing:
                     self.score = 2
                     self.stage_count = 2
                     return 5., False
@@ -511,7 +510,7 @@ class Trainer(object):
         x_difference = abs(object_position[0] - gripper_position[0])
         y_difference = abs(object_position[1] - gripper_position[1])
         return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
-               and self.getFingerWidth() > self.finger_threshold
+               and self.getFingerWidth() > self.finger_threshold and gripper_position[2] <= 0.435
 
 
     def train(self):
