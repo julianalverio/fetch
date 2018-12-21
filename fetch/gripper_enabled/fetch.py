@@ -302,10 +302,7 @@ class Trainer(object):
 
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        try:
-            reward, done = self.getReward()
-        except:
-            import pdb; pdb.set_trace()
+        reward, done = self.getReward()
         self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
 
@@ -433,7 +430,6 @@ class Trainer(object):
                     return 5, False
                 return reward, False
             if self.stage_count == 1:
-                import pdb; pdb.set_trace()
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
                     return reward - 5., False
