@@ -300,7 +300,6 @@ class Trainer(object):
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
 
-
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         try:
@@ -309,6 +308,10 @@ class Trainer(object):
             import pdb; pdb.set_trace()
         self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
+
+        if self.initial_object_position[2] - self.env.sim.data.get_site_xpos('object0')[2] > 0.01:
+            done = True
+            reward -= 10
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
