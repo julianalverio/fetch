@@ -565,7 +565,6 @@ class Trainer(object):
     # maximum z: 0.75
     # good height above the table: 0.47
     def collectData(self):
-        import pdb; pdb.set_trace()
         if os.path.isdir('dataset'):
             shutil.rmtree('dataset')
         os.mkdir('dataset')
@@ -580,7 +579,7 @@ class Trainer(object):
         while gripper_position[2] < 0.75:
             self.env.step([0, 0, 1, 0])
             self.env.render()
-
+        import pdb; pdb.set_trace()
         state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
 
         import pdb; pdb.set_trace()
