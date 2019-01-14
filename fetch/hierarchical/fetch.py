@@ -91,10 +91,7 @@ class Trainer(object):
 
         self.action_space = 10
         self.observation_space = [3, 102, 205]
-        if not warm_start_path:
-            self.policy_net = DQN(self.observation_space, self.action_space, self.device, HYPERPARAMS).to(self.device)
-        else:
-            self.policy_net = torch.load(warm_start_path)
+        self.policy_net = DQN(self.observation_space, self.action_space, self.device, HYPERPARAMS).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_tracker = RewardTracker()
@@ -141,7 +138,6 @@ class Trainer(object):
         self.remaining_anneals -= 1
         self.reward_tracker.rewards = []
         self.reward_tracker.mean_score = 0
-        self.epsilon_tracker.reset_epsilon()
         print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
 
 
@@ -447,19 +443,14 @@ class Trainer(object):
                 print('Actual Mean Score', np.mean(self.reward_tracker.rewards))
                 print('Remaining Anneals:', self.remaining_anneals)
                 print('Steps in this episode:', self.movement_count)
-                print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
+                print('Epsilon:', self.policy_net.epsilon_tracker.percievedEpsilon())
 
                 self.tb_writer.add_scalar('Score for Epoch', self.score, self.episode)
                 self.tb_writer.add_scalar('Perceived Mean Score', self.reward_tracker.meanScore(), self.episode)
                 self.tb_writer.add_scalar('Actual Mean Score', np.mean(self.reward_tracker.rewards), self.episode)
                 self.tb_writer.add_scalar('Remaining Anneals', self.remaining_anneals, self.episode)
                 self.tb_writer.add_scalar('Steps in this Episode', self.movement_count, self.episode)
-                self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker.percievedEpsilon(), self.episode)
-
-                self.writer.writerow(
-                    [self.episode, self.score, self.reward_tracker.meanScore(), np.mean(self.reward_tracker.rewards),
-                     self.remaining_anneals, self.epsilon_tracker._epsilon])
-                self.csv_file.flush()
+                self.tb_writer.add_scalar('Epsilon', self.policy_net.epsilon_tracker.percievedEpsilon(), self.episode)
 
                 self.score = 0
                 self.movement_count = 0
