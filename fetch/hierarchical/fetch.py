@@ -573,10 +573,13 @@ class Trainer(object):
         # go to starting position in back left corner above table
         while gripper_position[0] > 1.0:
             self.env.step([-1, 0, 0, 0])
+            self.env.render()
         while gripper_position[1] > 0.45:
             self.env.step([0, -1, 0, 0])
+            self.env.render()
         while gripper_position[2] < 0.75:
             self.env.step([0, 0, -1, 0])
+            self.env.render()
 
         state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
 
