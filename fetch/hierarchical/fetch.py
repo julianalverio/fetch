@@ -574,7 +574,7 @@ class Trainer(object):
             self.env.step([-1, 0, 0, 0])
         while gripper_position[1] > 0.45:
             self.env.step([0, -1, 0, 0])
-        while gripper_position[3] < 0.75:
+        while gripper_position[2] < 0.75:
             self.env.step([0, 0, -1, 0])
 
         state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
