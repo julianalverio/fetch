@@ -523,7 +523,6 @@ class Trainer(object):
             self.env.render()
 
 
-
     def grabBlock(self):
         object_position = self.env.sim.data.get_site_xpos('object0')
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
@@ -549,10 +548,37 @@ class Trainer(object):
         self.close(100)
         self.closing = True
 
+    def preprocessDataCollection(self, state):
+        import pdb; pdb.set_trace()
+        state = state[230:435, 50:460]
+        state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
+        state = np.swapaxes(state, 0, 2)
+        return torch.tensor(state, device=self.device).unsqueeze(0)
+
+
+    # minimum x: 1.0m
+    # no maximum x
+    # practical maximum x: 1.5
+    # maximum y: 1.16
+    # minimum y: 0.45
+    # minimum z: 0.33
+    # maximum z: 0.75
+    # good height above the table: 0.47
     def collectData(self):
         if os.path.isdir('dataset'):
             shutil.rmtree('dataset')
         os.mkdir('dataset')
+        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        # go to starting position in back left corner above table
+        while gripper_position[0] > 1.0:
+            self.env.step([-1, 0, 0, 0])
+        while gripper_position[1] > 0.45:
+            self.env.step([0, -1, 0, 0])
+        while gripper_position[3] < 0.75:
+            self.env.step([0, 0, -1, 0])
+
+        state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
+
         import pdb; pdb.set_trace()
 
 
