@@ -153,11 +153,12 @@ class Trainer(object):
         # 5 -- decrement Z
         # 6 -- increment gripper
         # 7 -- decrement gripper
+        # 8 -- open gripper until specified otherwise
+        # 9 -- close gripper until specified otherwise
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
 
-
-        self.action_space = 8
+        self.action_space = 10
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
             self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
@@ -200,7 +201,8 @@ class Trainer(object):
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
-        self.gripper_state = 0
+        self.closing = False
+        self.opening = False
 
 
     def updateRewardRadius(self):
@@ -250,10 +252,24 @@ class Trainer(object):
     # indices are x, y, z, gripper
     def convertAction(self, action):
         movement = np.zeros(4)
+        if action.item() == 8:
+            self.opening = True
+            self.closing = False
+            movement[-1] = -1
+            return movement
+        if action.item() == 9:
+            self.opening = False
+            self.closing = True
+            movement[-1] = 1
+            return movement
         if action.item() % 2 == 0:
             movement[action.item() // 2] += 1
         else:
             movement[action.item() // 2] -= 1
+        if self.opening:
+            movement[-1] = 1
+        elif self.closing:
+            movement[-1] = -1
         return movement
 
     def openGripper(self):
@@ -263,10 +279,21 @@ class Trainer(object):
         self.gripper_state = 1
 
     def closeGripper(self):
+<<<<<<< HEAD
         while self.getFingerWidth() > 0.01:
+=======
+        while self.getFingerWidth() > 0.0001:
+>>>>>>> 7377ef3a2e19c88eda853b1eaa9c323d1e2c0113
             self.env.step([0, 0, 0, -1])
         self.env.render()
         self.gripper_state = 0
+
+    def doAction(self, action):
+        converted = self.convertAction(action)
+        if converted[-1] == 0:
+            pass
+
+
 
 
     def addExperience(self):
@@ -274,20 +301,16 @@ class Trainer(object):
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
-        # gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        if action.item() == 6:
-            self.openGripper()
-        elif action.item() == 7:
-            self.closeGripper()
-        else:
-            action_converted = self.convertAction(action)
-            action_converted[-1] = self.gripper_state
-            self.env.step(action_converted)
+        action_converted = self.convertAction(action)
+        self.env.step(action_converted)
 
 
         self.movement_count += 1
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        reward, done = self.getReward()
+        try:
+            reward, done = self.getReward()
+        except:
+            import pdb; pdb.set_trace()
         self.reward_tracker.add(self.score)
         done = done or self.movement_count == 1500
 
@@ -411,6 +434,7 @@ class Trainer(object):
                     return 5, False
                 return reward, False
             if self.stage_count == 1:
+                import pdb; pdb.set_trace()
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
                     return reward - 5., False
@@ -418,6 +442,8 @@ class Trainer(object):
                     self.score = 2
                     self.stage_count = 2
                     return 5., False
+                else:
+                    return reward, False
             if self.stage_count == 2:
                 if not self.validGrip(object_position, gripper_position):
                     self.stage_count = 0
@@ -487,7 +513,7 @@ class Trainer(object):
 
     def validGrip(self, object_position, gripper_position):
         x_difference = abs(object_position[0] - gripper_position[0])
-        y_difference = abs(object_position[1] - object_position[1])
+        y_difference = abs(object_position[1] - gripper_position[1])
         return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
                and self.getFingerWidth() > self.finger_threshold
 
@@ -582,8 +608,14 @@ class Trainer(object):
         left = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
         return right + left
 
+    def slightOpen(self, amount=1.):
+        start = self.getFingerWidth()
+        self.env.step([0, 0, 0, amount])
+        end = self.getFingerWidth()
+        print(end - start)
 
-    def renderalot(self, count=200):
+
+    def renderalot(self, count=10):
         for _ in range(count):
             self.env.render()
 
@@ -623,6 +655,7 @@ class Trainer(object):
         self.drop()
         # self.close()
         self.close(100)
+        self.closing = True
 
 
     def playback(self, path):
