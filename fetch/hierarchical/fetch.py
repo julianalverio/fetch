@@ -25,6 +25,7 @@ from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
 from DQN import DQN
+from PIL import Image
 
 
 NUM_EPISODES = 3000
@@ -576,7 +577,7 @@ class Trainer(object):
         while gripper_position[1] > 0.45:
             self.env.step([0, -1, 0, 0])
             self.env.render()
-        while gripper_position[2] < 0.75:
+        while gripper_position[2] < 0.72:
             self.env.step([0, 0, 1, 0])
             self.env.render()
         import pdb; pdb.set_trace()
