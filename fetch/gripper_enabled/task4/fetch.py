@@ -263,7 +263,7 @@ class Trainer(object):
         self.gripper_state = 1
 
     def closeGripper(self):
-        while self.getFingerWidth() > 0.001:
+        while self.getFingerWidth() > 0.01:
             self.env.step([0, 0, 0, -1])
         self.env.render()
         self.gripper_state = 0
@@ -540,8 +540,8 @@ class Trainer(object):
 
             if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
                 self.updateRewardRadius()
-            if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
-                return
+            # if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
+            #     return
 
             self.optimizeModel()
             if frame_idx % self.params['target_net_sync'] == 0:
