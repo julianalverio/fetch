@@ -12,7 +12,6 @@ from torch.autograd import Variable
 import cv2
 import time
 import argparse
-import csv
 from tensorboardX import SummaryWriter
 import shutil
 
@@ -106,8 +105,6 @@ class Trainer(object):
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.movement_count = 0
         self.seed = seed
-        self.csv_file = open('seed%s_scores.csv' % self.seed, 'w+')
-        self.writer = csv.writer(self.csv_file)
 
         self.min_radius = 0.038
         self.anneal_count = anneal_count
