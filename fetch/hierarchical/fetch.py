@@ -552,8 +552,8 @@ class Trainer(object):
     def preprocessDataCollection(self, state):
         state = state[100:435, :460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
-        state = np.swapaxes(state, 0, 2)
         import pdb; pdb.set_trace()
+        state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
 
@@ -580,7 +580,6 @@ class Trainer(object):
         while gripper_position[2] < 0.72:
             self.env.step([0, 0, 1, 0])
             self.env.render()
-        import pdb; pdb.set_trace()
         state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
 
         import pdb; pdb.set_trace()
