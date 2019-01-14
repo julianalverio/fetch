@@ -92,7 +92,7 @@ class Trainer(object):
         self.action_space = 10
         self.observation_space = [3, 102, 205]
         if not warm_start_path:
-            self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
+            self.policy_net = DQN(self.observation_space, self.action_space, self.device, HYPERPARAMS).to(self.device)
         else:
             self.policy_net = torch.load(warm_start_path)
         self.target_net = copy.deepcopy(self.policy_net)
