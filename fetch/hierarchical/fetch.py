@@ -565,6 +565,7 @@ class Trainer(object):
     # maximum z: 0.75
     # good height above the table: 0.47
     def collectData(self):
+        import pdb; pdb.set_trace()
         if os.path.isdir('dataset'):
             shutil.rmtree('dataset')
         os.mkdir('dataset')
@@ -625,7 +626,7 @@ if __name__ == "__main__":
     print('Creating Trainer Object')
     trainer = Trainer(seed, task_num)
     print('Trainer Initialized')
-    print("Prefetching Now...")
+    # print("Prefetching Now...")
     # trainer.train()
     trainer.collectData()
 
