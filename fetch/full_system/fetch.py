@@ -274,7 +274,7 @@ class Trainer(object):
 
         if self.task == 1:
             reward = 0.
-            if self.validGrip(object_position, gripper_position):
+            # if self.validGrip(object_position, gripper_position):
 
 
         if self.task == 1:
