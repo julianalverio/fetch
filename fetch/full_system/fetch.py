@@ -115,7 +115,7 @@ class Trainer(object):
             self.initial_gripper_position - self.initial_object_position) - self.min_radius
         self.initial_differential_volume = 4. / 3 * np.pi * self.initial_differential_radius ** 3
         self.current_radius = None
-        self.updateRewardRadius()
+        # self.updateRewardRadius()
 
         self.stage_count = 0
         self.target_height = 0.47  # get the block at least this high
@@ -472,8 +472,8 @@ class Trainer(object):
                 self.stage_count = 0
                 print('Starting Episode:', self.episode)
 
-            if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
-                self.updateRewardRadius()
+            # if self.remaining_anneals > 0 and self.reward_tracker.meanScore() > 0.9:
+            #     self.updateRewardRadius()
             # if self.remaining_anneals == 0 and self.reward_tracker.meanScore() == 1:
             #     return
 
