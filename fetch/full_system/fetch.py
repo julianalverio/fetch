@@ -24,7 +24,7 @@ sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/gripper_enabled')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
-from DQN import DQN
+from utils import DQN
 from PIL import Image
 
 
@@ -129,14 +129,14 @@ class Trainer(object):
         self.opening = False
 
 
-    def updateRewardRadius(self):
-        current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
-        current_differential_radius = (0.75 * current_volume / np.pi) ** (1 / 3)
-        self.current_radius = current_differential_radius + self.min_radius
-        self.remaining_anneals -= 1
-        self.reward_tracker.rewards = []
-        self.reward_tracker.mean_score = 0
-        print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
+    # def updateRewardRadius(self):
+    #     current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
+    #     current_differential_radius = (0.75 * current_volume / np.pi) ** (1 / 3)
+    #     self.current_radius = current_differential_radius + self.min_radius
+    #     self.remaining_anneals -= 1
+    #     self.reward_tracker.rewards = []
+    #     self.reward_tracker.mean_score = 0
+    #     print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
 
 
     def makeEnv(self):
@@ -259,10 +259,24 @@ class Trainer(object):
     For old xy reward function
     https://github.com/julianalverio/fetch/blob/ea076c97ec7e7e15fcd49136ae43188e231ffac6/fetch/old_experiments/gripper_enabled/prepare_to_grasp/fetch.py
     '''
+
+    '''
+    Task 1: Grab
+    Task 2: Lift
+    Task 3: Put down
+    Task 4: Stack
+    '''
+
     def getReward(self):
         done = False
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         object_position = self.env.sim.data.get_site_xpos('object0')
+
+        if self.task == 1:
+            reward = 0.
+            if self.validGrip(object_position, gripper_position):
+
+
         if self.task == 1:
             if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
                 self.score += 1.
@@ -418,6 +432,7 @@ class Trainer(object):
 
     def train(self):
         frame_idx = 0
+        import pdb; pdb.set_trace()
         while True:
             frame_idx += 1
             # execute one move
@@ -581,7 +596,6 @@ class Trainer(object):
             self.env.step([0, 0, 1, 0])
             self.env.render()
         state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
-
         import pdb; pdb.set_trace()
 
 
