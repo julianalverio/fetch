@@ -278,15 +278,10 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 3:
-            if not self.ready_to_drop
             if not self.validGrip() and self.initial_object_position[2] - self.object_position[2] < 0.05:
                 return 1.
             else:
                 return 0.
-
-        if self.task == 4:
-            if
-            if not self.validGrip():
 
 
         if self.task == 1:
