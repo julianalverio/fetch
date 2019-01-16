@@ -91,11 +91,11 @@ class DQN(nn.Module):
         x = self.conv(x).view(x.size()[0], -1)
         return self.fc(x)
 
-    def getAction(self, state):
+    def getAction(self, state, task):
         if random.random() < self.epsilon_tracker.epsilon():
             return torch.tensor([random.randrange(self.num_actions)], device=self.device)
         else:
-            return torch.argmax(self(state), dim=1).to(self.device)
+            return torch.argmax(self(state), task, dim=1).to(self.device)
 
     def optimizeModel(self, target_net):
         self.counter += 1

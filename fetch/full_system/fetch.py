@@ -20,7 +20,7 @@ import os
 import sys
 # sys.path.pop(0)
 # import gym
-sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/gripper_enabled')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
@@ -68,7 +68,7 @@ class RewardTracker:
 
 
 class Trainer(object):
-    def __init__(self, seed, task_num, anneal_count=3, warm_start_path=''):
+    def __init__(self, seed, task_num, anneal_count=3):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
@@ -122,21 +122,18 @@ class Trainer(object):
         self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
         self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
-        self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
+        self.finger_threshold = 0.047  # in order to grip the block your fingers must be at least this narrow
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
+        self.height_threshold = 0.58 # to have lifted the block, you must be higher than this
 
         self.closing = False
         self.opening = False
 
+        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
 
-    # def updateRewardRadius(self):
-    #     current_volume = self.remaining_anneals * 1. / (self.anneal_count + 1) * self.initial_differential_volume
-    #     current_differential_radius = (0.75 * current_volume / np.pi) ** (1 / 3)
-    #     self.current_radius = current_differential_radius + self.min_radius
-    #     self.remaining_anneals -= 1
-    #     self.reward_tracker.rewards = []
-    #     self.reward_tracker.mean_score = 0
-    #     print('RADIUS DECREASED. Remaining Anneals:', self.remaining_anneals)
+        self.ready_to_drop = False
 
 
     def makeEnv(self):
@@ -159,11 +156,8 @@ class Trainer(object):
         return abs(right_finger - left_finger)
 
 
-    def reset(self):
-        self.env.reset()
-        self.env.render()
-        self.env.sim.nsubsteps = 2
-        return self.env.render(mode='rgb_array')
+
+
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
@@ -216,7 +210,7 @@ class Trainer(object):
 
 
     def addExperience(self):
-        action = self.policy_net.getAction(self.state)
+        action = self.policy_net.getAction(self.state, self.task)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
 
@@ -238,6 +232,8 @@ class Trainer(object):
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
             self.state = next_state
         return done
+
+
 
 
     # figure out how generous to be on xy constraint
@@ -266,27 +262,43 @@ class Trainer(object):
     Task 3: Put down
     Task 4: Stack
     '''
-
     def getReward(self):
         done = False
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        object_position = self.env.sim.data.get_site_xpos('object0')
+        if self.task == 1:
+            if self.validGrip():
+                return 1., True
+            return 0., False
+
+        if self.task == 2:
+            if not self.validGrip():
+                return -1., True
+            if self.gripper_position[2] > self.height_threshold:
+                return 1., True
+            else:
+                return 0., False
+
+        if self.task == 3:
+            if not self.ready_to_drop
+            if not self.validGrip() and self.initial_object_position[2] - self.object_position[2] < 0.05:
+                return 1.
+            else:
+                return 0.
+
+        if self.task == 4:
+            if
+            if not self.validGrip():
+
 
         if self.task == 1:
-            reward = 0.
-            # if self.validGrip(object_position, gripper_position):
-
-
-        if self.task == 1:
-            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+            if np.linalg.norm(self.initial_object_position - self.object_position) > 1e-3:
                 self.score += 1.
                 return 1., True
             return 0., False
 
         if self.task == 2:
-            distance = np.linalg.norm(gripper_position - object_position)
+            distance = np.linalg.norm(self.gripper_position - self.object_position)
             reward = -distance
-            if np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+            if np.linalg.norm(self.initial_object_position - self.object_position) > 1e-3:
                 reward += 10.
                 self.score += 1.
                 done = True
@@ -294,12 +306,12 @@ class Trainer(object):
 
         if self.task == 3:
             if self.remaining_anneals >= 1:
-                if np.linalg.norm(gripper_position - object_position) < self.current_radius:
+                if np.linalg.norm(self.gripper_position - self.object_position) < self.current_radius:
                     self.score = 1.
                     return 1., True
                 else:
                     return -self.movement_count / 300., False
-            elif np.linalg.norm(self.initial_object_position - object_position) > 1e-3:
+            elif np.linalg.norm(self.initial_object_position - self.bject_position) > 1e-3:
                 print('DONE! MEAN SCORES: ', self.reward_tracker.meanScore())
                 self.score = 1.
                 return 10., True
@@ -308,10 +320,10 @@ class Trainer(object):
 
         # continuous reward as one task
         if self.task == 4:
-            if not self.validGrip(object_position, gripper_position):
+            if not self.validGrip():
                 return 0., False
-            reward = object_position[2] - self.initial_object_position[2]
-            if object_position[2] > self.target_height:
+            reward = self.object_position[2] - self.initial_object_position[2]
+            if self.object_position[2] > self.target_height:
                 return reward + 1, True
             return reward, False
 
@@ -319,18 +331,18 @@ class Trainer(object):
         if self.task == 5:
             reward = -self.movement_count / 1000.
             if self.stage_count == 0:
-                distance = np.linalg.norm(gripper_position - object_position)
+                distance = np.linalg.norm(self.gripper_position - self.object_position)
                 reward -= distance
-                if self.validGrip(object_position, gripper_position):
+                if self.validGrip():
                     self.score = 1
                     self.stage_count = 1
                 return reward, False
             elif self.stage_count == 1:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return reward - 5., False
-                reward += object_position[2] - self.initial_object_position[2]
-                if object_position[2] > self.target_height:
+                reward += self.object_position[2] - self.initial_object_position[2]
+                if self.object_position[2] > self.target_height:
                     self.score = 2
                     return reward, True
                 return reward, False
@@ -339,15 +351,15 @@ class Trainer(object):
         if self.task == 6:
             reward = -self.movement_count / 1000.
             if self.stage_count == 0:
-                distance = np.linalg.norm(gripper_position - object_position)
+                distance = np.linalg.norm(self.gripper_position - self.object_position)
                 reward -= distance
-                if self.validGrip(object_position, gripper_position):
+                if self.validGrip():
                     self.score = 1
                     self.stage_count = 1
                     return 5., False
                 return reward, False
             if self.stage_count == 1:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return reward - 5., False
                 if self.getFingerWidth() <= 0.0508578 and self.closing:
@@ -357,18 +369,18 @@ class Trainer(object):
                 else:
                     return reward, False
             if self.stage_count == 2:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return reward - 5., False
-                reward += object_position[2] - self.initial_object_position[2]
-                if object_position[2] > self.target_height:
+                reward += self.object_position[2] - self.initial_object_position[2]
+                if self.object_position[2] > self.target_height:
                     self.score = 3
                     return reward, True
                 return reward, False
 
         # 1 stage binary reward
         if self.task == 7:
-            if self.validGrip(object_position, gripper_position) and object_position[2] >= self.target_height:
+            if self.validGrip() and self.object_position[2] >= self.target_height:
                 self.score = 1
                 return 1., True
             else:
@@ -378,17 +390,17 @@ class Trainer(object):
         if self.task == 8:
             reward = -self.movement_count / 1000.
             if self.stage_count == 0:
-                if self.validGrip(object_position, gripper_position):
+                if self.validGrip():
                     self.score = 1
                     self.stage_count = 1
                     return 5., False
                 else:
                     return reward, False
             if self.stage_count == 1:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return -1., False
-                if object_position[2] >= self.target_height:
+                if self.object_position[2] >= self.target_height:
                     self.score = 2
                     return 5., True
                 return reward, False
@@ -396,14 +408,14 @@ class Trainer(object):
         if self.task == 9:
             reward = -self.movement_count / 1000.
             if self.stage_count == 0:
-                if self.validGrip(object_position, gripper_position):
+                if self.validGrip():
                     self.score = 1
                     self.stage_count = 1
                     return 5., False
                 else:
                     return reward, False
             if self.stage_count == 1:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return -1., False
                 if self.getFingerWidth() <= 0.0508578:
@@ -413,26 +425,31 @@ class Trainer(object):
                 else:
                     return reward, False
             if self.stage_count == 2:
-                if not self.validGrip(object_position, gripper_position):
+                if not self.validGrip():
                     self.stage_count = 0
                     return -1., False
-                if object_position[2] >= self.target_height:
+                if self.object_position[2] >= self.target_height:
                     self.score = 2
                     return 5., True
                 else:
                     return reward, False
 
 
-    def validGrip(self, object_position, gripper_position):
-        x_difference = abs(object_position[0] - gripper_position[0])
-        y_difference = abs(object_position[1] - gripper_position[1])
-        return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
-               and self.getFingerWidth() > self.finger_threshold and gripper_position[2] <= 0.435
+    def validGrip(self):
+        x_difference = abs(self.object_position[0] - self.gripper_position[0])
+        y_difference = abs(self.object_position[1] - self.gripper_position[1])
+        z_difference = self.gripper_position[2] - self.object_position[2]
+        return x_difference <= self.x_threshold \
+               and y_difference <= self.y_threshold \
+               and 0 > z_difference <= 0.025 \
+               and self.getFingerWidth() < self.finger_threshold \
+               and self.closing
 
 
     def train(self):
-        frame_idx = 0
         import pdb; pdb.set_trace()
+        frame_idx = 0
+        self.task = 1
         while True:
             frame_idx += 1
             # execute one move
@@ -538,31 +555,6 @@ class Trainer(object):
             self.env.step(movement)
             self.env.render()
 
-
-    def grabBlock(self):
-        object_position = self.env.sim.data.get_site_xpos('object0')
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        self.rise()
-        while gripper_position[0] > object_position[0]:
-            self.env.step([-1, 0, 0, 0])
-            self.env.render()
-        while gripper_position[0] < object_position[0]:
-            self.env.step([1, 0, 0, 0])
-            self.env.render()
-
-        while gripper_position[1] > object_position[1]:
-            self.env.step([0, -1, 0, 0])
-            self.env.render()
-        while gripper_position[1] < object_position[1]:
-            self.env.step([0, 1, 0, 0])
-            self.env.render()
-
-        self.open()
-        self.drop()
-        self.drop()
-        # self.close()
-        self.close(100)
-        self.closing = True
 
     def preprocessDataCollection(self, state):
         state = state[100:435, :460]
