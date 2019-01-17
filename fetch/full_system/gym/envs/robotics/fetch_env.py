@@ -148,20 +148,12 @@ class FetchEnv(robot_env.RobotEnv):
         if self.has_object:
             object_qpos = self.sim.data.get_joint_qpos('object0:joint')
             object_qpos[:2] = [1.38, 0.65]
+            # object_qpos[:2] = [1.38, 0.4]
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
             extra_object_1_qpos = self.sim.data.get_joint_qpos('object1:joint')
-            extra_object_1_qpos[:3] = [1.38, 0.80,  4.25]
+            extra_object_1_qpos[:3] = [1.38, 0.80,  0.425]
             self.sim.data.set_joint_qpos('object1:joint', extra_object_1_qpos)
-
-
-            # object_xpos = self.initial_gripper_xpos[:2]
-            # while np.linalg.norm(object_xpos - self.initial_gripper_xpos[:2]) < 0.1:
-            #     object_xpos = self.initial_gripper_xpos[:2] + self.np_random.uniform(-self.obj_range, self.obj_range, size=2)
-            # object_qpos = self.sim.data.get_joint_qpos('object0:joint')
-            # assert object_qpos.shape == (7,)
-            # object_qpos[:2] = object_xpos
-            # self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
         self.sim.forward()
         return True
