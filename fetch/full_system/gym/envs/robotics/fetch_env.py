@@ -84,40 +84,41 @@ class FetchEnv(robot_env.RobotEnv):
         utils.mocap_set_action(self.sim, action)
 
     def _get_obs(self):
-        # positions
-        grip_pos = self.sim.data.get_site_xpos('robot0:grip')
-        dt = self.sim.nsubsteps * self.sim.model.opt.timestep
-        grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
-        robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
-        if self.has_object:
-            object_pos = self.sim.data.get_site_xpos('object0')
-            # rotations
-            object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
-            # velocities
-            object_velp = self.sim.data.get_site_xvelp('object0') * dt
-            object_velr = self.sim.data.get_site_xvelr('object0') * dt
-            # gripper state
-            object_rel_pos = object_pos - grip_pos
-            object_velp -= grip_velp
-        else:
-            object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
-        gripper_state = robot_qpos[-2:]
-        gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
-
-        if not self.has_object:
-            achieved_goal = grip_pos.copy()
-        else:
-            achieved_goal = np.squeeze(object_pos.copy())
-        obs = np.concatenate([
-            grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
-            object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
-        ])
-
-        return {
-            'observation': obs.copy(),
-            'achieved_goal': achieved_goal.copy(),
-            'desired_goal': self.goal.copy(),
-        }
+        return None
+        # # positions
+        # grip_pos = self.sim.data.get_site_xpos('robot0:grip')
+        # dt = self.sim.nsubsteps * self.sim.model.opt.timestep
+        # grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
+        # robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
+        # if self.has_object:
+        #     object_pos = self.sim.data.get_site_xpos('object0')
+        #     # rotations
+        #     object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
+        #     # velocities
+        #     object_velp = self.sim.data.get_site_xvelp('object0') * dt
+        #     object_velr = self.sim.data.get_site_xvelr('object0') * dt
+        #     # gripper state
+        #     object_rel_pos = object_pos - grip_pos
+        #     object_velp -= grip_velp
+        # else:
+        #     object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
+        # gripper_state = robot_qpos[-2:]
+        # gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
+        #
+        # if not self.has_object:
+        #     achieved_goal = grip_pos.copy()
+        # else:
+        #     achieved_goal = np.squeeze(object_pos.copy())
+        # obs = np.concatenate([
+        #     grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
+        #     object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
+        # ])
+        #
+        # return {
+        #     'observation': obs.copy(),
+        #     'achieved_goal': achieved_goal.copy(),
+        #     'desired_goal': self.goal.copy(),
+        # }
 
     def _viewer_setup(self):
         self.viewer.cam.lookat[0] = 1.
@@ -149,9 +150,9 @@ class FetchEnv(robot_env.RobotEnv):
             object_qpos[:2] = [1.38, 0.65]
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
 
-            object1_qpos = self.sim.data.get_joint_qpos('object1:joint')
-            object1_qpos[:2] = [1.38, 0.85]
-            self.sim.data.set_joint_qpos('object1:joint', object1_qpos)
+            extra_object_1_qpos = self.sim.data.get_joint_qpos('object1:joint')
+            extra_object_1_qpos[:2] = [1.38, 0.80]
+            self.sim.data.set_joint_qpos('object1:joint', extra_object_1_qpos)
 
 
             # object_xpos = self.initial_gripper_xpos[:2]
