@@ -24,12 +24,12 @@ sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
-from utils import DQN
+from action_utils import DQN
 from PIL import Image
 
 
 class EnvHandler(object):
-    def __init__(self, gripper_position, object_position):
+    def __init__(self, dqn):
         initial_qpos = {
             'robot0:slide0': 0.405,
             'robot0:slide1': 0.48,
@@ -40,22 +40,28 @@ class EnvHandler(object):
                                  gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
                                  obj_range=0.15, target_range=0.15, distance_threshold=0.05,
                                  initial_qpos=initial_qpos, reward_type='sparse')
-        self.gripper_position = gripper_position
-        self.object_position = object_position
+        self.env = TimeLimit(self.env).unwrapped
+        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
         self.opening = False
         self.closing = False
-        return TimeLimit(self.env)
+        self.dqn = dqn
+
+    def getEnv(self):
+        return self.env
 
     def reset(self, task=0):
         self.env.reset()
         self.env.render()
         self.env.sim.nsubsteps = 2
-        if task == 2:
-            self.resetSceneForPickUp()
+        # if task == 2:
+        #     self.resetSceneForPickUp()
         # elif task == 3:
         #     self.reset
-
-        return self.env.render(mode='rgb_array'), self.opening, self.closing
+        self.dqn.opening = self.opening
+        self.dqn.closing = self.closing
+        self.dqn.setState(self.env.render(mode='rgb_array'))
 
 
     def resetSceneForPickUp(self):

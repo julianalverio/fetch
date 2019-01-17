@@ -14,6 +14,7 @@ import time
 import argparse
 from tensorboardX import SummaryWriter
 import shutil
+from env_handler import EnvHandler
 
 import os
 
@@ -24,11 +25,25 @@ sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
 from gym import utils
 from gym.wrappers.time_limit import TimeLimit
-from utils import DQN
+from action_utils import DQN
 from PIL import Image
+
+# Actions:
+# 0 -- increment X
+# 1 -- decrement X
+# 2 -- increment Y
+# 3 -- decrement Y
+# 4 -- increment Z
+# 5 -- decrement Z
+# 6 -- increment gripper
+# 7 -- decrement gripper
+# 8 -- open gripper until specified otherwise
+# 9 -- close gripper until specified otherwise
+# 10 -- no-op
 
 
 NUM_EPISODES = 3000
+MAX_STEPS = 1500   # max steps in an episode
 
 
 HYPERPARAMS = {
@@ -40,7 +55,9 @@ HYPERPARAMS = {
         'epsilon_final':    0.02,
         'learning_rate':    0.0001,
         'gamma':            0.99,
-        'batch_size':       32
+        'batch_size':       32,
+        'max_steps':        1500
+
 }
 
 
@@ -68,86 +85,45 @@ class RewardTracker:
 
 
 class Trainer(object):
-    def __init__(self, seed, task_num, anneal_count=3):
+    def __init__(self, task_num):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.env = self.makeEnv()
-        self.env = self.env.unwrapped
 
-        #Actions:
-        # 0 -- increment X
-        # 1 -- decrement X
-        # 2 -- increment Y
-        # 3 -- decrement Y
-        # 4 -- increment Z
-        # 5 -- decrement Z
-        # 6 -- increment gripper
-        # 7 -- decrement gripper
-        # 8 -- open gripper until specified otherwise
-        # 9 -- close gripper until specified otherwise
-        # 10 -- no-op
-
-        self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
-
-        self.action_space = 10
+        # DQN/action-related stuff
+        self.action_space = 11
         self.observation_space = [3, 102, 205]
-        self.policy_net = DQN(self.observation_space, self.action_space, self.device, HYPERPARAMS).to(self.device)
+        self.policy_net = DQN(self.observation_space, self.action_space, self.device, self.params).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
+
+        # helper classes
+        self.env_handler = EnvHandler()
+        self.env = self.env_handler.getEnv()
+        self.env_handler.reset()
         self.reward_tracker = RewardTracker()
-        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
-        self.episode = 0
-        self.state = self.preprocess(self.reset())
         self.tb_writer = SummaryWriter('results')
-        self.tb_writer.add_graph(self.policy_net, (copy.deepcopy(self.state),))
-        self.score = 0
-        self.batch_size = self.params['batch_size']
-        self.task = task_num
+
+        # keeping track of physical objects
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
+        self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
+        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
+
+        # state variables
+        self.episode = 0
+        self.score = 0
+        self.task = task_num
         self.movement_count = 0
-        self.seed = seed
+        self.ready_to_drop = False
 
-        self.min_radius = 0.038
-        self.anneal_count = anneal_count
-        self.remaining_anneals = anneal_count + 1
-
-        self.initial_differential_radius = np.linalg.norm(
-            self.initial_gripper_position - self.initial_object_position) - self.min_radius
-        self.initial_differential_volume = 4. / 3 * np.pi * self.initial_differential_radius ** 3
-        self.current_radius = None
-        # self.updateRewardRadius()
-
-        self.stage_count = 0
+        # some useful constants
         self.target_height = 0.47  # get the block at least this high
         self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
         self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.047  # in order to grip the block your fingers must be at least this narrow
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
-        self.height_threshold = 0.58 # to have lifted the block, you must be higher than this
-
-        self.closing = False
-        self.opening = False
-
-        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        self.object_position = self.env.sim.data.get_site_xpos('object0')
-        self.object1_position = self.env.sim.data.get_site_xpos('object1')
-
-        self.ready_to_drop = False
-
-
-    def makeEnv(self):
-        initial_qpos = {
-            'robot0:slide0': 0.405,
-            'robot0:slide1': 0.48,
-            'robot0:slide2': 0.0,
-            'object0:joint': [1.25, 0.53, 0.4, 1., 0., 0., 0.],
-        }
-        env = fetch_env.FetchEnv('fetch/pick_and_place.xml', has_object=True, block_gripper=False, n_substeps=20,
-            gripper_extra_height=0.2, target_in_the_air=False, target_offset=0.0,
-            obj_range=0.15, target_range=0.15, distance_threshold=0.05,
-            initial_qpos=initial_qpos, reward_type='sparse')
-        return TimeLimit(env)
+        self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
 
 
     def getGripperWidth(self):
@@ -155,90 +131,17 @@ class Trainer(object):
         left_finger = self.env.sim.data.get_body_xipos('robot0:l_gripper_finger_link')[2]
         return abs(right_finger - left_finger)
 
-
-
-
-
-    def preprocess(self, state):
-        state = state[230:435, 50:460]
-        state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
-        state = np.swapaxes(state, 0, 2)
-        return torch.tensor(state, device=self.device).unsqueeze(0)
-
-
-    # indices are x, y, z, gripper
-    def convertAction(self, action):
-        movement = np.zeros(4)
-        if action.item() == 8:
-            self.opening = True
-            self.closing = False
-            movement[-1] = -1
-            return movement
-        if action.item() == 9:
-            self.opening = False
-            self.closing = True
-            movement[-1] = 1
-            return movement
-        if action.item() == 10:
-            return movement
-        if action.item() % 2 == 0:
-            movement[action.item() // 2] += 1
-        else:
-            movement[action.item() // 2] -= 1
-        if self.opening:
-            movement[-1] = 1
-        elif self.closing:
-            movement[-1] = -1
-        return movement
-
     def openGripper(self):
         while self.getFingerWidth() < 0.1:
             self.env.step([0, 0, 0, 1])
         self.env.render()
-        self.gripper_state = 1
 
     def closeGripper(self):
         while self.getFingerWidth() > 0.0001:
             self.env.step([0, 0, 0, -1])
         self.env.render()
-        self.gripper_state = 0
-
-    def doAction(self, action):
-        converted = self.convertAction(action)
-        if converted[-1] == 0:
-            pass
 
 
-    def addExperience(self):
-        action = self.policy_net.getAction(self.state, self.task)
-        action_converted = self.convertAction(action)
-        self.env.step(action_converted)
-
-        self.movement_count += 1
-        next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        reward, done = self.getReward()
-        self.reward_tracker.add(self.score)
-        done = done or self.movement_count == 1500
-
-        if self.initial_object_position[2] - self.env.sim.data.get_site_xpos('object0')[2] > 0.01:
-            done = True
-            reward -= 10
-
-        if done:
-            self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
-            self.state = self.preprocess(self.reset())
-            self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        else:
-            self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
-            self.state = next_state
-        return done
-
-
-
-
-    # figure out how generous to be on xy constraint
-    # figure out how generous to be with finger pinching constraint
-    # what is the height threshold? How high should I try to raise this up?
     '''
     Task 1: Touch the block, discrete reward
     Task 2: Touch the block, continuous reward
@@ -448,7 +351,7 @@ class Trainer(object):
         while True:
             frame_idx += 1
             # execute one move
-            done = self.addExperience()
+            done = self.policy_net.doAction()
 
             # are we done prefetching?
             if len(self.memory) < self.params['replay_initial']:
@@ -549,14 +452,6 @@ class Trainer(object):
         for _ in range(count):
             self.env.step(movement)
             self.env.render()
-
-
-    def preprocessDataCollection(self, state):
-        state = state[100:435, :460]
-        state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
-        import pdb; pdb.set_trace()
-        state = np.swapaxes(state, 0, 2)
-        return torch.tensor(state, device=self.device).unsqueeze(0)
 
 
     # minimum x: 1.0m
