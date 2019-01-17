@@ -29,7 +29,7 @@
 		<body name="object1" pos="0.025 0.035 0.025">
 			<joint name="object1:joint" type="free" damping="0.01"></joint>
 			<geom condim="4" contype="1" solimp="0.99 0.99 0.01" solref="0.01 1" size="0.025 0.025 0.025" friction="1.5 0.5 0.1" type="box" name="object1" material="block_mat" mass="1"></geom>
-			<!--<site name="object1" pos="0 0 0" size="0.02 0.02 0.02" rgba="1 0 0 1" type="sphere"></site>-->
+			<site name="object1" pos="0 0 0" size="0.02 0.02 0.02" rgba="1 0 0 1" type="sphere"></site>
 		</body>
 
 		<light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"></light>
