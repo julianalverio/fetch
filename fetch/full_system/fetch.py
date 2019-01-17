@@ -124,6 +124,7 @@ class Trainer(object):
         self.finger_threshold = 0.047  # in order to grip the block your fingers must be at least this narrow
         self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
         self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
+        self.drop_height = 0.45  # when putting down an object, you can be no higher than this
 
 
     def getGripperWidth(self):
