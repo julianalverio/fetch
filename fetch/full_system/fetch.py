@@ -522,7 +522,7 @@ if __name__ == "__main__":
     print('cleaning up...')
     cleanup()
     print('Creating Trainer Object')
-    trainer = Trainer(seed, task_num)
+    trainer = Trainer(task_num)
     print('Trainer Initialized')
     # print("Prefetching Now...")
     # trainer.train()
