@@ -96,7 +96,7 @@ class Trainer(object):
         self.target_net = copy.deepcopy(self.policy_net)
 
         # helper classes
-        self.env_handler = EnvHandler()
+        self.env_handler = EnvHandler(self.policy_net)
         self.env = self.env_handler.getEnv()
         self.env_handler.reset()
         self.reward_tracker = RewardTracker()
