@@ -191,9 +191,6 @@ class Trainer(object):
             else:
                 return 0., False
 
-        if self.task == 4:
-            
-
 
         if self.task == 1:
             if np.linalg.norm(self.initial_object_position - self.object_position) > 1e-3:
