@@ -107,7 +107,7 @@ class Trainer(object):
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
-        # self.object1_position = self.env.sim.data.get_site_xpos('object1')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
 
         # state variables
         self.episode = 0
