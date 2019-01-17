@@ -182,10 +182,17 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 3:
-            if not self.validGrip() and self.initial_object_position[2] - self.object_position[2] < 0.05:
-                return 1.
+            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
+                    and self.gripper_position[2] < self.drop_height:
+                return 1., True
+            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
+                    and self.gripper_position[2] >= self.drop_height:
+                return -1., True
             else:
-                return 0.
+                return 0., False
+
+        if self.task == 4:
+            
 
 
         if self.task == 1:
