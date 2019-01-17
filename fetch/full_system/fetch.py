@@ -462,23 +462,23 @@ class Trainer(object):
     # minimum z: 0.33
     # maximum z: 0.75
     # good height above the table: 0.47
-    def collectData(self):
-        if os.path.isdir('dataset'):
-            shutil.rmtree('dataset')
-        os.mkdir('dataset')
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        # go to starting position in back left corner above table
-        while gripper_position[0] > 1.0:
-            self.env.step([-1, 0, 0, 0])
-            self.env.render()
-        while gripper_position[1] > 0.45:
-            self.env.step([0, -1, 0, 0])
-            self.env.render()
-        while gripper_position[2] < 0.72:
-            self.env.step([0, 0, 1, 0])
-            self.env.render()
-        state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
-        import pdb; pdb.set_trace()
+    # def collectData(self):
+    #     if os.path.isdir('dataset'):
+    #         shutil.rmtree('dataset')
+    #     os.mkdir('dataset')
+    #     gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+    #     # go to starting position in back left corner above table
+    #     while gripper_position[0] > 1.0:
+    #         self.env.step([-1, 0, 0, 0])
+    #         self.env.render()
+    #     while gripper_position[1] > 0.45:
+    #         self.env.step([0, -1, 0, 0])
+    #         self.env.render()
+    #     while gripper_position[2] < 0.72:
+    #         self.env.step([0, 0, 1, 0])
+    #         self.env.render()
+    #     state = self.preprocessDataCollection(self.env.render(mode='rgb_array'))
+    #     import pdb; pdb.set_trace()
 
 
     def playback(self, path):
@@ -524,9 +524,8 @@ if __name__ == "__main__":
     print('Creating Trainer Object')
     trainer = Trainer(task_num)
     print('Trainer Initialized')
-    # print("Prefetching Now...")
-    # trainer.train()
-    trainer.collectData()
+    print("Prefetching Now...")
+    trainer.train()
 
 
 
