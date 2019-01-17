@@ -43,7 +43,7 @@ class EnvHandler(object):
         self.env = TimeLimit(self.env).unwrapped
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
-        self.object1_position = self.env.sim.data.get_site_xpos('object1')
+        # self.object1_position = self.env.sim.data.get_site_xpos('object1')
         self.opening = False
         self.closing = False
         self.dqn = dqn
