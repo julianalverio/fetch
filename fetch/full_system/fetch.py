@@ -191,6 +191,19 @@ class Trainer(object):
             else:
                 return 0., False
 
+        if self.task == 4:
+            x_difference = abs(self.object_position[0] - self.object1_position[0])
+            y_difference = abs(self.object_position[1]) - self.object1_position[1]
+            x_check = x_difference < 0.02
+            y_check = y_difference < 0.02
+            dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
+            if dropped:
+                if self.object_position[2] <= 0.5 and x_check and y_check:
+                    return 1., True
+                else:
+                    return -1., False
+            return 0., False
+
 
         if self.task == 1:
             if np.linalg.norm(self.initial_object_position - self.object_position) > 1e-3:
@@ -280,6 +293,7 @@ class Trainer(object):
                     self.score = 3
                     return reward, True
                 return reward, False
+
 
         # 1 stage binary reward
         if self.task == 7:
