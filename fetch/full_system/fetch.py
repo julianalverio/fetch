@@ -233,7 +233,6 @@ if __name__ == "__main__":
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     seed = random.randrange(0, 100)
-    print('RANDOM SEED: ', seed)
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
@@ -243,8 +242,7 @@ if __name__ == "__main__":
     cleanup()
     print('Creating Trainer Object')
     trainer = Trainer()
-    print('Trainer Initialized')
-    print("Prefetching Now...")
+    print('Trainer Initialized.')
     trainer.train()
 
 
