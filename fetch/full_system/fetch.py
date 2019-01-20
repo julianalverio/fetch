@@ -120,6 +120,7 @@ class Trainer(object):
 
                 if len(self.env_handler.dqn.memory) < self.params['replay_initial']:
                     continue
+                import pdb; pdb.set_trace()
 
                 # is this round over?
                 if done:
