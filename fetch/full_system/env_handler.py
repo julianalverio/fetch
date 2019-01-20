@@ -36,6 +36,7 @@ class EnvHandler(object):
             self.resetSceneForPickUp()
         elif task == 3:
             self.resetSceneForPutDown()
+
         self.dqn.opening = self.opening
         self.dqn.closing = self.closing
         self.dqn.setState(self.env.render(mode='rgb_array'))

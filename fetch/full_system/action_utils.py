@@ -34,7 +34,7 @@ class DQN(nn.Module):
         conv_out = self.conv(Variable(torch.zeros(1, *input_shape)))
         conv_out_size = int(np.prod(conv_out.size()))
         self.fc = nn.Sequential(
-            nn.Linear(conv_out_size, 512),
+            nn.Linear(conv_out_size + 1, 512),
             nn.ReLU(),
             nn.Linear(512, num_actions)
         )
@@ -42,7 +42,6 @@ class DQN(nn.Module):
         self.memory = ReplayMemory(TRANSITION, hyperparams['memory_size'])
         self.epsilon_tracker = EpsilonTracker()
         self.optimizer = optim.Adam(self.parameters(), lr=hyperparams['learning_rate'])
-        self.counter = 0
         self.hyperparams = hyperparams
         self.state = None
         self.opening = False
@@ -52,13 +51,13 @@ class DQN(nn.Module):
     def initializeState(self, state):
         self.state = self.preprocess(state)
 
-    def forward(self, x):
+    def forward(self, x, task):
         x = self.conv(x).view(x.size()[0], -1)
+        x = torch.cat(x, task)
         return self.fc(x)
 
 
     def optimizeModel(self, target_net):
-        self.counter += 1
         transitions = self.memory.sample(self.hyperparams['batch_size'])
         batch = TRANSITION(*zip(*transitions))
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.uint8)
@@ -76,28 +75,23 @@ class DQN(nn.Module):
         # for param in self.parameters():
         #     param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
-        if self.counter % self.hyperparams['target_net_sync'] == 0:
-            target_net.load_state_dict(self.state_dict())
 
 
     def doAction(self, task):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.num_actions)], device=self.device)
         else:
-            action = torch.argmax(self(self.state), dim=1).to(self.device)
+            action = torch.argmax(self(self.state, task), dim=1).to(self.device)
 
         self.env.step(self.convertAction(action))
 
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        reward, done = self.getReward(task)
-        self.reward_tracker.add(reward)
-        done = done or self.movement_count == self.hyperparams['max_steps']
-
+        reward, done = self.getReward(task)  # only done when you finish the task; not when episode times out
         if done:
-            self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
-        else:
-            self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
-            self.state = next_state
+            next_state = None
+
+        self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
+        self.state = next_state
         return reward, done
 
     '''

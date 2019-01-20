@@ -8,9 +8,9 @@ from tensorboardX import SummaryWriter
 import shutil
 from env_handler import EnvHandler
 import os
+from action_utils import DQN
 import sys
 sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
-from action_utils import DQN
 
 
 # Actions:
@@ -66,7 +66,6 @@ class RewardTracker:
         return self.mean_score
 
 
-
 class Trainer(object):
     def __init__(self):
         self.params = HYPERPARAMS
@@ -92,14 +91,12 @@ class Trainer(object):
         # keeping track of physical objects
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
-        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
 
         # state variables
         self.task1_episode_counter = 0
         self.task2_episode_counter = 0
         self.task3_episode_counter = 0
         self.task4_episode_counter = 0
-        self.task = 1
 
         # some useful constants
         self.target_height = 0.47  # get the block at least this high
@@ -111,64 +108,63 @@ class Trainer(object):
         self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
         self.drop_height = 0.45  # when putting down an object, you can be no higher than this
 
-
     def train(self):
         frame_idx = 0
-        while True:
-            for episode in range(NUM_EPISODES):
-                print('Starting Episode:%s' % episode)
-                task = random.randrange(1, 5)
-                for iteration in range(MAX_STEPS):
-                    # execute one move
-                    reward, done = self.policy_net.doAction(task)
+        for episode in range(NUM_EPISODES):
+            print('Starting Episode:%s' % episode)
+            task = random.randrange(1, 5)
+            self.env_handler.reset(task)
+            for iteration in range(MAX_STEPS):
+                # execute one move
+                reward, done = self.policy_net.doAction(task)
 
-                    if len(self.env_handler.dqn.memory) < self.params['replay_initial']:
-                        continue
+                if len(self.env_handler.dqn.memory) < self.params['replay_initial']:
+                    continue
 
-                    # is this round over?
-                    if done:
-                        print('Episode Completed:', episode)
-                        print('Task: %s' % task)
-                        print('Score for Epoch %s' % reward)
-                        print('Steps in this episode:', iteration)
-                        print('Epsilon:', self.policy_net.epsilon_tracker.percievedEpsilon())
-                        if task == 1:
-                            self.reward_tracker1.add(reward)
-                            average_score = self.reward_tracker1.meanScore()
-                            self.tb_writer.add_scalar('Task 1 Score', reward, self.task1_episode_counter)
-                            self.tb_writer.add_scalar('Task 1 Average Score', self.reward_tracker1.meanScore(), self.task1_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task1_episode_counter)
-                            self.task1_episode_counter += 1
-                        if task == 2:
-                            self.reward_tracker2.add(reward)
-                            average_score = self.reward_tracker2.meanScore()
-                            self.tb_writer.add_scalar('Task 2 Score', reward, self.task2_episode_counter)
-                            self.tb_writer.add_scalar('Task 2 Average Score', self.reward_tracker2.meanScore(), self.task2_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 2', iteration, self.task2_episode_counter)
-                            self.task2_episode_counter += 1
-                        if task == 3:
-                            self.reward_tracker3.add(reward)
-                            average_score = self.reward_tracker3.meanScore()
-                            self.tb_writer.add_scalar('Task 3 Score', reward, self.task3_episode_counter)
-                            self.tb_writer.add_scalar('Task 3 Average Score', self.reward_tracker3.meanScore(), self.task3_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 3', iteration, self.task3_episode_counter)
-                            self.task3_episode_counter += 1
-                        if task == 4:
-                            self.reward_tracker4.add(reward)
-                            average_score = self.reward_tracker4.meanScore()
-                            self.tb_writer.add_scalar('Task 4 Score', reward, self.task4_episode_counter)
-                            self.tb_writer.add_scalar('Task 4 Average Score', self.reward_tracker4.meanScore(), self.task4_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 4', iteration, self.task4_episode_counter)
-                            self.task4_episode_counter += 1
+                # is this round over?
+                if done:
+                    print('Episode Completed:', episode)
+                    print('Task: %s' % task)
+                    print('Score for Epoch %s' % reward)
+                    print('Steps in this episode:', iteration)
+                    print('Epsilon:', self.policy_net.epsilon_tracker.percievedEpsilon())
+                    if task == 1:
+                        self.reward_tracker1.add(reward)
+                        average_score = self.reward_tracker1.meanScore()
+                        self.tb_writer.add_scalar('Task 1 Score', reward, self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Task 1 Average Score', self.reward_tracker1.meanScore(), self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task1_episode_counter)
+                        self.task1_episode_counter += 1
+                    if task == 2:
+                        self.reward_tracker2.add(reward)
+                        average_score = self.reward_tracker2.meanScore()
+                        self.tb_writer.add_scalar('Task 2 Score', reward, self.task2_episode_counter)
+                        self.tb_writer.add_scalar('Task 2 Average Score', self.reward_tracker2.meanScore(), self.task2_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 2', iteration, self.task2_episode_counter)
+                        self.task2_episode_counter += 1
+                    if task == 3:
+                        self.reward_tracker3.add(reward)
+                        average_score = self.reward_tracker3.meanScore()
+                        self.tb_writer.add_scalar('Task 3 Score', reward, self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Task 3 Average Score', self.reward_tracker3.meanScore(), self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 3', iteration, self.task3_episode_counter)
+                        self.task3_episode_counter += 1
+                    if task == 4:
+                        self.reward_tracker4.add(reward)
+                        average_score = self.reward_tracker4.meanScore()
+                        self.tb_writer.add_scalar('Task 4 Score', reward, self.task4_episode_counter)
+                        self.tb_writer.add_scalar('Task 4 Average Score', self.reward_tracker4.meanScore(), self.task4_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 4', iteration, self.task4_episode_counter)
+                        self.task4_episode_counter += 1
 
-                        print('Average score: %s' % average_score)
-                        self.tb_writer.add_scalar('Epsilon', self.policy_net.epsilon_tracker.percievedEpsilon(), episode)
-                        self.env_handler.reset(task)
+                    print('Average score: %s' % average_score)
+                    self.tb_writer.add_scalar('Epsilon', self.policy_net.epsilon_tracker.percievedEpsilon(), episode)
+                    break
 
-                    self.policy_net.optimizeModel(self.target_net)
-                    frame_idx += 1
-                    if frame_idx % self.params['target_net_sync'] == 0:
-                        self.target_net.load_state_dict(self.policy_net.state_dict())
+                self.policy_net.optimizeModel(self.target_net)
+                frame_idx += 1
+                if frame_idx % self.params['target_net_sync'] == 0:
+                    self.target_net.load_state_dict(self.policy_net.state_dict())
 
 
     # METHODS FOR TESTING
