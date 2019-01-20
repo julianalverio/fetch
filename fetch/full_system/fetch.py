@@ -183,7 +183,7 @@ class Trainer(object):
         self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
-        self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
+        # self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
 
         self.closing = False
         self.opening = False
