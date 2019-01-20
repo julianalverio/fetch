@@ -197,6 +197,7 @@ class Trainer(object):
         self.task1_episode_counter = 0
         self.task2_episode_counter = 0
         self.task3_episode_counter = 0
+        self.task = 0
 
     def makeEnv(self):
         initial_qpos = {
