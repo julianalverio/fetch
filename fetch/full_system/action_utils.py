@@ -79,7 +79,7 @@ class DQN(nn.Module):
     def forward(self, x, task):
         import pdb; pdb.set_trace()
         x = self.conv(x).view(x.size()[0], -1)
-        x = torch.cat(x, task)
+        x = torch.cat(x, torch.tensor(task))
         return self.fc(x)
 
 
@@ -91,6 +91,7 @@ class DQN(nn.Module):
         state_batch = torch.cat(list(batch.state))
         action_batch = torch.cat(list(batch.action))
         reward_batch = torch.cat(list(batch.reward))
+        import pdb; pdb.set_trace()
         state_action_values = self(state_batch).gather(1, action_batch.unsqueeze(1))
         next_state_values = torch.zeros(self.hyperparams['batch_size'], device=self.device)
         next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
