@@ -617,7 +617,7 @@ if __name__ == "__main__":
     print('cleaning up...')
     cleanup()
     print('Creating Trainer Object')
-    trainer = Trainer(seed)
+    trainer = Trainer()
     print('Trainer Initialized')
     print("Prefetching Now...")
     trainer.train()
