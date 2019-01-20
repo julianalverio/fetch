@@ -172,6 +172,11 @@ class DQN(nn.Module):
                and self.getFingerWidth() < self.finger_threshold \
                and self.closing
 
+    def getFingerWidth(self):
+        right = self.env.sim.data.get_joint_qpos('robot0:r_gripper_finger_joint')
+        left = self.env.sim.data.get_joint_qpos('robot0:l_gripper_finger_joint')
+        return right + left
+
 
     # Take an action and encode it into a length-4 vector that you call env.step(vector) on
     # indices are x, y, z, gripper
