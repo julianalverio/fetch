@@ -119,8 +119,8 @@ class Trainer(object):
                 reward, done = self.policy_net.doAction(task)
 
                 if len(self.env_handler.dqn.memory) < self.params['replay_initial']:
-                    if done:
-                        break
+                    # if done:
+                    #     break
                     continue
 
                 # is this round over?
