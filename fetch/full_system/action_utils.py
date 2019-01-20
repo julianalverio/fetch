@@ -48,10 +48,18 @@ class DQN(nn.Module):
         self.closing = False
         self.num_actions = num_actions
         self.env = None
+        self.gripper_position = None
+        self.object_position = None
+        self.object1_position = None
+
 
     def initializeState(self, env):
         self.state = self.preprocess(env.render(mode='rgb_array'))
         self.env = env
+        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
+
 
     def forward(self, x, task):
         x = self.conv(x).view(x.size()[0], -1)
