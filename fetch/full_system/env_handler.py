@@ -21,6 +21,7 @@ class EnvHandler(object):
                                  initial_qpos=initial_qpos, reward_type='sparse')
         self.env = TimeLimit(self.env).unwrapped
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
         self.opening = False
         self.closing = False
         self.dqn = dqn
@@ -30,6 +31,8 @@ class EnvHandler(object):
 
     def reset(self, task=0):
         self.env.reset()
+        self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.env.render()
         self.env.sim.nsubsteps = 2
         if task == 2:
