@@ -6,6 +6,7 @@ from torch.autograd import Variable
 from collections import namedtuple
 import torch.optim as optim
 import cv2
+import copy
 
 np.random.seed(5)
 random.seed(5)
@@ -51,6 +52,8 @@ class DQN(nn.Module):
         self.gripper_position = None
         self.object_position = None
         self.object1_position = None
+        self.initial_object_position = None
+        self.initial_gripper_position = None
 
         # some useful constants
         self.target_height = 0.47  # get the block at least this high
@@ -69,6 +72,8 @@ class DQN(nn.Module):
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
         self.object1_position = self.env.sim.data.get_site_xpos('object1')
+        self.initial_object_position = copy.deepcopy(self.object_position)
+        self.initial_gripper_position = copy.deepcopy(self.gripper_position)
 
 
     def forward(self, x, task):
