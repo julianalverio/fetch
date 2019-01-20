@@ -131,7 +131,7 @@ class DQN(nn.Module):
         # if the block falls off the table
         if self.initial_object_position[2] - self.object_position[2] > 0.1:
             return -1., True
-        if random.random() > 0.99:
+        if random.random() > 0.999:
             import pdb; pdb.set_trace()
         if task == 1:
             if self.validGrip():
