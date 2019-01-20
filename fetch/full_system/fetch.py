@@ -122,7 +122,6 @@ class Trainer(object):
                     if done:
                         break
                     continue
-                import pdb; pdb.set_trace()
 
                 # is this round over?
                 if done:
