@@ -18,7 +18,7 @@ TRANSITION = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'
 
 
 class DQN(nn.Module):
-    def __init__(self, input_shape, n_actions, device, hyperparams):
+    def __init__(self, input_shape, num_actions, device, hyperparams):
         super(DQN, self).__init__()
         self.device = device
 
@@ -36,7 +36,7 @@ class DQN(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(conv_out_size, 512),
             nn.ReLU(),
-            nn.Linear(512, n_actions)
+            nn.Linear(512, num_actions)
         )
 
         self.memory = ReplayMemory(TRANSITION, hyperparams['memory_size'])
@@ -47,13 +47,14 @@ class DQN(nn.Module):
         self.state = None
         self.opening = False
         self.closing = False
+        self.num_actions = num_actions
+
+    def initializeState(self, state):
+        self.state = self.preprocess(state)
 
     def forward(self, x):
         x = self.conv(x).view(x.size()[0], -1)
         return self.fc(x)
-
-    def setState(self, state):
-        self.state = self.preprocess(state)
 
 
     def optimizeModel(self, target_net):
@@ -79,28 +80,78 @@ class DQN(nn.Module):
             target_net.load_state_dict(self.state_dict())
 
 
-    def doAction(self):
+    def doAction(self, task):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.num_actions)], device=self.device)
         else:
             action = torch.argmax(self(self.state), dim=1).to(self.device)
 
         self.env.step(self.convertAction(action))
-        self.movement_count += 1
 
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
-        reward, done = self.getReward()
-        self.reward_tracker.add(self.score)
+        reward, done = self.getReward(task)
+        self.reward_tracker.add(reward)
         done = done or self.movement_count == self.hyperparams['max_steps']
 
         if done:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), None)
-            self.state = self.preprocess(self.env_handler.reset())
-            self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         else:
             self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state)
             self.state = next_state
-        return done
+        return reward, done
+
+    '''
+    Task 1: Grab
+    Task 2: Lift
+    Task 3: Put down
+    Task 4: Stack
+    '''
+    def getReward(self, task):
+        if task == 1:
+            if self.validGrip():
+                return 1., True
+            return 0., False
+
+        if task == 2:
+            if not self.validGrip():
+                return -1., True
+            if self.gripper_position[2] > self.height_threshold:
+                return 1., True
+            else:
+                return 0., False
+
+        if task == 3:
+            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
+                    and self.gripper_position[2] < self.drop_height:
+                return 1., True
+            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
+                    and self.gripper_position[2] >= self.drop_height:
+                return -1., True
+            else:
+                return 0., False
+
+        if task == 4:
+            x_difference = abs(self.object_position[0] - self.object1_position[0])
+            y_difference = abs(self.object_position[1]) - self.object1_position[1]
+            x_check = x_difference < 0.02
+            y_check = y_difference < 0.02
+            dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
+            if dropped:
+                if self.object_position[2] <= 0.5 and x_check and y_check:
+                    return 1., True
+                else:
+                    return -1., False
+            return 0., False
+
+    def validGrip(self):
+        x_difference = abs(self.object_position[0] - self.gripper_position[0])
+        y_difference = abs(self.object_position[1] - self.gripper_position[1])
+        z_difference = self.gripper_position[2] - self.object_position[2]
+        return x_difference <= self.x_threshold \
+               and y_difference <= self.y_threshold \
+               and 0 > z_difference <= 0.025 \
+               and self.getFingerWidth() < self.finger_threshold \
+               and self.closing
 
 
     # Take an action and encode it into a length-4 vector that you call env.step(vector) on

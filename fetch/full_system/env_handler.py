@@ -1,31 +1,10 @@
 #!/usr/bin/env python3
 import random
-import numpy as np
-import torch
-import torch.optim as optim
-
-import torch.nn as nn
-from PIL import Image
 import copy
-from collections import namedtuple
-from torch.autograd import Variable
-import cv2
-import time
-import argparse
-from tensorboardX import SummaryWriter
-import shutil
-
-import os
-
 import sys
-# sys.path.pop(0)
-# import gym
 sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
-from gym import utils
 from gym.wrappers.time_limit import TimeLimit
-from action_utils import DQN
-from PIL import Image
 
 
 class EnvHandler(object):
@@ -42,8 +21,6 @@ class EnvHandler(object):
                                  initial_qpos=initial_qpos, reward_type='sparse')
         self.env = TimeLimit(self.env).unwrapped
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        self.object_position = self.env.sim.data.get_site_xpos('object0')
-        # self.object1_position = self.env.sim.data.get_site_xpos('object1')
         self.opening = False
         self.closing = False
         self.dqn = dqn
@@ -55,13 +32,16 @@ class EnvHandler(object):
         self.env.reset()
         self.env.render()
         self.env.sim.nsubsteps = 2
-        # if task == 2:
-        #     self.resetSceneForPickUp()
-        # elif task == 3:
-        #     self.reset
+        if task == 2:
+            self.resetSceneForPickUp()
+        elif task == 3:
+            self.resetSceneForPutDown()
         self.dqn.opening = self.opening
         self.dqn.closing = self.closing
         self.dqn.setState(self.env.render(mode='rgb_array'))
+        self.dqn.object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
+        self.dqn.object1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
+
 
 
     def resetSceneForPickUp(self):
@@ -100,10 +80,22 @@ class EnvHandler(object):
         self.drop()
         self.close()
         self.closing = True
+        self.opening = False
 
     def resetSceneForPutDown(self):
         self.resetSceneForPickUp()
-        self.move([0, 0, -1])
+        self.drop()
+        self.close()
+        # 0.58 is the height threshold for picking something up
+        while self.gripper_position[2] < 0.58:
+            if random.random() < 0.33:
+                self.env.step([0, 1, 1, -1])
+            elif 0.33 <= random.random() <= 0.66:
+                self.env.step([0, -1, 1, -1])
+            elif random.random() > 0.66:
+                self.env.step([0, 0, 1, -1])
+        self.closing = True
+        self.opening = False
 
 
 
