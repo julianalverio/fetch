@@ -47,9 +47,11 @@ class DQN(nn.Module):
         self.opening = False
         self.closing = False
         self.num_actions = num_actions
+        self.env = None
 
-    def initializeState(self, state):
-        self.state = self.preprocess(state)
+    def initializeState(self, env):
+        self.state = self.preprocess(env.render(mode='rgb_array'))
+        self.env = env
 
     def forward(self, x, task):
         x = self.conv(x).view(x.size()[0], -1)

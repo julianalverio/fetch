@@ -42,7 +42,7 @@ class EnvHandler(object):
 
         self.dqn.opening = self.opening
         self.dqn.closing = self.closing
-        self.dqn.initializeState(self.env.render(mode='rgb_array'))
+        self.dqn.initializeState(self.env)
         self.dqn.object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
         self.dqn.object1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
 
