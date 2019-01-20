@@ -172,10 +172,7 @@ class Trainer(object):
         self.reward_tracker2 = RewardTracker()
         self.reward_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
-        self.memory0 = ReplayMemory(self.params['replay_size'], self.transition)
-        self.memory1 = ReplayMemory(self.params['replay_size'], self.transition)
-        self.memory2 = ReplayMemory(self.params['replay_size'], self.transition)
-        self.memory3 = ReplayMemory(self.params['replay_size'], self.transition)
+        self.memory = ReplayMemory(self.params['replay_size'], self.transition)
         self.state = self.preprocess(self.reset())
         self.tb_writer = SummaryWriter('results')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
@@ -592,7 +589,6 @@ class Trainer(object):
             # reward, done = self.getReward()
 
 
-
 def cleanup():
     if os.path.isdir('results'):
         shutil.rmtree('results')
@@ -600,27 +596,25 @@ def cleanup():
     for csv_txt_file in csv_txt_files:
         os.remove(csv_txt_file)
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('gpu', type=int)
-    args = parser.parse_args()
-    gpu_num = args.gpu
-    print('GPU:', gpu_num)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
+def seed():
     seed = random.randrange(0, 100)
-    print('RANDOM SEED: ', seed)
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    print('cleaning up...')
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('gpu', type=int)
+    gpu_num = parser.parse_args().gpu
+    print('GPU:', gpu_num)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
-    print('Creating Trainer Object')
+    print('Creating Trainer')
     trainer = Trainer()
     print('Trainer Initialized')
-    print("Prefetching Now...")
     trainer.train()
 
 
