@@ -21,8 +21,7 @@ MAX_ITERATIONS = 1500
 
 HYPERPARAMS = {
         'replay_size':      8000 * 4,
-        'replay_initial':   34,
-        # 'replay_initial':   7900 * 4,
+        'replay_initial':   7900 * 4,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
@@ -452,7 +451,7 @@ class Trainer(object):
                     print('Task: %s' % self.task)
                     print('Score for Epoch %s' % reward)
                     print('Steps in this episode:', iteration)
-                    print('Epsilon:', self.policy_net.epsilon_tracker.percievedEpsilon())
+                    print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
                     if self.task == 0.:
                         self.reward_tracker0.add(reward)
                         average_score = self.reward_tracker0.meanScore()
