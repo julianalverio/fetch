@@ -268,10 +268,6 @@ class Trainer(object):
             self.env.render()
         self.closing = True
         self.opening = False
-        try:
-            assert self.validGrip()
-        except:
-            import pdb; pdb.set_trace()
 
     def getGripperWidth(self):
         right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
@@ -420,8 +416,8 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 3.:
-            x_difference = abs(self.object_position[0] - self.object1_position[0])
-            y_difference = abs(self.object_position[1]) - self.object1_position[1]
+            x_difference = abs(self.object_position[0] - self.object_position[0])
+            y_difference = abs(self.object_position[1]) - self.object_position[1]
             x_check = x_difference < 0.02
             y_check = y_difference < 0.02
             dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
