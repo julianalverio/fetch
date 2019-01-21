@@ -269,6 +269,7 @@ class Trainer(object):
         self.closing = True
         self.opening = False
         try:
+            import pdb; pdb.set_trace()
             assert self.validGrip()
         except:
             import pdb; pdb.set_trace()
@@ -432,13 +433,17 @@ class Trainer(object):
 
     def validGrip(self):
         x_difference = abs(self.object_position[0] - self.gripper_position[0])
+        x_check = x_difference <= self.x_threshold
         y_difference = abs(self.object_position[1] - self.gripper_position[1])
+        y_check = y_difference <= self.y_threshold
         z_difference = self.gripper_position[2] - self.object_position[2]
-        return x_difference <= self.x_threshold \
-               and y_difference <= self.y_threshold \
-               and 0 > z_difference <= 0.025 \
-               and self.getFingerWidth() < self.finger_threshold \
-               and self.closing
+        z_check = 0 > z_difference <= 0.025
+        return x_check and y_check and z_check and self.closing and self.getFingerWidth() < self.finger_threshold
+        # return x_difference <= self.x_threshold \
+        #        and y_difference <= self.y_threshold \
+        #        and 0 > z_difference <= 0.025 \
+        #        and self.getFingerWidth() < self.finger_threshold \
+        #        and self.closing
 
 
     def train(self):
