@@ -200,7 +200,7 @@ class Trainer(object):
         self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
-        self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
+        self.height_threshold = 0.52  # to have lifted the block, you must be higher than this
         self.drop_height = 0.45  # when putting down an object, you can be no higher than this
 
     def makeEnv(self):
@@ -268,11 +268,7 @@ class Trainer(object):
             self.env.render()
         self.closing = True
         self.opening = False
-        try:
-            import pdb; pdb.set_trace()
-            assert self.validGrip()
-        except:
-            import pdb; pdb.set_trace()
+        assert self.validGrip()
 
     def getGripperWidth(self):
         right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
