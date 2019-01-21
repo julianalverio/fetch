@@ -70,7 +70,6 @@ class DQN(nn.Module):
 
     def forward(self, x, task):
         # check that everything here works
-        import pdb; pdb.set_trace()
         x = self.conv(x).view(x.size()[0], -1)
         x = torch.cat([x, task], dim=1)
         return self.fc(x)
