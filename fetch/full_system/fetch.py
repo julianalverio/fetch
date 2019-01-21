@@ -486,7 +486,7 @@ class Trainer(object):
                         self.task3_episode_counter += 1
 
                     print('Average score: %s' % average_score)
-                    self.tb_writer.add_scalar('Epsilon', self.policy_net.epsilon_tracker.percievedEpsilon(), episode)
+                    self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker.percievedEpsilon(), episode)
                     break
 
                 self.optimizeModel()
