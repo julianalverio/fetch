@@ -245,7 +245,10 @@ class Trainer(object):
         self.close()
         self.closing = True
         self.opening = False
-        assert self.validGrip()
+        try:
+            assert self.validGrip()
+        except:
+            import pdb; pdb.set_trace()
 
     def resetSceneForPutDown(self):
         self.resetSceneForPickUp()
