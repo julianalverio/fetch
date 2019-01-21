@@ -33,7 +33,8 @@ MAX_ITERATIONS = 1500
 
 HYPERPARAMS = {
         'replay_size':      8000 * 4,
-        'replay_initial':   7900 * 4,
+        'replay_initial':   34,
+        # 'replay_initial':   7900 * 4,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
@@ -362,6 +363,7 @@ class Trainer(object):
         return reward, done
 
     def optimizeModel(self):
+        import pdb; pdb.set_trace()
         transitions = self.memory.sample(self.params['batch_size'])
         batch = self.transition(*zip(*transitions))
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.uint8)
