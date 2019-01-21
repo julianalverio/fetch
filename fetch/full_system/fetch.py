@@ -362,7 +362,6 @@ class Trainer(object):
         return reward, done
 
     def optimizeModel(self):
-        import pdb; pdb.set_trace()
         transitions = self.memory.sample(self.params['batch_size'])
         batch = self.transition(*zip(*transitions))
         next_states = batch.next_state
@@ -373,9 +372,10 @@ class Trainer(object):
         action_batch = torch.cat(list(batch.action))
         reward_batch = torch.cat(list(batch.reward))
         task_batch = torch.cat(list(batch.task))
-        state_action_values = self.policy_net(state_batch, non_final_tasks).gather(1, action_batch.unsqueeze(1))
+        import pdb; pdb.set_trace()
+        state_action_values = self.policy_net(state_batch, task_batch).gather(1, action_batch.unsqueeze(1))
         next_state_values = torch.zeros(self.params['batch_size'], device=self.device)
-        next_state_values[non_final_mask] = self.target_net(non_final_next_states, task_batch).max(1)[0].detach()
+        next_state_values[non_final_mask] = self.target_net(non_final_next_states, non_final_tasks).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         self.optimizer.zero_grad()
