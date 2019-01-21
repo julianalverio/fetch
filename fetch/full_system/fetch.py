@@ -251,11 +251,12 @@ class Trainer(object):
         self.resetSceneForPickUp()
         # 0.58 is the height threshold for picking something up
         while self.gripper_position[2] < 0.58:
-            if random.random() < 0.33:
+            rand = random.random()
+            if rand < 0.33:
                 self.env.step([0, 1, 1, -1])
-            elif 0.33 <= random.random() <= 0.66:
+            elif 0.33 <= rand <= 0.66:
                 self.env.step([0, -1, 1, -1])
-            elif random.random() > 0.66:
+            elif rand > 0.66:
                 self.env.step([0, 0, 1, -1])
             self.env.render()
         self.closing = True
