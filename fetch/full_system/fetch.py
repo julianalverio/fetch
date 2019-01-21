@@ -367,7 +367,7 @@ class Trainer(object):
         next_states = batch.next_state
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)), device=self.device, dtype=torch.uint8)
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-        non_final_tasks = [batch.task[i] for i in range(self.params['batch_size']) if next_states[i] is not None]
+        non_final_tasks = torch.cat([batch.task[i] for i in range(self.params['batch_size']) if next_states[i] is not None])
         state_batch = torch.cat(list(batch.state))
         action_batch = torch.cat(list(batch.action))
         reward_batch = torch.cat(list(batch.reward))
