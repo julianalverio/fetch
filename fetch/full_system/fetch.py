@@ -340,10 +340,10 @@ class Trainer(object):
 
     # for when stage_count == 0
     def addExperience(self):
+        task_tensor = torch.tensor([self.task], device=self.device)
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            task_tensor = torch.tensor([self.task], device=self.device)
             action = torch.argmax(self.policy_net(self.state, task_tensor), dim=1).to(self.device)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
