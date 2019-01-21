@@ -274,9 +274,9 @@ class Trainer(object):
         self.env.render()
         self.env.sim.nsubsteps = 2
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
-        if self.task == 2.:
+        if self.task == 1.:
             self.resetSceneForPickUp()
-        if self.task in (3., 4.):
+        if self.task in (2., 3.):
             self.resetSceneForPutDown()
         self.state = self.preprocess(self.env.render(mode='rgb_array'))
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
