@@ -249,8 +249,6 @@ class Trainer(object):
 
     def resetSceneForPutDown(self):
         self.resetSceneForPickUp()
-        self.drop()
-        self.close()
         # 0.58 is the height threshold for picking something up
         while self.gripper_position[2] < 0.58:
             if random.random() < 0.33:
