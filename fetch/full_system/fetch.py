@@ -199,7 +199,7 @@ class Trainer(object):
         self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
         self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
-        self.finger_threshold = 0.047  # in order to grip the block your fingers must be at least this narrow
+        self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
         self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
         self.drop_height = 0.45  # when putting down an object, you can be no higher than this
 
@@ -433,8 +433,12 @@ class Trainer(object):
     def validGrip(self):
         x_difference = abs(self.object_position[0] - self.gripper_position[0])
         y_difference = abs(self.object_position[1] - self.gripper_position[1])
-        return x_difference <= self.x_threshold and y_difference <= self.y_threshold \
-               and self.getFingerWidth() > self.finger_threshold and self.gripper_position[2] <= 0.435
+        z_difference = self.gripper_position[2] - self.object_position[2]
+        return x_difference <= self.x_threshold \
+               and y_difference <= self.y_threshold \
+               and 0 > z_difference <= 0.025 \
+               and self.getFingerWidth() < self.finger_threshold \
+               and self.closing
 
 
     def train(self):
