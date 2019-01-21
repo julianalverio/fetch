@@ -259,6 +259,7 @@ class Trainer(object):
                 self.env.step([0, -1, 1, -1])
             elif random.random() > 0.66:
                 self.env.step([0, 0, 1, -1])
+            self.env.render()
         self.closing = True
         self.opening = False
         assert self.validGrip()
