@@ -16,12 +16,12 @@ from gym.envs.robotics import fetch_env
 from gym.wrappers.time_limit import TimeLimit
 
 NUM_EPISODES = 3000
-MAX_ITERATIONS = 1500
+MAX_ITERATIONS = 700
 
 
 HYPERPARAMS = {
         'replay_size':      8000 * 4,
-        'replay_initial':   7900 * 4,
+        'replay_initial':   7900 * 4 / 20,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
