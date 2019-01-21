@@ -195,6 +195,15 @@ class Trainer(object):
         self.task3_episode_counter = 0
         self.task = 0
 
+        self.target_height = 0.47  # get the block at least this high
+        self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
+        self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
+        self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
+        self.finger_threshold = 0.047  # in order to grip the block your fingers must be at least this narrow
+        self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
+        self.height_threshold = 0.58  # to have lifted the block, you must be higher than this
+        self.drop_height = 0.45  # when putting down an object, you can be no higher than this
+
     def makeEnv(self):
         initial_qpos = {
             'robot0:slide0': 0.405,
