@@ -253,10 +253,6 @@ class Trainer(object):
         self.close()
         self.closing = True
         self.opening = False
-        try:
-            assert self.validGrip()
-        except:
-            import pdb; pdb.set_trace()
 
     def resetSceneForPutDown(self):
         self.resetSceneForPickUp()
@@ -272,7 +268,10 @@ class Trainer(object):
             self.env.render()
         self.closing = True
         self.opening = False
-        assert self.validGrip()
+        try:
+            assert self.validGrip()
+        except:
+            import pdb; pdb.set_trace()
 
     def getGripperWidth(self):
         right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
