@@ -336,7 +336,7 @@ class Trainer(object):
 
     # for when stage_count == 0
     def addExperience(self):
-        task_tensor = torch.tensor([self.task], device=self.device).squeeze(0)
+        task_tensor = torch.tensor([self.task], device=self.device).unsqueeze(0)
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
