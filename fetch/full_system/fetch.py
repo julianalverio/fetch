@@ -268,7 +268,10 @@ class Trainer(object):
             self.env.render()
         self.closing = True
         self.opening = False
-        assert self.validGrip()
+        try:
+            assert self.validGrip()
+        except:
+            import pdb; pdb.set_trace()
 
     def getGripperWidth(self):
         right_finger = self.env.sim.data.get_body_xipos('robot0:r_gripper_finger_link')[2]
@@ -366,13 +369,15 @@ class Trainer(object):
         import pdb; pdb.set_trace()
         transitions = self.memory.sample(self.params['batch_size'])
         batch = self.transition(*zip(*transitions))
-        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, batch.next_state)), device=self.device, dtype=torch.uint8)
+        next_states = batch.next_state
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)), device=self.device, dtype=torch.uint8)
         non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
+        non_final_tasks = [batch.task[i] for i in range(self.params['batch_size']) if next_states[i] is not None]
         state_batch = torch.cat(list(batch.state))
         action_batch = torch.cat(list(batch.action))
         reward_batch = torch.cat(list(batch.reward))
         task_batch = torch.cat(list(batch.task))
-        state_action_values = self.policy_net(state_batch, task_batch).gather(1, action_batch.unsqueeze(1))
+        state_action_values = self.policy_net(state_batch, non_final_tasks).gather(1, action_batch.unsqueeze(1))
         next_state_values = torch.zeros(self.params['batch_size'], device=self.device)
         next_state_values[non_final_mask] = self.target_net(non_final_next_states, task_batch).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
