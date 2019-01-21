@@ -72,7 +72,7 @@ class DQN(nn.Module):
         # check that everything here works
         import pdb; pdb.set_trace()
         x = self.conv(x).view(x.size()[0], -1)
-        x = torch.cat([x, torch.tensor([task])])
+        x = torch.cat([x, task])
         return self.fc(x)
 
 
@@ -335,8 +335,8 @@ class Trainer(object):
         if random.random() < self.epsilon_tracker.epsilon():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            # check if the state and task are of the same type
-            action = torch.argmax(self.policy_net(self.state, self.task), dim=1).to(self.device)
+            task_tensor = torch.tensor([self.task], device=self.device)
+            action = torch.argmax(self.policy_net(self.state, task_tensor), dim=1).to(self.device)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
@@ -344,7 +344,7 @@ class Trainer(object):
         if done:
             next_state = None
 
-        self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state, torch.tensor([self.task], device=self.device))
+        self.memory.push(self.state, action, torch.tensor([reward], device=self.device), next_state, task_tensor)
 
         # if done:
         #     self.state = self.preprocess(self.reset())
