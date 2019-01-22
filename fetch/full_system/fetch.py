@@ -169,8 +169,8 @@ class Trainer(object):
 
         self.stage_count = 0
         self.target_height = 0.47  # get the block at least this high
-        self.x_threshold = 0.01143004  # to be prepared to grip, gripper x must be no further away than this
-        self.y_threshold = 0.01121874  # to be prepared to grip, gripper y must be no further away than this
+        self.x_threshold = 0.019  # to be prepared to grip, gripper x must be no further away than this
+        self.y_threshold = 0.019  # to be prepared to grip, gripper y must be no further away than this
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.046195726  # in order to grip the block your fingers must be at least this wide
         # self.previous_height = self.initial_object_position[2]  # for negative reward when you decrease in height
@@ -412,12 +412,9 @@ class Trainer(object):
 
 
     def validGrip(self):
-        x_difference = abs(self.object_position[0] - self.gripper_position[0])
-        x_check = x_difference <= self.x_threshold
-        y_difference = abs(self.object_position[1] - self.gripper_position[1])
-        y_check = y_difference <= self.y_threshold
-        z_difference = self.gripper_position[2] - self.object_position[2]
-        z_check = 0 > z_difference <= 0.025
+        x_check = abs(self.object_position[0] - self.gripper_position[0]) <= self.x_threshold
+        y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
+        z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
         return x_check and y_check and z_check and self.closing and self.getFingerWidth() < self.finger_threshold
         # return x_difference <= self.x_threshold \
         #        and y_difference <= self.y_threshold \
