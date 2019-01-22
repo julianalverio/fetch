@@ -265,6 +265,7 @@ class Trainer(object):
         self.env.render()
         self.env.sim.nsubsteps = 2
         self.initial_object_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object0'))
+        self.initial_object1_position = copy.deepcopy(self.env.sim.data.get_site_xpos('object1'))
         if self.task == 1.:
             self.resetSceneForPickUp()
         if self.task in (2., 3.):
@@ -373,7 +374,7 @@ class Trainer(object):
     def getReward(self):
         # if the block falls off the table
         import pdb; pdb.set_trace()
-        if self.initial_object_position[2] - self.object_position[2] > 0.1:
+        if self.initial_object1_position[2] - self.object_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
             if self.validGrip():
