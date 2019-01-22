@@ -166,6 +166,7 @@ class Trainer(object):
         self.tb_writer = SummaryWriter('results')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
+        self.object1_position = self.env.sim.data.get_site_xpos('object1')
 
         self.stage_count = 0
         self.target_height = 0.47  # get the block at least this high
@@ -374,6 +375,8 @@ class Trainer(object):
     def getReward(self):
         # if the block falls off the table
         if self.initial_object1_position[2] - self.object_position[2] > 0.1:
+            return -1., True
+        if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
             if self.validGrip():
