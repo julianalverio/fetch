@@ -191,7 +191,7 @@ class Trainer(object):
         self.z_threshold = 0.435  # to be prepared to grip, gripper z must be no higher than this
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
         self.height_threshold = 0.52  # to have lifted the block, you must be higher than this
-        self.drop_height = 0.45  # when putting down an object, you can be no higher than this
+        self.drop_height = 0.48  # when putting down an object, you can be no higher than this
 
 
     def makeEnv(self):
@@ -398,11 +398,9 @@ class Trainer(object):
             return 0., False
 
         if self.task == 3.:
-            x_difference = abs(self.object_position[0] - self.object_position[0])
-            y_difference = abs(self.object_position[1]) - self.object_position[1]
-            x_check = x_difference < 0.02
-            y_check = y_difference < 0.02
-            dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
+            x_check = abs(self.object_position[0] - self.object_position[0]) < 0.02
+            y_check = abs(self.object_position[1]) - self.object_position[1] < 0.02
+            dropped = not self.weakValidGrip()
             if dropped:
                 if self.object_position[2] <= 0.5 and x_check and y_check:
                     return 1., True
