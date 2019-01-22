@@ -435,78 +435,74 @@ class Trainer(object):
             print(self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
-                try:
-                    # execute one move
-                    frame_idx += 1
-                    reward, done = self.addExperience()
+                # execute one move
+                frame_idx += 1
+                reward, done = self.addExperience()
 
-                    # are we done prefetching?
-                    if len(self.memory) < self.params['replay_initial']:
-                        if done:
-                            break
-                        continue
-                    if len(self.memory) == self.params['replay_initial']:
-                        print("Done Prefetching.")
-                        break
-
-                    # is this round over?
+                # are we done prefetching?
+                if len(self.memory) < self.params['replay_initial']:
                     if done:
-                        print('Episode Completed:', episode)
-                        print('Task: %s' % self.task)
-                        print('Score for Epoch %s' % reward)
-                        print('Steps in this episode:', iteration)
-                        print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
-                        if self.task == 0.:
-                            self.step_tracker0.add(iteration)
-                            self.reward_tracker0.add(reward)
-                            average_score = self.reward_tracker0.meanScore()
-                            self.tb_writer.add_scalar('Task 0 Score', reward, self.task0_episode_counter)
-                            self.tb_writer.add_scalar('Task 0 Average Score', self.reward_tracker0.meanScore(),
-                                                      self.task0_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 0', iteration, self.task0_episode_counter)
-                            self.tb_writer.add_scalar('Average steps for Task 0', self.step_tracker0.meanScore(), self.task0_episode_counter)
-                            self.task0_episode_counter += 1
-                        if self.task == 1.:
-                            self.step_tracker1.add(iteration)
-                            self.reward_tracker1.add(reward)
-                            average_score = self.reward_tracker1.meanScore()
-                            self.tb_writer.add_scalar('Task 1 Score', reward, self.task1_episode_counter)
-                            self.tb_writer.add_scalar('Task 1 Average Score', self.reward_tracker1.meanScore(),
-                                                      self.task1_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task1_episode_counter)
-                            self.tb_writer.add_scalar('Average steps for Task 1', self.step_tracker1.meanScore(), self.task1_episode_counter)
-                            self.task1_episode_counter += 1
-                        if self.task == 2.:
-                            self.step_tracker2.add(iteration)
-                            self.reward_tracker2.add(reward)
-                            average_score = self.reward_tracker2.meanScore()
-                            self.tb_writer.add_scalar('Task 2 Score', reward, self.task2_episode_counter)
-                            self.tb_writer.add_scalar('Task 2 Average Score', self.reward_tracker2.meanScore(),
-                                                      self.task2_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 2', iteration, self.task2_episode_counter)
-                            self.task2_episode_counter += 1
-                            self.tb_writer.add_scalar('Average steps for Task 2', self.step_tracker2.meanScore(), self.task2_episode_counter)
-                        if self.task == 3.:
-                            self.step_tracker3.add(iteration)
-                            self.reward_tracker3.add(reward)
-                            average_score = self.reward_tracker3.meanScore()
-                            self.tb_writer.add_scalar('Task 3 Score', reward, self.task3_episode_counter)
-                            self.tb_writer.add_scalar('Task 3 Average Score', self.reward_tracker3.meanScore(),
-                                                      self.task3_episode_counter)
-                            self.tb_writer.add_scalar('Steps in episode for Task 3', iteration, self.task3_episode_counter)
-                            self.tb_writer.add_scalar('Average steps for Task 3', self.step_tracker3.meanScore(), self.task3_episode_counter)
-                            self.task3_episode_counter += 1
-
-                        print('Average score: %s' % average_score)
-                        self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker.percievedEpsilon(), episode)
                         break
+                    continue
+                if len(self.memory) == self.params['replay_initial']:
+                    print("Done Prefetching.")
+                    break
 
-                    self.optimizeModel()
-                    if frame_idx % self.params['target_net_sync'] == 0:
-                        self.target_net.load_state_dict(self.policy_net.state_dict())
-                except:
-                    import pdb; pdb.set_trace()
-                    pass
+                # is this round over?
+                if done:
+                    print('Episode Completed:', episode)
+                    print('Task: %s' % self.task)
+                    print('Score for Epoch %s' % reward)
+                    print('Steps in this episode:', iteration)
+                    print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
+                    if self.task == 0.:
+                        self.step_tracker0.add(iteration)
+                        self.reward_tracker0.add(reward)
+                        average_score = self.reward_tracker0.meanScore()
+                        self.tb_writer.add_scalar('Task 0 Score', reward, self.task0_episode_counter)
+                        self.tb_writer.add_scalar('Task 0 Average Score', self.reward_tracker0.meanScore(),
+                                                  self.task0_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 0', iteration, self.task0_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 0', self.step_tracker0.meanScore(), self.task0_episode_counter)
+                        self.task0_episode_counter += 1
+                    if self.task == 1.:
+                        self.step_tracker1.add(iteration)
+                        self.reward_tracker1.add(reward)
+                        average_score = self.reward_tracker1.meanScore()
+                        self.tb_writer.add_scalar('Task 1 Score', reward, self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Task 1 Average Score', self.reward_tracker1.meanScore(),
+                                                  self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 1', self.step_tracker1.meanScore(), self.task1_episode_counter)
+                        self.task1_episode_counter += 1
+                    if self.task == 2.:
+                        self.step_tracker2.add(iteration)
+                        self.reward_tracker2.add(reward)
+                        average_score = self.reward_tracker2.meanScore()
+                        self.tb_writer.add_scalar('Task 2 Score', reward, self.task2_episode_counter)
+                        self.tb_writer.add_scalar('Task 2 Average Score', self.reward_tracker2.meanScore(),
+                                                  self.task2_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 2', iteration, self.task2_episode_counter)
+                        self.task2_episode_counter += 1
+                        self.tb_writer.add_scalar('Average steps for Task 2', self.step_tracker2.meanScore(), self.task2_episode_counter)
+                    if self.task == 3.:
+                        self.step_tracker3.add(iteration)
+                        self.reward_tracker3.add(reward)
+                        average_score = self.reward_tracker3.meanScore()
+                        self.tb_writer.add_scalar('Task 3 Score', reward, self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Task 3 Average Score', self.reward_tracker3.meanScore(),
+                                                  self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 3', iteration, self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 3', self.step_tracker3.meanScore(), self.task3_episode_counter)
+                        self.task3_episode_counter += 1
+
+                    print('Average score: %s' % average_score)
+                    self.tb_writer.add_scalar('Epsilon', self.epsilon_tracker.percievedEpsilon(), episode)
+                    break
+
+                self.optimizeModel()
+                if frame_idx % self.params['target_net_sync'] == 0:
+                    self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def getDistances(self):
         object_position = self.env.sim.data.get_site_xpos('object0')
