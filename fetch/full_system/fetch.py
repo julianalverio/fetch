@@ -442,6 +442,8 @@ class Trainer(object):
 
                     # are we done prefetching?
                     if len(self.memory) < self.params['replay_initial']:
+                        if done:
+                            break
                         continue
                     if len(self.memory) == self.params['replay_initial']:
                         print("Done Prefetching.")
@@ -504,6 +506,7 @@ class Trainer(object):
                         self.target_net.load_state_dict(self.policy_net.state_dict())
                 except:
                     import pdb; pdb.set_trace()
+                    pass
 
     def getDistances(self):
         object_position = self.env.sim.data.get_site_xpos('object0')
