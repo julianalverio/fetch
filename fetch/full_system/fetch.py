@@ -372,6 +372,7 @@ class Trainer(object):
     '''
     def getReward(self):
         # if the block falls off the table
+        import pdb; pdb.set_trace()
         if self.initial_object_position[2] - self.object_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
