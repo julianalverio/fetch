@@ -390,7 +390,7 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 2.:
-            dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
+            dropped = not self.weakValidGrip()
             if dropped and self.gripper_position[2] < self.drop_height:
                 return 1., True
             if dropped and self.gripper_position[2] >= self.drop_height:
@@ -416,11 +416,12 @@ class Trainer(object):
         y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
         z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
         return x_check and y_check and z_check and self.closing and self.getFingerWidth() < self.finger_threshold
-        # return x_difference <= self.x_threshold \
-        #        and y_difference <= self.y_threshold \
-        #        and 0 > z_difference <= 0.025 \
-        #        and self.getFingerWidth() < self.finger_threshold \
-        #        and self.closing
+
+    def weakValidGrip(self):
+        x_check = abs(self.object_position[0] - self.gripper_position[0]) <= self.x_threshold
+        y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
+        z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
+        return x_check and y_check and z_check and self.getFingerWidth() < self.finger_threshold
 
 
     def train(self):
