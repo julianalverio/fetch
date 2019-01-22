@@ -427,12 +427,8 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            # self.task = float(random.randrange(0, 4))
-            if random.random() > 0.5:
-                self.task = 2.
-            else:
-                self.task = 0.
-            print(self.task)
+            self.task = float(random.randrange(0, 4))
+            print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
