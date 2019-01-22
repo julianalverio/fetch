@@ -429,7 +429,10 @@ class Trainer(object):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
             # self.task = float(random.randrange(0, 4))
-            self.task = 2.
+            if random.random() > 0.5:
+                self.task = 2.
+            else:
+                self.task = 0.
             print(self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
