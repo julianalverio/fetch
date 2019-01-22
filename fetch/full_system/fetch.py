@@ -157,6 +157,10 @@ class Trainer(object):
         self.reward_tracker1 = RewardTracker()
         self.reward_tracker2 = RewardTracker()
         self.reward_tracker3 = RewardTracker()
+        self.step_tracker0 = RewardTracker()
+        self.step_tracker1 = RewardTracker()
+        self.step_tracker2 = RewardTracker()
+        self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
         self.memory = ReplayMemory(self.params['replay_size'], self.transition)
         self.tb_writer = SummaryWriter('results')
@@ -188,6 +192,7 @@ class Trainer(object):
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
         self.height_threshold = 0.52  # to have lifted the block, you must be higher than this
         self.drop_height = 0.45  # when putting down an object, you can be no higher than this
+
 
     def makeEnv(self):
         initial_qpos = {
@@ -244,14 +249,8 @@ class Trainer(object):
         self.resetSceneForPickUp()
         # 0.58 is the height threshold for picking something up
         while self.gripper_position[2] < 0.58:
-            rand = random.random()
-            if rand < 0.33:
-                self.env.step([0, 1, 1, -1])
-            elif 0.33 <= rand <= 0.66:
-                self.env.step([0, -1, 1, -1])
-            elif rand > 0.66:
-                self.env.step([0, 0, 1, -1])
-            self.env.render()
+            self.env.step([0, 0, 1, -1])
+        [self.env.render() for _ in range(4)]
         self.closing = True
         self.opening = False
 
@@ -389,14 +388,12 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 2.:
-            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
-                    and self.gripper_position[2] < self.drop_height:
+            dropped = self.gripper_position[2] - self.object_position[2] >= 0.025
+            if dropped and self.gripper_position[2] < self.drop_height:
                 return 1., True
-            if self.gripper_position[2] - self.object_position[2] >= 0.025 \
-                    and self.gripper_position[2] >= self.drop_height:
+            if dropped and self.gripper_position[2] >= self.drop_height:
                 return -1., True
-            else:
-                return 0., False
+            return 0., False
 
         if self.task == 3.:
             x_difference = abs(self.object_position[0] - self.object_position[0])
@@ -430,7 +427,8 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            self.task = float(random.randrange(0, 4))
+            # self.task = float(random.randrange(0, 4))
+            self.task = 2.
             print(self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
@@ -453,22 +451,27 @@ class Trainer(object):
                     print('Steps in this episode:', iteration)
                     print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
                     if self.task == 0.:
+                        self.step_tracker0.add(iteration)
                         self.reward_tracker0.add(reward)
                         average_score = self.reward_tracker0.meanScore()
                         self.tb_writer.add_scalar('Task 0 Score', reward, self.task0_episode_counter)
                         self.tb_writer.add_scalar('Task 0 Average Score', self.reward_tracker0.meanScore(),
                                                   self.task0_episode_counter)
-                        self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task0_episode_counter)
+                        self.tb_writer.add_scalar('Steps in episode for Task 0', iteration, self.task0_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 0', self.step_tracker0.meanScore(), self.task0_episode_counter)
                         self.task0_episode_counter += 1
                     if self.task == 1.:
+                        self.step_tracker1.add(iteration)
                         self.reward_tracker1.add(reward)
                         average_score = self.reward_tracker1.meanScore()
                         self.tb_writer.add_scalar('Task 1 Score', reward, self.task1_episode_counter)
                         self.tb_writer.add_scalar('Task 1 Average Score', self.reward_tracker1.meanScore(),
                                                   self.task1_episode_counter)
                         self.tb_writer.add_scalar('Steps in episode for Task 1', iteration, self.task1_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 1', self.step_tracker1.meanScore(), self.task1_episode_counter)
                         self.task1_episode_counter += 1
                     if self.task == 2.:
+                        self.step_tracker2.add(iteration)
                         self.reward_tracker2.add(reward)
                         average_score = self.reward_tracker2.meanScore()
                         self.tb_writer.add_scalar('Task 2 Score', reward, self.task2_episode_counter)
@@ -476,13 +479,16 @@ class Trainer(object):
                                                   self.task2_episode_counter)
                         self.tb_writer.add_scalar('Steps in episode for Task 2', iteration, self.task2_episode_counter)
                         self.task2_episode_counter += 1
+                        self.tb_writer.add_scalar('Average steps for Task 2', self.step_tracker2.meanScore(), self.task2_episode_counter)
                     if self.task == 3.:
+                        self.step_tracker3.add(iteration)
                         self.reward_tracker3.add(reward)
                         average_score = self.reward_tracker3.meanScore()
                         self.tb_writer.add_scalar('Task 3 Score', reward, self.task3_episode_counter)
                         self.tb_writer.add_scalar('Task 3 Average Score', self.reward_tracker3.meanScore(),
                                                   self.task3_episode_counter)
                         self.tb_writer.add_scalar('Steps in episode for Task 3', iteration, self.task3_episode_counter)
+                        self.tb_writer.add_scalar('Average steps for Task 3', self.step_tracker3.meanScore(), self.task3_episode_counter)
                         self.task3_episode_counter += 1
 
                     print('Average score: %s' % average_score)
