@@ -182,7 +182,7 @@ class Trainer(object):
         self.task1_episode_counter = 0
         self.task2_episode_counter = 0
         self.task3_episode_counter = 0
-        self.task = 0
+        self.task = 0.
 
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
         self.height_threshold = 0.52  # to have lifted the block, you must be higher than this
@@ -424,7 +424,7 @@ class Trainer(object):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
             # self.task = float(random.randrange(0, 4))
-            self.task = 0
+            self.task = 0.
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
