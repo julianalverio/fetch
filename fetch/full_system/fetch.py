@@ -379,9 +379,11 @@ class Trainer(object):
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
+            distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
+            reward = -1. * distance
             if self.validGrip():
                 return 1., True
-            return 0., False
+            return reward, False
 
         if self.task == 1.:
             if not self.validGrip():
@@ -392,7 +394,7 @@ class Trainer(object):
                 return 0., False
 
         if self.task == 2.:
-            dropped = not self.weakValidGrip()
+            dropped = self.dropped()
             if dropped and self.gripper_position[2] < self.drop_height:
                 return 1., True
             if dropped and self.gripper_position[2] >= self.drop_height:
@@ -402,7 +404,7 @@ class Trainer(object):
         if self.task == 3.:
             x_check = abs(self.object_position[0] - self.object_position[0]) < 0.02
             y_check = abs(self.object_position[1]) - self.object_position[1] < 0.02
-            dropped = not self.weakValidGrip()
+            dropped = self.dropped()
             if dropped:
                 if self.object_position[2] <= 0.5 and x_check and y_check:
                     return 1., True
@@ -417,17 +419,18 @@ class Trainer(object):
         z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
         return x_check and y_check and z_check and self.closing and self.getFingerWidth() < self.finger_threshold
 
-    def weakValidGrip(self):
+    def dropped(self):
         x_check = abs(self.object_position[0] - self.gripper_position[0]) <= self.x_threshold
         y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
         z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
-        return x_check and y_check and z_check and self.getFingerWidth() < self.finger_threshold
+        return not (x_check and y_check and z_check and self.getFingerWidth() < self.finger_threshold)
 
 
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            self.task = float(random.randrange(0, 4))
+            # self.task = float(random.randrange(0, 4))
+            self.task = 1
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
@@ -435,7 +438,7 @@ class Trainer(object):
                 frame_idx += 1
                 reward, done = self.addExperience()
 
-                # are we done prefetching?
+                # are we  done prefetching?
                 if len(self.memory) < self.params['replay_initial']:
                     if done:
                         break
