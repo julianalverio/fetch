@@ -373,11 +373,12 @@ class Trainer(object):
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
-            distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
-            reward = -1. * distance
+            # distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
+            # reward = -1. * distance
             if self.validGrip():
                 return 1., True
-            return reward, False
+            # return reward, False
+            return 0., False
 
         if self.task == 1.:
             if not self.validGrip():
