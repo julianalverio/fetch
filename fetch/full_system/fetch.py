@@ -20,8 +20,8 @@ MAX_ITERATIONS = 700
 
 
 HYPERPARAMS = {
-        'replay_size':      8000 * 4,
-        'replay_initial':   7900 * 4,
+        'replay_size':      8000,
+        'replay_initial':   7900,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
