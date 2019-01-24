@@ -434,6 +434,8 @@ class Trainer(object):
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
+                import pdb;
+                pdb.set_trace()
                 # execute one move
                 frame_idx += 1
                 reward, done = self.addExperience()
