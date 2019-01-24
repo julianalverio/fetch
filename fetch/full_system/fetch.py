@@ -163,7 +163,8 @@ class Trainer(object):
         self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
         self.memory = ReplayMemory(self.params['replay_size'], self.transition)
-        self.tb_writer = SummaryWriter('results')
+        # self.tb_writer = SummaryWriter('results')
+        self.tb_writer = SummaryWriter('results_continuous')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
         self.object1_position = self.env.sim.data.get_site_xpos('object1')
@@ -373,12 +374,12 @@ class Trainer(object):
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
-            # distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
-            # reward = -1. * distance
+            distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
+            reward = -1. * distance
             if self.validGrip():
                 return 1., True
-            # return reward, False
-            return 0., False
+            return reward, False
+            # return 0., False
 
         if self.task == 1.:
             if not self.validGrip():
