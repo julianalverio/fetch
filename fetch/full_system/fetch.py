@@ -398,18 +398,23 @@ class Trainer(object):
             if dropped and self.gripper_position[2] >= self.drop_height:
                 return -1., True
 
-            return 0., False
+            progress = self.height_threshold - self.gripper_position[2]
+            total_distance_needed = self.height_threshold - self.drop_height
+            return progress / total_distance_needed, False
 
         if self.task == 3.:
             x_check = abs(self.object_position[0] - self.object_position[0]) < 0.02
             y_check = abs(self.object_position[1]) - self.object_position[1] < 0.02
             dropped = self.dropped()
             if dropped:
-                if self.object_position[2] <= 0.5 and x_check and y_check:
+                if self.object_position[2] <= self.object1_position[2] + 0.02 * 2 and x_check and y_check:
                     return 1., True
                 else:
                     return -1., False
-            return 0., False
+
+            target = self.object1_position + np.array([0, 0, 0.03])
+            reward = -np.linalg.norm(self.object_position - target)
+            return reward, False
 
 
     def validGrip(self):
@@ -426,11 +431,9 @@ class Trainer(object):
 
 
     def train(self):
-        import pdb; pdb.set_trace()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            # self.task = float(random.randrange(0, 4))
-            self.task = 0.
+            self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
