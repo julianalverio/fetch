@@ -186,8 +186,8 @@ class Trainer(object):
         self.task = 0.
 
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
-        self.height_threshold = 0.52  # to have lifted the block, you must be higher than this
-        self.drop_height = 0.48  # when putting down an object, you can be no higher than this
+        self.height_threshold = 0.48  # to have lifted the block, the block must be higher than this
+        self.drop_height = 0.44  # when putting down an object, you can be no higher than this
 
 
     def makeEnv(self):
@@ -374,20 +374,22 @@ class Trainer(object):
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             return -1., True
         if self.task == 0.:
-            # distance = np.linalg.norm(np.array(self.object_position[:2]) - np.array(self.gripper_position[:2]))
-            # reward = -1. * distance
+            distance = np.linalg.norm(np.array(self.object_position) - np.array(self.gripper_position))
+            object_distance = np.linalg.norm(self.object_position[:2] - self.initial_object_position[:2])
+            reward = -1. * distance - object_distance
             if self.validGrip():
                 return 1., True
-            # return reward, False
-            return 0., False
+            return reward, False
 
         if self.task == 1.:
             if not self.validGrip():
                 return -1., True
-            if self.gripper_position[2] > self.height_threshold:
+            if self.object_position[2] > self.height_threshold:
                 return 1., True
             else:
-                return 0., False
+                progress = self.object_position[2] - self.initial_object_position[2]
+                total_distance_needed = self.drop_height - self.initial_object_position[2]
+                return progress / total_distance_needed
 
         if self.task == 2.:
             dropped = self.dropped()
@@ -395,6 +397,7 @@ class Trainer(object):
                 return 1., True
             if dropped and self.gripper_position[2] >= self.drop_height:
                 return -1., True
+
             return 0., False
 
         if self.task == 3.:
@@ -423,6 +426,7 @@ class Trainer(object):
 
 
     def train(self):
+        import pdb; pdb.set_trace()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
             # self.task = float(random.randrange(0, 4))
