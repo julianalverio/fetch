@@ -163,8 +163,7 @@ class Trainer(object):
         self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
         self.memory = ReplayMemory(self.params['replay_size'], self.transition)
-        # self.tb_writer = SummaryWriter('results')
-        self.tb_writer = SummaryWriter('results_discrete')
+        self.tb_writer = SummaryWriter('results_continuous')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
         self.object1_position = self.env.sim.data.get_site_xpos('object1')
@@ -389,7 +388,7 @@ class Trainer(object):
             else:
                 progress = self.object_position[2] - self.initial_object_position[2]
                 total_distance_needed = self.drop_height - self.initial_object_position[2]
-                return progress / total_distance_needed
+                return progress / total_distance_needed, False
 
         if self.task == 2.:
             dropped = self.dropped()
