@@ -369,15 +369,19 @@ class Trainer(object):
     def getReward(self):
         # if the block falls off the table
         if self.initial_object1_position[2] - self.object_position[2] > 0.1:
+            print('I KNOCKED THE BLACK BLOCK OFF THE TABLE')
             return -1., True
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
+            print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -1., True
         if self.task == 0.:
-            distance = np.linalg.norm(np.array(self.object_position) - np.array(self.gripper_position))
+            distance = np.linalg.norm(self.object_position - self.gripper_position)
             object_distance = np.linalg.norm(self.object_position[:2] - self.initial_object_position[:2])
-            reward = -1. * distance - object_distance
+            reward = -1. * (distance + object_distance)
             if self.validGrip():
+                print('I GOT A VALID GRIP!')
                 return 1., True
+            print(reward)
             return reward, False
 
         if self.task == 1.:
@@ -432,7 +436,8 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            self.task = float(random.randrange(0, 4))
+            # self.task = float(random.randrange(0, 4))
+            self.task = 0
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
