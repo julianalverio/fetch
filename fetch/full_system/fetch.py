@@ -23,7 +23,7 @@ HYPERPARAMS = {
         'replay_size':      8000,
         'replay_initial':   7900,
         'target_net_sync':  1000,
-        'epsilon_frames':   10**5 * 2,
+        'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
         'epsilon_final':    0.02,
         'learning_rate':    0.0001,
@@ -375,7 +375,7 @@ class Trainer(object):
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -1., True
         if self.task == 0.:
-            distance = np.linalg.norm(self.object_position - self.gripper_position)
+            distance = np.linalg.norm(self.object_position[1:] - self.gripper_position[1:])
             object_distance = np.linalg.norm(self.object_position[:2] - self.initial_object_position[:2])
             reward = -1. * (distance + object_distance)
             if self.validGrip():
@@ -606,8 +606,8 @@ class Trainer(object):
 
 
 def cleanup():
-    if os.path.isdir('results'):
-        shutil.rmtree('results')
+    if os.path.isdir('results_continuous'):
+        shutil.rmtree('results_continous')
     csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
     for csv_txt_file in csv_txt_files:
         os.remove(csv_txt_file)
