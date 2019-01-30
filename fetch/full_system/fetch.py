@@ -607,7 +607,7 @@ class Trainer(object):
 
 def cleanup():
     if os.path.isdir('results_continuous'):
-        shutil.rmtree('results_continous')
+        shutil.rmtree('results_continuous')
     csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
     for csv_txt_file in csv_txt_files:
         os.remove(csv_txt_file)
