@@ -381,7 +381,6 @@ class Trainer(object):
             if self.validGrip():
                 print('I GOT A VALID GRIP!')
                 return 1., True
-            print(reward)
             return reward, False
 
         if self.task == 1.:
