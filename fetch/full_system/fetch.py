@@ -452,6 +452,8 @@ class Trainer(object):
                 if len(self.memory) == self.params['replay_initial']:
                     print("Done Prefetching.")
                     break
+                if iteration == MAX_ITERATIONS - 1:
+                    done = True
 
                 # is this round over?
                 if done:
