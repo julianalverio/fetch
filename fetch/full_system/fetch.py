@@ -375,12 +375,14 @@ class Trainer(object):
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -1., True
         if self.task == 0.:
-            distance = np.linalg.norm(self.object_position[1:] - self.gripper_position[1:])
-            object_distance = np.linalg.norm(self.object_position[:2] - self.initial_object_position[:2])
-            reward = -1. * (distance + object_distance)
+            y_distance = abs(self.object_position[1] - self.gripper_position[1])
+            xz_distance = np.linalg.norm(self.object_position[[0, 2]] - self.gripper_position[[0, 2]])
+            reward = -2. * y_distance - xz_distance
             if self.validGrip():
                 print('I GOT A VALID GRIP!')
                 return 1., True
+            if self.gripPrep():
+                return 0.5, False
             return reward, False
 
         if self.task == 1.:
@@ -430,6 +432,12 @@ class Trainer(object):
         y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
         z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
         return not (x_check and y_check and z_check and self.getFingerWidth() < self.finger_threshold)
+
+    def gripPrep(self):
+        x_check = abs(self.object_position[0] - self.gripper_position[0]) <= self.x_threshold
+        y_check = abs(self.object_position[1] - self.gripper_position[1]) <= self.y_threshold
+        z_check = 0 > (self.gripper_position[2] - self.object_position[2]) <= 0.025
+        return x_check and y_check and z_check
 
 
     def train(self):
