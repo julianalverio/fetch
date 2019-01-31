@@ -13,7 +13,7 @@ from tensorboardX import SummaryWriter
 import shutil
 import os
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
 from gym.wrappers.time_limit import TimeLimit
 from priority_queue import Memory
