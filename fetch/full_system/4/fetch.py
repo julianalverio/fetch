@@ -489,6 +489,8 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
+            if episode % 50 == 0 and episode > 100:
+                torch.save(self.policy_net, '%s.pth' % episode)
             self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
