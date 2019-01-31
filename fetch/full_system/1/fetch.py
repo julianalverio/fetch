@@ -379,6 +379,7 @@ class Trainer(object):
     def optimizeModel(self):
         # transitions = self.memory.sample(self.params['batch_size'])
         tree_idx, transitions, ISWeights = self.memory.sample()
+        ISWeights = torch.tensor(ISWeights, device=self.device)
         batch = self.transition(*zip(*transitions))
         next_states = batch.next_state
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)), device=self.device, dtype=torch.uint8)
