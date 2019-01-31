@@ -364,16 +364,16 @@ class Trainer(object):
         # if the block falls off the table
         if self.initial_object1_position[2] - self.object_position[2] > 0.1:
             print('I KNOCKED THE BLACK BLOCK OFF THE TABLE')
-            return -1., True
+            return -3., True
         if self.initial_object1_position[2] - self.object1_position[2] > 0.1:
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
-            return -1., True
+            return -3., True
         if self.task == 0.:
             target_z = 0.4215
             target_position = copy.deepcopy(self.object_position)
             target_position[2] = target_z
             distance = np.linalg.norm(target_position - self.gripper_position)
-            reward = -distance
+            reward = -distance * 2.5
 
             if self.validGrip():
                 print('I GOT A VALID GRIP!')
@@ -450,6 +450,8 @@ class Trainer(object):
                 # execute one move
                 frame_idx += 1
                 reward, done = self.addExperience()
+                if reward < -1:
+                    reward = -1
 
                 # are we  done prefetching?
                 if len(self.memory) < self.params['replay_initial']:
