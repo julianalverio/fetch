@@ -187,7 +187,7 @@ class Trainer(object):
 
         self.action_space = 8
         self.observation_space = [3, 102, 205]
-        self.policy_net = Dueling_DQN(self.observation_space, self.action_space, self.device).to(self.device)
+        self.policy_net = Dueling_DQN(self.observation_space, self.action_space).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
         self.epsilon_tracker = EpsilonTracker(self.params)
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
