@@ -14,6 +14,7 @@ import shutil
 import os
 from gym.envs.robotics import fetch_env
 from gym.wrappers.time_limit import TimeLimit
+from priority_queue import Memory
 
 NUM_EPISODES = 3000
 MAX_ITERATIONS = 700
@@ -30,6 +31,45 @@ HYPERPARAMS = {
         'gamma':            0.99,
         'batch_size':       32
 }
+
+class Dueling_DQN(nn.Module):
+    def __init__(self, input_shape, num_actions):
+        super(Dueling_DQN, self).__init__()
+        self.num_actions = num_actions
+
+        self.conv = nn.Sequential(
+            nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.ReLU()
+        )
+        conv_out = self.conv(Variable(torch.zeros(1, *input_shape)))
+        conv_out_size = int(np.prod(conv_out.size()))
+
+
+        self.fc_adv = nn.Sequential(
+            nn.Linear(in_features=conv_out_size, out_features=512),
+            nn.ReLU(),
+            nn.Linear(in_features=512, out_features=num_actions)
+        )
+
+        self.fc_val = nn.Sequential(
+            nn.Linear(in_features=conv_out_size, out_features=512),
+            nn.ReLU(),
+            nn.Linear(in_features=512, out_features=1)
+        )
+
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.view(x.size(0), -1)
+
+        adv = self.fc_adv(x)
+        val = self.fc_val(x).expand(x.size(0), self.num_actions)
+
+        return val + adv - adv.mean(1).unsqueeze(1).expand(x.size(0), self.num_actions)
 
 
 class DQN(nn.Module):
@@ -103,27 +143,27 @@ class EpsilonTracker:
         return max(self._epsilon, self.epsilon_final)
 
 
-class ReplayMemory(object):
-    def __init__(self, capacity, transition):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
-        self.transition = transition
-
-    def push(self, *args):
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = self.transition(*args)
-        self.position = (self.position + 1) % self.capacity
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
-    def showCapacity(self):
-        print('Buffer Capacity:', len(self.memory) * 1. / self.capacity)
+# class ReplayMemory(object):
+#     def __init__(self, capacity, transition):
+#         self.capacity = capacity
+#         self.memory = []
+#         self.position = 0
+#         self.transition = transition
+#
+#     def push(self, *args):
+#         if len(self.memory) < self.capacity:
+#             self.memory.append(None)
+#         self.memory[self.position] = self.transition(*args)
+#         self.position = (self.position + 1) % self.capacity
+#
+#     def sample(self, batch_size):
+#         return random.sample(self.memory, batch_size)
+#
+#     def __len__(self):
+#         return len(self.memory)
+#
+#     def showCapacity(self):
+#         print('Buffer Capacity:', len(self.memory) * 1. / self.capacity)
 
 
 
@@ -147,7 +187,7 @@ class Trainer(object):
 
         self.action_space = 8
         self.observation_space = [3, 102, 205]
-        self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
+        self.policy_net = Dueling_DQN(self.observation_space, self.action_space, self.device).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
         self.epsilon_tracker = EpsilonTracker(self.params)
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
@@ -160,7 +200,8 @@ class Trainer(object):
         self.step_tracker2 = RewardTracker()
         self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
-        self.memory = ReplayMemory(self.params['replay_size'], self.transition)
+        # self.memory = ReplayMemory(self.params['replay_size'], self.transition)
+        self.memory = Memory(self.params['replay_size'])
         self.tb_writer = SummaryWriter('results_continuous')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
@@ -334,7 +375,8 @@ class Trainer(object):
         return reward, done
 
     def optimizeModel(self):
-        transitions = self.memory.sample(self.params['batch_size'])
+        # transitions = self.memory.sample(self.params['batch_size'])
+        tree_idx, transitions, ISWeights = self.memory.sample()
         batch = self.transition(*zip(*transitions))
         next_states = batch.next_state
         non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)), device=self.device, dtype=torch.uint8)
@@ -348,7 +390,10 @@ class Trainer(object):
         next_state_values = torch.zeros(self.params['batch_size'], device=self.device)
         next_state_values[non_final_mask] = self.target_net(non_final_next_states, non_final_tasks).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
-        loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
+        abs_errors = abs(expected_state_action_values.unsqueeze(1) - state_action_values)
+        loss = torch.sum((abs_errors ** 2) * ISWeights)
+        self.memory.batch_update(tree_idx, abs_errors.detach().cpu().numpy())
+        # loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -441,8 +486,7 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            # self.task = float(random.randrange(0, 4))
-            self.task = 0.
+            self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
             for iteration in range(MAX_ITERATIONS):
@@ -453,7 +497,8 @@ class Trainer(object):
                     reward = -1
 
                 # are we  done prefetching?
-                if len(self.memory) < self.params['replay_initial']:
+                # if len(self.memory) < self.params['replay_initial']:
+                if not self.memory.tree.done_prefetching:
                     if done:
                         break
                     continue
