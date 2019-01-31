@@ -445,7 +445,6 @@ class Trainer(object):
             self.task = 0.
             print('Task:', self.task)
             self.reset()
-            import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
                 frame_idx += 1
