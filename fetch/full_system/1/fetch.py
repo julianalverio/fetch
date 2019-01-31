@@ -12,6 +12,8 @@ import argparse
 from tensorboardX import SummaryWriter
 import shutil
 import os
+import sys
+sys.path.insert(0, '..')
 from gym.envs.robotics import fetch_env
 from gym.wrappers.time_limit import TimeLimit
 from priority_queue import Memory
@@ -502,9 +504,9 @@ class Trainer(object):
                     if done:
                         break
                     continue
-                if len(self.memory) == self.params['replay_initial']:
-                    print("Done Prefetching.")
-                    break
+                # if len(self.memory) == self.params['replay_initial']:
+                #     print("Done Prefetching.")
+                #     break
                 if iteration == MAX_ITERATIONS - 1:
                     done = True
 
