@@ -63,7 +63,7 @@ class Memory(object):  # stored as ( s, a, r, s_ ) in SumTree
         self.absolute_error_upper = 1.
         self.small_delta = 0.01
         self.tree = SumTree(capacity)
-        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
+        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
 
     def push(self, *args):
         max_priority = np.max(self.tree.tree[-self.tree.capacity:])
