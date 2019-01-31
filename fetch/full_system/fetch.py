@@ -372,7 +372,7 @@ class Trainer(object):
             target_z = 0.4215
             target_position = copy.deepcopy(self.object_position)
             target_position[2] = target_z
-            distance = np.linalg.norm(target_position, self.gripper_position)
+            distance = np.linalg.norm(target_position - self.gripper_position)
             reward = -distance
 
             if self.validGrip():
