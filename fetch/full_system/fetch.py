@@ -50,25 +50,25 @@ class Dueling_DQN(nn.Module):
 
 
         self.fc_adv = nn.Sequential(
-            nn.Linear(in_features=conv_out_size, out_features=512),
+            nn.Linear(in_features=conv_out_size + 1, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=num_actions)
         )
 
         self.fc_val = nn.Sequential(
-            nn.Linear(in_features=conv_out_size, out_features=512),
+            nn.Linear(in_features=conv_out_size + 1, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=1)
         )
 
 
-    def forward(self, x):
+    def forward(self, x, task):
         x = self.conv(x)
         x = x.view(x.size(0), -1)
+        x = torch.cat([x, task], dim=1)
 
         adv = self.fc_adv(x)
         val = self.fc_val(x).expand(x.size(0), self.num_actions)
-
         return val + adv - adv.mean(1).unsqueeze(1).expand(x.size(0), self.num_actions)
 
 
