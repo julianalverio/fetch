@@ -174,6 +174,7 @@ class Trainer(object):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.env = self.makeEnv()
+        self.best_score = float('-inf')
 
         #Actions:
         # 0 -- increment X
@@ -489,11 +490,10 @@ class Trainer(object):
     def train(self):
         frame_idx = 0
         for episode in range(NUM_EPISODES):
-            if episode % 50 == 0 and episode > 100:
-                torch.save(self.policy_net, '%s.pth' % episode)
             self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
+            import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
                 frame_idx += 1
@@ -520,6 +520,10 @@ class Trainer(object):
                     print('Score for Epoch %s' % reward)
                     print('Steps in this episode:', iteration)
                     print('Epsilon:', self.epsilon_tracker.percievedEpsilon())
+                    score = self.reward_tracker0.meanScore() + self.reward_tracker1.meanScore() + self.reward_tracker2.meanScore() + self.reward_tracker3.meanScore()
+                    if score > self.best_score:
+                        torch.save(self.policy_net, '%s.path' % episode)
+                        print('Saved!')
                     if self.task == 0.:
                         self.step_tracker0.add(iteration)
                         self.reward_tracker0.add(reward)
