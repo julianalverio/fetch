@@ -353,6 +353,7 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
+
     '''
     Task 0: Grab
     Task 1: Lift
@@ -368,14 +369,17 @@ class Trainer(object):
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -1., True
         if self.task == 0.:
-            import pdb; pdb.set_trace()
-            y_distance = abs(self.object_position[1] - self.gripper_position[1])
-            xz_distance = np.linalg.norm(self.object_position[[0, 2]] - self.gripper_position[[0, 2]])
-            reward = -2. * y_distance - xz_distance
+            target_z = 0.4215
+            target_position = copy.deepcopy(self.object_position)
+            target_position[2] = target_z
+            distance = np.linalg.norm(target_position, self.gripper_position)
+            reward = -distance
+
             if self.validGrip():
                 print('I GOT A VALID GRIP!')
                 return 1., True
             if self.gripPrep():
+                print('PREPARED TO GRIP')
                 return 0.5, False
             return reward, False
 
