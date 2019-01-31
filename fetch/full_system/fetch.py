@@ -201,7 +201,7 @@ class Trainer(object):
         self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
         # self.memory = ReplayMemory(self.params['replay_size'], self.transition)
-        self.memory = Memory(self.params['replay_size'])
+        self.memory = Memory(self.params['replay_size'], alpha=0.8, beta_0=0.2, beta_delta=0.0004)
         self.tb_writer = SummaryWriter('results_continuous')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
