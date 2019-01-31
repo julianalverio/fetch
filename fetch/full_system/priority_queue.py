@@ -69,7 +69,6 @@ class Memory(object):  # stored as ( s, a, r, s_ ) in SumTree
         max_priority = np.max(self.tree.tree[-self.tree.capacity:])
         if max_priority == 0:
             max_priority = self.absolute_error_upper
-        import pdb; pdb.set_trace()
         self.tree.add(max_priority, self.transition(*args))
 
     """
