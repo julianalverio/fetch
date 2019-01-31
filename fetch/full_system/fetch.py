@@ -140,14 +140,12 @@ class Trainer(object):
         # 3 -- decrement Y
         # 4 -- increment Z
         # 5 -- decrement Z
-        # 6 -- increment gripper
-        # 7 -- decrement gripper
-        # 8 -- open gripper until specified otherwise
-        # 9 -- close gripper until specified otherwise
+        # 6 -- open gripper and keep it open
+        # 7 -- close gripper and keep it closed
 
         self.initial_gripper_position = copy.deepcopy(self.env.sim.data.get_site_xpos('robot0:grip'))
 
-        self.action_space = 10
+        self.action_space = 8
         self.observation_space = [3, 102, 205]
         self.policy_net = DQN(self.observation_space, self.action_space, self.device).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
@@ -278,23 +276,16 @@ class Trainer(object):
     # indices are x, y, z, gripper
     def convertAction(self, action):
         movement = np.zeros(4)
-        if action.item() == 8:
-            self.opening = True
-            self.closing = False
-            movement[-1] = -1
-            return movement
-        if action.item() == 9:
-            self.opening = False
-            self.closing = True
-            movement[-1] = 1
-            return movement
-        if action.item() in (7, 8):
-            self.opening = False
-            self.closing = False
         if action.item() % 2 == 0:
             movement[action.item() // 2] += 1
         else:
             movement[action.item() // 2] -= 1
+        if action.item() == 6:
+            self.opening = True
+            self.closing = False
+        elif action.item() == 7:
+            self.opening = False
+            self.closing = True
         if self.opening:
             movement[-1] = 1
         elif self.closing:
@@ -320,6 +311,8 @@ class Trainer(object):
         else:
             action = torch.argmax(self.policy_net(self.state, task_tensor), dim=1).to(self.device)
         action_converted = self.convertAction(action)
+        if action.item() in (6, 7):
+            [self.env.step(action_converted) for _ in range(8)]
         self.env.step(action_converted)
         next_state = self.preprocess(self.env.render(mode='rgb_array'))
         reward, done = self.getReward()
@@ -375,6 +368,7 @@ class Trainer(object):
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -1., True
         if self.task == 0.:
+            import pdb; pdb.set_trace()
             y_distance = abs(self.object_position[1] - self.gripper_position[1])
             xz_distance = np.linalg.norm(self.object_position[[0, 2]] - self.gripper_position[[0, 2]])
             reward = -2. * y_distance - xz_distance
@@ -447,6 +441,7 @@ class Trainer(object):
             self.task = 0.
             print('Task:', self.task)
             self.reset()
+            import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
                 frame_idx += 1
