@@ -225,10 +225,12 @@ class Trainer(object):
         self.task2_episode_counter = 0
         self.task3_episode_counter = 0
         self.task = 0.
+        self.stage = 0
 
         self.finger_threshold = 0.049  # in order to grip the block your fingers must be at least this narrow
         self.height_threshold = 0.48  # to have lifted the block, the block must be higher than this
         self.drop_height = 0.44  # when putting down an object, you can be no higher than this
+        self.preparatory_height = 0.48057
 
 
     def makeEnv(self):
@@ -418,11 +420,24 @@ class Trainer(object):
             print('I KNOCKED THE RED BLOCK OFF THE TABLE')
             return -3., True
         if self.task == 0.:
-            target_z = 0.4215
             target_position = copy.deepcopy(self.object_position)
-            target_position[2] = target_z
+            target_position[2] = self.preparatory_height
             distance = np.linalg.norm(target_position - self.gripper_position)
-            reward = -distance * 2.5
+
+            # if it gets to the target position
+            x_check = target_position[0] - self.gripper_position[0] < self.x_threshold
+            y_check = target_position[1] - self.gripper_position[1] < self.y_threshold
+            z_check = target_position[2] - self.gripper_position[2] < 0.04
+
+            if self.stage == 0 and x_check and y_check and z_check:
+                self.stage = 1
+                return 0.25, False
+            if self.stage == 1 and x_check and y_check:
+                reward = 0.25 + self.preparatory_height - self.
+
+
+            else:
+                return -2*distance, False
 
             if self.validGrip():
                 print('I GOT A VALID GRIP!')
