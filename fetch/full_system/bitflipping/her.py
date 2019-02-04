@@ -5,6 +5,23 @@ import tensorflow as tf
 import numpy as np
 import random
 import os
+import shutil
+import argparse
+
+import random
+import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
+import copy
+from collections import namedtuple
+from torch.autograd import Variable
+import cv2
+import argparse
+from tensorboardX import SummaryWriter
+import shutil
+import os
+import sys
 
 # from matplotlib import pyplot as plt
 
@@ -94,6 +111,7 @@ def updateTarget(op_holder,sess):
         sess.run(op)
 
 def main():
+    tb_writer = SummaryWriter('results')
     HER = True
     shaped_reward = False
     size = 15
@@ -113,12 +131,12 @@ def main():
     success_rate = []
     succeed = 0
 
-    save_model = True
-    model_dir = "./train"
+    # save_model = True
+    # model_dir = "./train"
     train = True
 
-    if not os.path.isdir(model_dir):
-        os.mkdir(model_dir)
+    # if not os.path.isdir(model_dir):
+    #     os.mkdir(model_dir)
 
     modelNetwork = Model(size = size, name = "model")
     targetNetwork = Model(size = size, name = "target")
@@ -214,11 +232,23 @@ def main():
                     # fig.canvas.draw()
                     # fig.canvas.flush_events()
                     # plt.pause(1e-7)
-            if save_model:
-                saver = tf.train.Saver()
-                saver.save(sess, os.path.join(model_dir, "model.ckpt"))
+            # if save_model:
+            #     saver = tf.train.Saver()
+            #     saver.save(sess, os.path.join(model_dir, "model.ckpt"))
         print("Number of episodes succeeded: {}".format(succeed))
 
+def cleanup():
+    if os.path.isdir('results_continuous'):
+        shutil.rmtree('results_continuous')
+    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
+    for csv_txt_file in csv_txt_files:
+        os.remove(csv_txt_file)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('gpu', type=int)
+    gpu_num = parser.parse_args().gpu
+    print('GPU:', gpu_num)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
+    cleanup()
     main()
