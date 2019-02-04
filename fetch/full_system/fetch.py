@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, '/storage/jalverio/venv/fetch/fetch/full_system')
 from gym.envs.robotics import fetch_env
 from gym.wrappers.time_limit import TimeLimit
-from priority_queue import Memory
+from buffer_prioritized import PrioritizedReplayBuffer as Memory
 
 NUM_EPISODES = 3000
 MAX_ITERATIONS = 700
@@ -144,7 +144,7 @@ class EpsilonTracker:
     def percievedEpsilon(self):
         return max(self._epsilon, self.epsilon_final)
 
-
+#
 # class ReplayMemory(object):
 #     def __init__(self, capacity, transition):
 #         self.capacity = capacity
@@ -204,8 +204,8 @@ class Trainer(object):
         self.step_tracker3 = RewardTracker()
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
         # self.memory = ReplayMemory(self.params['replay_size'], self.transition)
-        self.memory = Memory(self.params['replay_size'], alpha=0.8, beta_0=0.2, beta_delta=0.0004)
-        self.tb_writer = SummaryWriter('results_continuous')
+        self.memory = Memory(self.params['replay_size'], self.transition, alpha=0.8, beta_0=0.2, beta_delta=0.0004)
+        self.tb_writer = SummaryWriter('results')
         self.gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         self.object_position = self.env.sim.data.get_site_xpos('object0')
         self.object1_position = self.env.sim.data.get_site_xpos('object1')
@@ -381,7 +381,7 @@ class Trainer(object):
 
     def optimizeModel(self):
         # transitions = self.memory.sample(self.params['batch_size'])
-        tree_idx, transitions, ISWeights = self.memory.sample()
+        transitions, ISWeights, tree_idx = self.memory.sample(self.batch_size)
         ISWeights = torch.tensor(ISWeights, device=self.device)
         batch = self.transition(*zip(*transitions))
         next_states = batch.next_state
@@ -398,7 +398,7 @@ class Trainer(object):
         expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
         abs_errors = abs(expected_state_action_values.unsqueeze(1) - state_action_values)
         loss = torch.sum((abs_errors ** 2) * ISWeights)
-        self.memory.batch_update(tree_idx, abs_errors.detach().cpu().numpy())
+        self.memory.batch_update(tree_idx, abs_errors.detach().cpu().numpy() + 1e-6)
         # loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
         self.optimizer.zero_grad()
         loss.backward()
