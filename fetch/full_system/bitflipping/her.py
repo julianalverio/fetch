@@ -144,18 +144,8 @@ def main():
     updateOps = updateTargetGraph(trainables, tau)
     env = Env(size = size, shaped_reward = shaped_reward)
     buff = Buffer(buffer_size)
-
+    episode_count = 0
     if train:
-        # plt.ion()
-        # fig = plt.figure()
-        # ax = fig.add_subplot(211)
-        # plt.title("Success Rate")
-        # ax.set_ylim([0,1.])
-        # ax2 = fig.add_subplot(212)
-        # plt.title("Q Loss")
-        # line = ax.plot(np.zeros(1), np.zeros(1), 'b-')[0]
-        # line2 = ax2.plot(np.zeros(1), np.zeros(1), 'b-')[0]
-        # fig.canvas.draw()
         with tf.Session() as sess:
             sess.run(modelNetwork.init_op)
             sess.run(targetNetwork.init_op)
@@ -164,6 +154,7 @@ def main():
                     total_reward = 0.0
                     successes = []
                     for n in range(num_episodes):
+                        episode_count += 1
                         env.reset()
                         episode_experience = []
                         episode_succeeded = False
@@ -222,20 +213,8 @@ def main():
                     total_loss.append(np.mean(mean_loss))
                     updateTarget(updateOps,sess)
                     total_rewards.append(total_reward)
-                    # ax.relim()
-                    # ax.autoscale_view()
-                    # ax2.relim()
-                    # ax2.autoscale_view()
-                    # line.set_data(np.arange(len(success_rate)), np.array(success_rate))
-                    # line.set_data(np.arange(len(total_rewards)), np.array(total_rewards))
-                    # line2.set_data(np.arange(len(total_loss)), np.array(total_loss))
-                    # fig.canvas.draw()
-                    # fig.canvas.flush_events()
-                    # plt.pause(1e-7)
-            # if save_model:
-            #     saver = tf.train.Saver()
-            #     saver.save(sess, os.path.join(model_dir, "model.ckpt"))
         print("Number of episodes succeeded: {}".format(succeed))
+        print('TOTAL EPISODES', episode_count)
 
 def cleanup():
     if os.path.isdir('results_continuous'):
