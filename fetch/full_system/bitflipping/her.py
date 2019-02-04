@@ -130,7 +130,7 @@ def main():
     targetNetwork = Model(size = size, name = "target")
     trainables = tf.trainable_variables()
     updateOps = updateTargetGraph(trainables, tau)
-    env = Env(size=size, shaped_reward=shaped_reward)
+    env = Env(size=size)
     buff = Buffer(buffer_size)
     episode_count = 0
     import time
