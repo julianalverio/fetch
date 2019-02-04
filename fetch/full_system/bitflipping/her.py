@@ -39,29 +39,28 @@ class Env():
         else:
             return np.copy(self.state), 0
 
-    def reset(self, size = None):
-        if size is None:
-            size = self.size
-        self.state = np.random.randint(2, size = size)
-        self.target = np.random.randint(2, size = size)
+    def reset(self):
+        self.state = np.random.randint(2, size=self.size)
+        self.target = np.random.randint(2, size=self.size)
+
 
 # Experience replay buffer
-class Buffer():
+class Buffer(object):
     def __init__(self, buffer_size=50000):
         self.buffer = []
         self.buffer_size = buffer_size
+        self.idx = 0
 
     def add(self, experience):
-        self.buffer.append(experience)
-        if len(self.buffer) > self.buffer_size:
-            self.buffer = self.buffer[int(0.0001 * self.buffer_size):]
-
-    def sample(self,size):
-        if len(self.buffer) >= size:
-            experience_buffer = self.buffer
+        if len(self.buffer) < self.buffer_size:
+            self.buffer.append(experience)
         else:
-            experience_buffer = self.buffer * size
-        return np.copy(np.reshape(np.array(random.sample(experience_buffer,size)),[size,4]))
+            self.buffer[self.idx] = experience
+            self.idx += 1
+
+    def sample(self, batch_size):
+        # TODO: fix this
+        return np.copy(np.reshape(np.array(random.sample(self.buffer, batch_size)), [batch_size, 4]))
 
 # Simple 1 layer feed forward neural network
 class Model():
