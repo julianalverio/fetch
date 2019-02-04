@@ -1,246 +1,224 @@
-import random
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import tensorflow as tf
 import numpy as np
-import torch
-import torch.optim as optim
-import torch.nn as nn
-import copy
-from collections import namedtuple
-from torch.autograd import Variable
-import cv2
-import argparse
-from tensorboardX import SummaryWriter
-import shutil
+import random
 import os
 
-NUM_EPISODES = 500
-
-
-HYPERPARAMS = {
-        'replay_size':      50000,
-        'replay_initial':   50000,
-        'target_net_sync':  200,
-        'epsilon_frames':   10**4,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.02,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       32
-}
-
-
-class RewardTracker:
-    def __init__(self, length=20):
-        self.length = length
-        self.rewards = []
-        self.position = 0
-        self.mean_score = 0
-
-    def add(self, reward):
-        if len(self.rewards) < self.length:
-            self.rewards.append(reward)
-        else:
-            self.rewards[self.position] = reward
-            self.position = (self.position + 1) % self.length
-        if len(self.rewards) < self.length:
-            self.mean_score = 0
-        else:
-            self.mean_score = np.mean(self.rewards)
-
-    def meanScore(self):
-        return self.mean_score
-
-
-class EpsilonTracker:
-    def __init__(self, params):
-        self.epsilon_params = params
-        self._epsilon = params['epsilon_start']
-        self.epsilon_final = params['epsilon_final']
-        self.epsilon_delta = 1.0 * (params['epsilon_start'] - params['epsilon_final']) / params['epsilon_frames']
-
-    def epsilon(self):
-        old_epsilon = self._epsilon
-        self._epsilon -= self.epsilon_delta
-        return max(old_epsilon, self.epsilon_final)
-
-    def reset_epsilon(self):
-        self._epsilon = self.epsilon_params['epsilon_start']
-
-    def percievedEpsilon(self):
-        return max(self._epsilon, self.epsilon_final)
-
-
-
-class DQN(nn.Module):
-    def __init__(self, size):
-        super(DQN, self).__init__()
-
-        self.fc = nn.Sequential(
-            nn.Linear(size*2, size),
-            nn.ReLU(),
-        )
-
-    def forward(self, x):
-        return self.fc(x)
-
-
-class ReplayMemory(object):
-    def __init__(self, capacity, transition):
-        self.capacity = capacity
-        self.memory = []
-        self.position = 0
-        self.transition = transition
-
-    def push(self, *args):
-        if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = self.transition(*args)
-        self.position = (self.position + 1) % self.capacity
-
-    def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
-    def __len__(self):
-        return len(self.memory)
-
+# from matplotlib import pyplot as plt
 
 # Bit flipping environment
-class Env(object):
-    def __init__(self, size):
+class Env():
+    def __init__(self, size = 8, shaped_reward = False):
         self.size = size
-        self.state = np.random.randint(2, size=size)
-        self.target = np.random.randint(2, size=size)
+        self.shaped_reward = shaped_reward
+        self.state = np.random.randint(2, size = size)
+        self.target = np.random.randint(2, size = size)
         while np.sum(self.state == self.target) == size:
-            self.target = np.random.randint(2, size=size)
+            self.target = np.random.randint(2, size = size)
 
-    # Take in a n index
-    # Update the environment, return the reward
     def step(self, action):
-        old_score = np.sum(self.state == self.target)
         self.state[action] = 1 - self.state[action]
-        new_score = np.sum(self.state == self.target)
-        done = False
-        if new_score == self.size:
-            done = True
-        delta = new_score - old_score
-        if delta == 1:
-            return 0., done
-        elif delta == 2:
-            return -1., done
+        if self.shaped_reward:
+            return np.copy(self.state), -np.sum(np.square(self.state - self.target))
         else:
-            assert delta in (0, -1)
+            if not np.sum(self.state == self.target) == self.size:
+                return np.copy(self.state), -1
+            else:
+                return np.copy(self.state), 0
 
-    def reset(self):
-        self.state = np.random.randint(2, size=self.size)
-        self.target = np.random.randint(2, size=self.size)
+    def reset(self, size = None):
+        if size is None:
+            size = self.size
+        self.state = np.random.randint(2, size = size)
+        self.target = np.random.randint(2, size = size)
 
-class Trainer(object):
-    def __init__(self, size, params):
-        self.size = size
-        self.params = params
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.env = Env(size)
+# Experience replay buffer
+class Buffer():
+    def __init__(self, buffer_size = 50000):
+        self.buffer = []
+        self.buffer_size = buffer_size
 
-        self.policy_net = DQN(self.size).to(self.device)
-        self.target_net = copy.deepcopy(self.policy_net).to(self.device)
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=1e-3)
-        self.epsilon_tracker = EpsilonTracker(self.params)
-        self.reward_tracker = RewardTracker()
-        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
-        self.memory = ReplayMemory(self.params['replay_size'], self.transition)
-        self.tb_writer = SummaryWriter('results')
+    def add(self, experience):
+        self.buffer.append(experience)
+        if len(self.buffer) > self.buffer_size:
+            self.buffer = self.buffer[int(0.0001 * self.buffer_size):]
 
-    def prepareState(self):
-        state = np.copy(self.env.state)
-        target = np.copy(self.env.target)
-        import pdb; pdb.set_trace()
-        # check the dimensions work here
-        return torch.tensor(np.concatenate([state, target], axis=0), device=self.device)
-
-    def addExperience(self):
-        if random.random() < self.epsilon_tracker.epsilon():
-            action = torch.tensor([random.randrange(self.size)], device=self.device)
+    def sample(self,size):
+        if len(self.buffer) >= size:
+            experience_buffer = self.buffer
         else:
-            action = torch.argmax(self.policy_net(self.env.state), dim=1).to(self.device)
-        previous_state = self.prepareState()
-        reward, done = self.env.step(action.item())
-        reward_t = torch.tensor(reward, device=self.device)
-        current_state = self.prepareState()
-        self.memory.push(previous_state, action, reward_t, current_state)
-        return reward, done
+            experience_buffer = self.buffer * size
+        return np.copy(np.reshape(np.array(random.sample(experience_buffer,size)),[size,4]))
 
-    def optimizeModel(self):
-        import pdb; pdb.set_trace()
-        transitions = self.memory.sample(self.params['batch_size'])
-        batch = self.transition(*zip(*transitions))
-        # tensor of 1's and 0's for all next states which are not None
-        # non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)),
-        # device=self.device, dtype=torch.uint8)
-        # a tensor of all next states which are not None
-        # non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-        state_batch = torch.cat(list(batch.state))
-        action_batch = torch.cat(list(batch.action))
-        reward_batch = torch.cat(list(batch.reward))
-        next_state_batch = torch.cat(list(batch.next_state))
-        state_action_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
-        # next_state_values = torch.zeros(self.params['batch_size'], device=self.device)
-        next_state_values = self.target_net(next_state_batch).max(1)[0].detach()
-        expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
-        loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
+# Simple 1 layer feed forward neural network
+class Model():
+    def __init__(self, size, name):
+        with tf.variable_scope(name):
+            self.size = size
+            self.inputs = tf.placeholder(shape = [None, self.size * 2], dtype = tf.float32)
+            init = tf.contrib.layers.variance_scaling_initializer(factor = 1.0, mode = "FAN_AVG", uniform = False)
+            self.hidden = fully_connected_layer(self.inputs, 256, activation = tf.nn.relu, init = init, scope = "fc")
+            self.Q_ = fully_connected_layer(self.hidden, self.size, activation = None, scope = "Q", bias = False)
+            self.predict = tf.argmax(self.Q_, axis = -1)
+            self.action = tf.placeholder(shape = None, dtype = tf.int32)
+            self.action_onehot = tf.one_hot(self.action, self.size, dtype = tf.float32)
+            self.Q = tf.reduce_sum(tf.multiply(self.Q_, self.action_onehot), axis = 1)
+            self.Q_next = tf.placeholder(shape=None, dtype=tf.float32)
+            self.loss = tf.reduce_sum(tf.square(self.Q_next - self.Q))
+            self.optimizer = tf.train.AdamOptimizer(learning_rate=1e-3)
+            self.train_op = self.optimizer.minimize(self.loss)
+            self.init_op = tf.global_variables_initializer()
 
-    def train(self):
-        frame_idx = 0
-        for episode in range(NUM_EPISODES):
-            self.env.reset()
-            max_iterations = self.size + 10
-            for iteration in range(max_iterations):
-                frame_idx += 1
-                reward, done = self.addExperience()
+def fully_connected_layer(inputs, dim, activation = None, scope = "fc", reuse = None, init = tf.contrib.layers.xavier_initializer(), bias = True):
+    with tf.variable_scope(scope, reuse = reuse):
+        w_ = tf.get_variable("W_", [inputs.shape[-1], dim], initializer = init)
+        outputs = tf.matmul(inputs, w_)
+        if bias:
+            b = tf.get_variable("b_", dim, initializer = tf.zeros_initializer())
+            outputs += b
+        if activation is not None:
+            outputs = activation(outputs)
+        return outputs
 
-                if not len(self.memory) > self.memory.capacity:
-                    if done:
-                        break
-                    continue
+def updateTargetGraph(tfVars,tau):
+    total_vars = len(tfVars)
+    op_holder = []
+    for idx,var in enumerate(tfVars[0:total_vars//2]):
+        op_holder.append(tfVars[idx+total_vars//2].assign((var.value()*(1. - tau)) + (tau * tfVars[idx+total_vars//2].value())))
+    return op_holder
 
-                if len(self.memory) == self.memory.capacity:
-                    print('Done Prefetching.')
-                    break
-                if iteration == max_iterations - 1:
-                    done = True
+def updateTarget(op_holder,sess):
+    for op in op_holder:
+        sess.run(op)
 
-                self.optimizeModel()
-                if frame_idx % self.params['target_net_sync'] == 0:
-                    self.target_net.load_state_dict(self.policy_net.state_dict())
+def main():
+    HER = True
+    shaped_reward = False
+    size = 15
+    num_epochs = 5
+    num_cycles = 50
+    num_episodes = 16
+    optimisation_steps = 40
+    K = 4
+    buffer_size = 1e6
+    tau = 0.95
+    gamma = 0.98
+    epsilon = 0.0
+    batch_size = 128
 
-                if done:
-                    print('Episode Completed:', episode)
-                    print('Score for Epoch %s' % reward)
-                    self.reward_tracker.add(reward)
-                    self.tb_writer.add_scalar('Score', reward, episode)
-                    self.tb_writer.add_scalar('Average Score', self.reward_tracker.meanScore(), episode)
-                    self.tb_writer.add_scalar('Steps in Episode', iteration, episode)
+    total_rewards = []
+    total_loss = []
+    success_rate = []
+    succeed = 0
 
-def cleanup():
-    if os.path.isdir('results_continuous'):
-        shutil.rmtree('results_continuous')
-    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
-    for csv_txt_file in csv_txt_files:
-        os.remove(csv_txt_file)
+    save_model = True
+    model_dir = "./train"
+    train = True
+
+    if not os.path.isdir(model_dir):
+        os.mkdir(model_dir)
+
+    modelNetwork = Model(size = size, name = "model")
+    targetNetwork = Model(size = size, name = "target")
+    trainables = tf.trainable_variables()
+    updateOps = updateTargetGraph(trainables, tau)
+    env = Env(size = size, shaped_reward = shaped_reward)
+    buff = Buffer(buffer_size)
+
+    if train:
+        # plt.ion()
+        # fig = plt.figure()
+        # ax = fig.add_subplot(211)
+        # plt.title("Success Rate")
+        # ax.set_ylim([0,1.])
+        # ax2 = fig.add_subplot(212)
+        # plt.title("Q Loss")
+        # line = ax.plot(np.zeros(1), np.zeros(1), 'b-')[0]
+        # line2 = ax2.plot(np.zeros(1), np.zeros(1), 'b-')[0]
+        # fig.canvas.draw()
+        with tf.Session() as sess:
+            sess.run(modelNetwork.init_op)
+            sess.run(targetNetwork.init_op)
+            for _ in range(num_epochs):
+                for j in range(num_cycles):
+                    total_reward = 0.0
+                    successes = []
+                    for n in range(num_episodes):
+                        env.reset()
+                        episode_experience = []
+                        episode_succeeded = False
+                        for t in range(size):
+                            s = np.copy(env.state)
+                            g = np.copy(env.target)
+                            inputs = np.concatenate([s,g],axis = -1)
+                            action = sess.run(modelNetwork.predict,feed_dict = {modelNetwork.inputs:[inputs]})
+                            action = action[0]
+                            if np.random.rand(1) < epsilon:
+                                action = np.random.randint(size)
+                            s_next, reward = env.step(action)
+                            episode_experience.append((s,action,reward,s_next,g))
+                            total_reward += reward
+                            if reward == 0:
+                                if episode_succeeded:
+                                    continue
+                                else:
+                                    episode_succeeded = True
+                                    succeed += 1
+                        successes.append(episode_succeeded)
+                        for t in range(size):
+                            s, a, r, s_n, g = episode_experience[t]
+                            inputs = np.concatenate([s,g], axis=-1)
+                            new_inputs = np.concatenate([s_n,g], axis=-1)
+                            buff.add(np.reshape(np.array([inputs, a, r, new_inputs]), [1, 4]))
+                            if HER:
+                                for k in range(K):
+                                    future = np.random.randint(t, size)
+                                    _, _, _, g_n, _ = episode_experience[future]
+                                    inputs = np.concatenate([s,g_n],axis = -1)
+                                    new_inputs = np.concatenate([s_n, g_n],axis = -1)
+                                    final = np.sum(np.array(s_n) == np.array(g_n)) == size
+                                    if shaped_reward:
+                                        r_n = 0 if final else -np.sum(np.square(np.array(s_n) == np.array(g_n)))
+                                    else:
+                                        r_n = 0 if final else -1
+                                    buff.add(np.reshape(np.array([inputs,a,r_n,new_inputs]),[1,4]))
+
+                    mean_loss = []
+                    for k in range(optimisation_steps):
+                        experience = buff.sample(batch_size)
+                        s, a, r, s_next = [np.squeeze(elem, axis=1) for elem in np.split(experience, 4, 1)]
+                        s = np.array([ss for ss in s])
+                        s = np.reshape(s, (batch_size, size * 2))
+                        s_next = np.array([ss for ss in s_next])
+                        s_next = np.reshape(s_next, (batch_size, size * 2))
+                        Q1 = sess.run(modelNetwork.Q_, feed_dict = {modelNetwork.inputs: s_next})
+                        Q2 = sess.run(targetNetwork.Q_, feed_dict = {targetNetwork.inputs: s_next})
+                        doubleQ = Q2[:, np.argmax(Q1, axis = -1)]
+                        Q_target = np.clip(r + gamma * doubleQ,  -1. / (1 - gamma), 0)
+                        _, loss = sess.run([modelNetwork.train_op, modelNetwork.loss], feed_dict = {modelNetwork.inputs: s, modelNetwork.Q_next: Q_target, modelNetwork.action: a})
+                        mean_loss.append(loss)
+
+                    success_rate.append(np.mean(successes))
+                    total_loss.append(np.mean(mean_loss))
+                    updateTarget(updateOps,sess)
+                    total_rewards.append(total_reward)
+                    # ax.relim()
+                    # ax.autoscale_view()
+                    # ax2.relim()
+                    # ax2.autoscale_view()
+                    # line.set_data(np.arange(len(success_rate)), np.array(success_rate))
+                    # line.set_data(np.arange(len(total_rewards)), np.array(total_rewards))
+                    # line2.set_data(np.arange(len(total_loss)), np.array(total_loss))
+                    # fig.canvas.draw()
+                    # fig.canvas.flush_events()
+                    # plt.pause(1e-7)
+            if save_model:
+                saver = tf.train.Saver()
+                saver.save(sess, os.path.join(model_dir, "model.ckpt"))
+        print("Number of episodes succeeded: {}".format(succeed))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('gpu', type=int)
-    gpu_num = parser.parse_args().gpu
-    print('GPU:', gpu_num)
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
-    cleanup()
-    print('Creating Trainer')
-    trainer = Trainer(HYPERPARAMS, 5)
-    print('Trainer Initialized')
-    trainer.train()
-
-
-
+    main()
