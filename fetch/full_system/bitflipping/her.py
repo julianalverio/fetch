@@ -145,6 +145,8 @@ def main():
     env = Env(size = size, shaped_reward = shaped_reward)
     buff = Buffer(buffer_size)
     episode_count = 0
+    import time
+    start = time.time()
     if train:
         with tf.Session() as sess:
             sess.run(modelNetwork.init_op)
@@ -215,6 +217,8 @@ def main():
                     total_rewards.append(total_reward)
         print("Number of episodes succeeded: {}".format(succeed))
         print('TOTAL EPISODES', episode_count)
+        end = time.time()
+        print('time difference:', end - start)
 
 def cleanup():
     if os.path.isdir('results_continuous'):
