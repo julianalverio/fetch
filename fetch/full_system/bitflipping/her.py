@@ -23,27 +23,21 @@ import shutil
 import os
 import sys
 
-# from matplotlib import pyplot as plt
 
-# Bit flipping environment
 class Env():
-    def __init__(self, size = 8, shaped_reward = False):
+    def __init__(self, size=8):
         self.size = size
-        self.shaped_reward = shaped_reward
-        self.state = np.random.randint(2, size = size)
-        self.target = np.random.randint(2, size = size)
+        self.state = np.random.randint(2, size=size)
+        self.target = np.random.randint(2, size=size)
         while np.sum(self.state == self.target) == size:
-            self.target = np.random.randint(2, size = size)
+            self.target = np.random.randint(2, size=size)
 
     def step(self, action):
         self.state[action] = 1 - self.state[action]
-        if self.shaped_reward:
-            return np.copy(self.state), -np.sum(np.square(self.state - self.target))
+        if not np.sum(self.state == self.target) == self.size:
+            return np.copy(self.state), -1
         else:
-            if not np.sum(self.state == self.target) == self.size:
-                return np.copy(self.state), -1
-            else:
-                return np.copy(self.state), 0
+            return np.copy(self.state), 0
 
     def reset(self, size = None):
         if size is None:
@@ -53,7 +47,7 @@ class Env():
 
 # Experience replay buffer
 class Buffer():
-    def __init__(self, buffer_size = 50000):
+    def __init__(self, buffer_size=50000):
         self.buffer = []
         self.buffer_size = buffer_size
 
@@ -130,19 +124,13 @@ def main():
     total_loss = []
     success_rate = []
     succeed = 0
-
-    # save_model = True
-    # model_dir = "./train"
     train = True
-
-    # if not os.path.isdir(model_dir):
-    #     os.mkdir(model_dir)
 
     modelNetwork = Model(size = size, name = "model")
     targetNetwork = Model(size = size, name = "target")
     trainables = tf.trainable_variables()
     updateOps = updateTargetGraph(trainables, tau)
-    env = Env(size = size, shaped_reward = shaped_reward)
+    env = Env(size=size, shaped_reward=shaped_reward)
     buff = Buffer(buffer_size)
     episode_count = 0
     import time
@@ -177,6 +165,10 @@ def main():
                                 else:
                                     episode_succeeded = True
                                     succeed += 1
+                        if episode_succeeded:
+                            tb_writer.add_scalar('Success', 1, episode_count)
+                        else:
+                            tb_writer.add_scalar('Success', 0, episode_count)
                         successes.append(episode_succeeded)
                         for t in range(size):
                             s, a, r, s_n, g = episode_experience[t]
