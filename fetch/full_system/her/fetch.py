@@ -156,6 +156,7 @@ class LinearScheduler(object):
 
 # TODO: add support for extensions: Dueling, PER, HER
 # TODO: add a pick and place environment where the starting position can also change
+# TODO: understand why renderalot() takes so long. And then fix it. Bitch.
 class Trainer(object):
     def __init__(self):
         self.params = HYPERPARAMS
@@ -351,6 +352,12 @@ class Trainer(object):
                     break
 
     def train(self):
+        import time
+        start = time.time()
+        self.renderalot(20)
+        end = time.time()
+        print('difference:', end - start)
+        import pdb; pdb.set_trace()
         self.prefetch()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
