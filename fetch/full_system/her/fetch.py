@@ -247,7 +247,6 @@ class Trainer(object):
         self.env = env
         import pdb; pdb.set_trace()
 
-
     def preprocess(self, state):
         import pdb; pdb.set_trace()
         state = state[230:435, 50:460]

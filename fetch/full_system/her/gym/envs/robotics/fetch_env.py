@@ -191,3 +191,12 @@ class FetchEnv(robot_env.RobotEnv):
         self.initial_gripper_xpos = self.sim.data.get_site_xpos('robot0:grip').copy()
         if self.has_object:
             self.height_offset = self.sim.data.get_site_xpos('object0')[2]
+
+    def getStateAndGoal(self):
+        return self.render(mode='rgb_array'), self.goal.copy()
+
+    def getReward(self):
+        goal_acheived = self.sim.data.get_site_xpos('object0').copy()
+        goal = self.goal.copy()
+        reward = self.compute_reward(goal_acheived, goal)
+        return reward
