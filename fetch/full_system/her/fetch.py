@@ -199,18 +199,14 @@ class Trainer(object):
         # Get x just right
         while gripper_position[0] > object_position[0]:
             env.step([-1, 0, 0, 0])
-            env.render()
         while gripper_position[0] < object_position[0]:
             env.step([1, 0, 0, 0])
-            env.render()
 
         # Get y just right
         while gripper_position[1] > object_position[1]:
             env.step([0, -1, 0, 0])
-            env.render()
         while gripper_position[1] < object_position[1]:
             env.step([0, 1, 0, 0])
-            env.render()
 
         env.move([0, 0, 0, 1], count=10)  # open
         env.move([0, 0, -1, 1], count=20)  # drop
@@ -288,7 +284,7 @@ class Trainer(object):
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
-        reward = torch.tensor([self.env.getGoalAchievedAndReward()], device=self.device)  # 0 or -1
+        reward = torch.tensor([self.env.getReward()], device=self.device)  # 0 or -1
 
         self.memory.add(self.state, action, reward, next_state, reward * 1)
         return reward, reward == 0

@@ -1,7 +1,9 @@
 import gym
 from collections import OrderedDict
+from .space import Space
 
-class Dict(gym.Space):
+
+class Dict(Space):
     """
     A dictionary of simpler spaces.
 
@@ -30,13 +32,19 @@ class Dict(gym.Space):
         })
     })
     """
-    def __init__(self, spaces):
+    def __init__(self, spaces=None, **spaces_kwargs):
+        assert (spaces is None) or (not spaces_kwargs), 'Use either Dict(spaces=dict(...)) or Dict(foo=x, bar=z)'
+        if spaces is None:
+            spaces = spaces_kwargs
         if isinstance(spaces, dict) and not isinstance(spaces, OrderedDict):
             spaces = OrderedDict(sorted(list(spaces.items())))
         if isinstance(spaces, list):
             spaces = OrderedDict(spaces)
         self.spaces = spaces
-        gym.Space.__init__(self, None, None) # None for shape and dtype, since it'll require special handling
+        super().__init__(None, None) # None for shape and dtype, since it'll require special handling
+
+    def seed(self, seed):
+        [space.seed(seed) for space in self.spaces.values()]
 
     def sample(self):
         return OrderedDict([(k, space.sample()) for k, space in self.spaces.items()])

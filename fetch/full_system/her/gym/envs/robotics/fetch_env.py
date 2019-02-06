@@ -18,6 +18,7 @@ class FetchEnv(robot_env.RobotEnv):
         distance_threshold, initial_qpos, reward_type,
     ):
         """Initializes a new Fetch environment.
+
         Args:
             model_path (string): path to the environments XML file
             n_substeps (int): number of substeps the simulation runs on every call to step
@@ -71,12 +72,12 @@ class FetchEnv(robot_env.RobotEnv):
         action = action.copy()  # ensure that we don't change the action outside of this scope
         pos_ctrl, gripper_ctrl = action[:3], action[3]
 
-        pos_ctrl *= 0.2  # limit maximum change in position
+        pos_ctrl *= 0.05  # limit maximum change in position
         rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
         assert gripper_ctrl.shape == (2,)
-        # if self.block_gripper:
-        #     gripper_ctrl = np.zeros_like(gripper_ctrl)
+        if self.block_gripper:
+            gripper_ctrl = np.zeros_like(gripper_ctrl)
         action = np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl])
 
         # Apply action to simulation.
@@ -84,76 +85,69 @@ class FetchEnv(robot_env.RobotEnv):
         utils.mocap_set_action(self.sim, action)
 
     def _get_obs(self):
-        return None
-        # # positions
-        # grip_pos = self.sim.data.get_site_xpos('robot0:grip')
-        # dt = self.sim.nsubsteps * self.sim.model.opt.timestep
-        # grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
-        # robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
-        # if self.has_object:
-        #     object_pos = self.sim.data.get_site_xpos('object0')
-        #     # rotations
-        #     object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
-        #     # velocities
-        #     object_velp = self.sim.data.get_site_xvelp('object0') * dt
-        #     object_velr = self.sim.data.get_site_xvelr('object0') * dt
-        #     # gripper state
-        #     object_rel_pos = object_pos - grip_pos
-        #     object_velp -= grip_velp
-        # else:
-        #     object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
-        # gripper_state = robot_qpos[-2:]
-        # gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
-        #
-        # if not self.has_object:
-        #     achieved_goal = grip_pos.copy()
-        # else:
-        #     achieved_goal = np.squeeze(object_pos.copy())
-        # obs = np.concatenate([
-        #     grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
-        #     object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
-        # ])
-        #
-        # return {
-        #     'observation': obs.copy(),
-        #     'achieved_goal': achieved_goal.copy(),
-        #     'desired_goal': self.goal.copy(),
-        # }
+        # positions
+        grip_pos = self.sim.data.get_site_xpos('robot0:grip')
+        dt = self.sim.nsubsteps * self.sim.model.opt.timestep
+        grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
+        robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
+        if self.has_object:
+            object_pos = self.sim.data.get_site_xpos('object0')
+            # rotations
+            object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
+            # velocities
+            object_velp = self.sim.data.get_site_xvelp('object0') * dt
+            object_velr = self.sim.data.get_site_xvelr('object0') * dt
+            # gripper state
+            object_rel_pos = object_pos - grip_pos
+            object_velp -= grip_velp
+        else:
+            object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
+        gripper_state = robot_qpos[-2:]
+        gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
+
+        if not self.has_object:
+            achieved_goal = grip_pos.copy()
+        else:
+            achieved_goal = np.squeeze(object_pos.copy())
+        obs = np.concatenate([
+            grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
+            object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
+        ])
+
+        return {
+            'observation': obs.copy(),
+            'achieved_goal': achieved_goal.copy(),
+            'desired_goal': self.goal.copy(),
+        }
 
     def _viewer_setup(self):
-        self.viewer.cam.lookat[0] = 1.
-        self.viewer.cam.lookat[1] = 1.5
-        self.viewer.cam.lookat[2] = 1.1
-        self.viewer.cam.azimuth = 165.
-        self.viewer.cam.elevation = 10.
+        body_id = self.sim.model.body_name2id('robot0:gripper_link')
+        lookat = self.sim.data.body_xpos[body_id]
+        for idx, value in enumerate(lookat):
+            self.viewer.cam.lookat[idx] = value
         self.viewer.cam.distance = 2.5
-        # body_id = self.sim.model.body_name2id('robot0:gripper_link')
-        # lookat = self.sim.data.body_xpos[body_id]
-        # for idx, value in enumerate(lookat):
-        #     self.viewer.cam.lookat[idx] = value
-        # self.viewer.cam.distance = 2.5
-        # self.viewer.cam.azimuth = 132.
-        # self.viewer.cam.elevation = -14.
+        self.viewer.cam.azimuth = 132.
+        self.viewer.cam.elevation = -14.
 
     def _render_callback(self):
         # Visualize target.
-        # sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
-        # site_id = self.sim.model.site_name2id('target0')
-        # self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
+        sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
+        site_id = self.sim.model.site_name2id('target0')
+        self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
         self.sim.forward()
 
     def _reset_sim(self):
         self.sim.set_state(self.initial_state)
+
         # Randomize start position of object.
         if self.has_object:
+            object_xpos = self.initial_gripper_xpos[:2]
+            while np.linalg.norm(object_xpos - self.initial_gripper_xpos[:2]) < 0.1:
+                object_xpos = self.initial_gripper_xpos[:2] + self.np_random.uniform(-self.obj_range, self.obj_range, size=2)
             object_qpos = self.sim.data.get_joint_qpos('object0:joint')
-            object_qpos[:2] = [1.38, 0.65]
-            # object_qpos[:2] = [1.38, 0.4]
+            assert object_qpos.shape == (7,)
+            object_qpos[:2] = object_xpos
             self.sim.data.set_joint_qpos('object0:joint', object_qpos)
-
-            extra_object_1_qpos = self.sim.data.get_joint_qpos('object1:joint')
-            extra_object_1_qpos[:3] = [1.38, 0.80,  0.425]
-            self.sim.data.set_joint_qpos('object1:joint', extra_object_1_qpos)
 
         self.sim.forward()
         return True
@@ -191,12 +185,3 @@ class FetchEnv(robot_env.RobotEnv):
         self.initial_gripper_xpos = self.sim.data.get_site_xpos('robot0:grip').copy()
         if self.has_object:
             self.height_offset = self.sim.data.get_site_xpos('object0')[2]
-
-    def getStateAndGoal(self):
-        return self.render(mode='rgb_array'), self.goal.copy()
-
-    def getReward(self):
-        goal_acheived = self.sim.data.get_site_xpos('object0').copy()
-        goal = self.goal.copy()
-        reward = self.compute_reward(goal_acheived, goal)
-        return reward
