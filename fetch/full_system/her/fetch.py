@@ -145,7 +145,7 @@ class LinearScheduler(object):
 
     def updateAndGetValue(self):
         self.value += self.delta
-        self.observeValue()
+        return self.observeValue()
 
     def observeValue(self):
         if self.delta > 0:
