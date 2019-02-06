@@ -78,6 +78,7 @@ class DuelingDQN(nn.Module):
         state, goal = state_and_goal
         state = self.conv(state)
         state = state.view(state.size(0), -1)
+        import pdb; pdb.set_trace()
         x = torch.cat([state, goal], dim=1)
 
         adv = self.fc_adv(x)
@@ -273,7 +274,6 @@ class Trainer(object):
         state, goal = self.env.getStateAndGoal()
         if goal_prime:
             goal = goal_prime
-        import pdb; pdb.set_trace()
         state = torch.tensor(self.preprocess(state), device=self.device)
         goal = torch.tensor(goal, device=self.device)
         return np.array([state, goal], dtype=np.object)
