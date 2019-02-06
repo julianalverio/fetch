@@ -352,6 +352,7 @@ class Trainer(object):
                     break
 
     def train(self):
+        self.reset()
         self.env.render()
         import time
         start = time.time()
