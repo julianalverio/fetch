@@ -245,6 +245,7 @@ class Trainer(object):
         # env.renderalot()
         self.gripper_states[self.task] = 0
         self.env = env
+        import pdb; pdb.set_trace()
 
 
     def preprocess(self, state):
