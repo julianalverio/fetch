@@ -195,5 +195,5 @@ class FetchEnv(robot_env.RobotEnv):
         else:
             goal_achieved = self.sim.data.get_site_xpos('robot0:grip')
         goal = self.goal.copy()
-        reward = self.compute_reward(goal_achieved, goal)
+        reward = self.compute_reward(goal_achieved, goal, dict())
         return reward
