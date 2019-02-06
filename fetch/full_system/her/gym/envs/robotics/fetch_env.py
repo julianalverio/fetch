@@ -190,7 +190,10 @@ class FetchEnv(robot_env.RobotEnv):
         return self.render(mode='rgb_array'), goal
 
     def getReward(self):
-        goal_acheived = self.sim.data.get_site_xpos('object0').copy()
+        if self.has_object:
+            goal_achieved = self.sim.data.get_site_xpos('object0').copy()
+        else:
+            goal_achieved = self.sim.data.get_site_xpos('robot0:grip')
         goal = self.goal.copy()
-        reward = self.compute_reward(goal_acheived, goal)
+        reward = self.compute_reward(goal_achieved, goal)
         return reward
