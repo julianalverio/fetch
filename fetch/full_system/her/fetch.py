@@ -247,9 +247,6 @@ class Trainer(object):
         self.env = env
 
 
-        self.env.viewer.cam.lookat[]
-
-
     def preprocess(self, state):
         import pdb; pdb.set_trace()
         state = state[230:435, 50:460]
