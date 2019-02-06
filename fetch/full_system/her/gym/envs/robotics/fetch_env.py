@@ -43,8 +43,9 @@ class FetchEnv(robot_env.RobotEnv):
         self.distance_threshold = distance_threshold
         self.reward_type = reward_type
 
+        # WARNING: SUBSTEP COUNT OVERRIDE
         super(FetchEnv, self).__init__(
-            model_path=model_path, n_substeps=n_substeps, n_actions=4,
+            model_path=model_path, n_substeps=2, n_actions=4,
             initial_qpos=initial_qpos)
 
     # GoalEnv methods
