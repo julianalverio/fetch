@@ -100,7 +100,6 @@ class RobotEnv(gym.GoalEnv):
 
     def _get_viewer(self):
         if self.viewer is None:
-            print('viewer is none')
             self.viewer = mujoco_py.MjViewer(self.sim)
             self._viewer_setup()
         return self.viewer

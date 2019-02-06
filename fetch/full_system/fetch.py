@@ -432,8 +432,8 @@ class Trainer(object):
             if self.stage == 0 and x_check and y_check and z_check:
                 self.stage = 1
                 return 0.25, False
-            if self.stage == 1 and x_check and y_check:
-                reward = 0.25 + self.preparatory_height - self.
+            # if self.stage == 1 and x_check and y_check:
+            #     reward = 0.25 + self.preparatory_height - self.
 
 
             else:
@@ -503,6 +503,12 @@ class Trainer(object):
 
 
     def train(self):
+        import time
+        start = time.time()
+        self.renderalot(20)
+        stop = time.time()
+        print('difference:', stop - start)
+        import pdb; pdb.set_trace()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
             self.task = float(random.randrange(0, 4))
