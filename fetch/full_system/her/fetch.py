@@ -242,7 +242,7 @@ class Trainer(object):
         env.reset()
         if self.task == self.place_env_idx:
             self.resetforPlacing(env)
-        env.renderalot()
+        # env.renderalot()
         self.gripper_states[self.task] = 0
         self.env = env
 
