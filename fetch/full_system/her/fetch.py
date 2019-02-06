@@ -258,6 +258,10 @@ class Trainer(object):
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
+    def renderalot(self, count=20):
+        for _ in range(count):
+            self.env.renderalot(count)
+
     # indices are x, y, z, gripper
     def convertAction(self, action):
         movement = np.zeros(4)
