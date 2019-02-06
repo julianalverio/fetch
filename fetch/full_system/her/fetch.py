@@ -356,7 +356,8 @@ class Trainer(object):
         self.env.render()
         import time
         start = time.time()
-        self.renderalot(20)
+        self.env._render_callback()
+        # self.renderalot(20)
         end = time.time()
         print('difference:', end - start)
         import pdb; pdb.set_trace()
