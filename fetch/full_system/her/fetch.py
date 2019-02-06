@@ -241,18 +241,19 @@ class Trainer(object):
         self.gripper_states[self.task] = 0
         self.env = env
         self.env.render()
-        self.env.viewer.cam.lookat[0] = 1.
-        self.env.viewer.cam.lookat[1] = 1.5
-        self.env.viewer.cam.lookat[2] = 1.1
-        self.env.viewer.cam.azimuth = 165.
-        self.env.viewer.cam.elevation = 10.
-        self.env.viewer.cam.distance = 2.5
-        # lookat = [1.34, 0.75, 0.534]
-        # self.env.viewer.cam.lookat[0] = lookat[0]
-        # self.env.viewer.cam.lookat[1] = lookat[1]
-        # self.env.viewer.cam.lookat[2] = lookat[2]
-        # self.env.viewer.cam.distance = 1.1
-        # self.env.viewer.cam.azimuth = 175.
+        # self.env.viewer.cam.lookat[0] = 1.
+        # self.env.viewer.cam.lookat[1] = 1.5
+        # self.env.viewer.cam.lookat[2] = 1.1
+        # self.env.viewer.cam.azimuth = 165.
+        # self.env.viewer.cam.elevation = 10.
+        # self.env.viewer.cam.distance = 2.5
+        lookat = [1.34, 0.75, 0.534]
+        self.env.viewer.cam.lookat[0] = lookat[0]
+        self.env.viewer.cam.lookat[1] = lookat[1]
+        self.env.viewer.cam.lookat[2] = lookat[2]
+        self.env.viewer.cam.distance = 0.9
+        self.env.viewer.cam.azimuth = 175.
+        self.env.viewer.cam.elevation = -8
         self.env.renderalot()
 
         import pdb; pdb.set_trace()
