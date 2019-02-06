@@ -241,7 +241,7 @@ class Trainer(object):
         self.gripper_states[self.task] = 0
         self.env = env
         self.env.render()
-
+        
 
         self.env.renderalot()
 
