@@ -1,9 +1,7 @@
 import numpy as np
 import gym
-from .space import Space
 
-
-class Discrete(Space):
+class Discrete(gym.Space):
     """
     {0,1,...,n-1}
 
@@ -12,14 +10,10 @@ class Discrete(Space):
     """
     def __init__(self, n):
         self.n = n
-        super().__init__((), np.int64)
-        self.np_random = np.random.RandomState()
-
-    def seed(self, seed):
-        self.np_random.seed(seed)
+        gym.Space.__init__(self, (), np.int64)
 
     def sample(self):
-        return self.np_random.randint(self.n)
+        return gym.spaces.np_random.randint(self.n)
 
     def contains(self, x):
         if isinstance(x, int):

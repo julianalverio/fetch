@@ -182,10 +182,10 @@ class Trainer(object):
 
     def makeEnvs(self):
         envs = list()
-        envs.append(FetchPickAndPlaceEnv())
+        # envs.append(FetchPickAndPlaceEnv())
         # envs.append(FetchSlideEnv)
         # envs.append(FetchPushEnv())
-        # envs.append(FetchReachEnv())
+        envs.append(FetchReachEnv())
         # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
         # self.place_env_idx = len(envs) - 1
         return envs

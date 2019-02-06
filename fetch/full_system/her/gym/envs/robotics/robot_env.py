@@ -34,14 +34,14 @@ class RobotEnv(gym.GoalEnv):
         self._env_setup(initial_qpos=initial_qpos)
         self.initial_state = copy.deepcopy(self.sim.get_state())
 
-        self.goal = self._sample_goal()
-        obs = self._get_obs()
-        self.action_space = spaces.Box(-1., 1., shape=(n_actions,), dtype='float32')
-        self.observation_space = spaces.Dict(dict(
-            desired_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
-            achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
-            observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
-        ))
+        # self.goal = self._sample_goal()
+        # obs = self._get_obs()
+        # self.action_space = spaces.Box(-1., 1., shape=(n_actions,), dtype='float32')
+        # self.observation_space = spaces.Dict(dict(
+        #     desired_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
+        #     achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
+        #     observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
+        # ))
 
     @property
     def dt(self):
@@ -55,18 +55,18 @@ class RobotEnv(gym.GoalEnv):
         return [seed]
 
     def step(self, action):
-        action = np.clip(action, self.action_space.low, self.action_space.high)
+        action = np.clip(action, -1., 1.)
         self._set_action(action)
         self.sim.step()
-        self._step_callback()
-        obs = self._get_obs()
+        # self._step_callback()
+        # obs = self._get_obs()
 
-        done = False
-        info = {
-            'is_success': self._is_success(obs['achieved_goal'], self.goal),
-        }
-        reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
-        return obs, reward, done, info
+        # done = False
+        # info = {
+        #     'is_success': self._is_success(obs['achieved_goal'], self.goal),
+        # }
+        # reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
+        # return obs, reward, done, info
 
     def reset(self):
         # Attempt to reset the simulator. Since we randomize initial conditions, it
@@ -77,9 +77,9 @@ class RobotEnv(gym.GoalEnv):
         did_reset_sim = False
         while not did_reset_sim:
             did_reset_sim = self._reset_sim()
-        self.goal = self._sample_goal().copy()
-        obs = self._get_obs()
-        return obs
+        # self.goal = self._sample_goal().copy()
+        # obs = self._get_obs()
+        # return obs
 
     def close(self):
         if self.viewer is not None:
@@ -97,14 +97,6 @@ class RobotEnv(gym.GoalEnv):
             return data[::-1, :, :]
         elif mode == 'human':
             self._get_viewer().render()
-
-    def renderalot(self, count=6):
-        for _ in range(count):
-            self.render(mode='human')
-
-    def move(self, action, count=10):
-        for _ in range(count):
-            self.step(action)
 
     def _get_viewer(self):
         if self.viewer is None:

@@ -351,8 +351,7 @@ class SimpleImageViewer(object):
         texture.blit(0, 0) # draw
         self.window.flip()
     def close(self):
-        if self.isopen and sys.meta_path:
-            # ^^^ check sys.meta_path to avoid 'ImportError: sys.meta_path is None, Python is likely shutting down'
+        if self.isopen:
             self.window.close()
             self.isopen = False
 

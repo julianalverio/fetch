@@ -1,5 +1,3 @@
-import warnings
-
 from gym.utils import colorize
 
 DEBUG = 10
@@ -27,7 +25,7 @@ def info(msg, *args):
 
 def warn(msg, *args):
     if MIN_LEVEL <= WARN:
-        warnings.warn(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
+        print(colorize('%s: %s'%('WARN', msg % args), 'yellow'))
 
 def error(msg, *args):
     if MIN_LEVEL <= ERROR:

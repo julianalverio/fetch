@@ -4,12 +4,10 @@ permalink: https://perma.cc/6Z2N-PFWC
 """
 
 import math
-
-import numpy as np
-
 import gym
 from gym import spaces
 from gym.utils import seeding
+import numpy as np
 
 class MountainCarEnv(gym.Env):
     metadata = {
@@ -29,7 +27,7 @@ class MountainCarEnv(gym.Env):
         self.viewer = None
 
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(self.low, self.high, dtype=np.float32)
+        self.observation_space = spaces.Box(self.low, self.high)
 
         self.seed()
         self.reset()
