@@ -238,9 +238,14 @@ class Trainer(object):
         env.reset()
         if self.task == self.place_env_idx:
             self.resetforPlacing(env)
-        # env.renderalot()
         self.gripper_states[self.task] = 0
         self.env = env
+        lookat = [1.34 , 0.75 , 0.534]
+        self.env.viewer.cam.lookat[0] = lookat[0]
+        self.env.viewer.cam.lookat[1] = lookat[1]
+        self.env.viewer.cam.lookat[2] = lookat[2]
+        self.env.renderalot()
+
         import pdb; pdb.set_trace()
 
     def preprocess(self, state):
