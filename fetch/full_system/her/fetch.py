@@ -240,12 +240,7 @@ class Trainer(object):
             self.resetforPlacing(env)
         self.gripper_states[self.task] = 0
         self.env = env
-        self.env.render()
-        
-
         self.env.renderalot()
-
-        import pdb; pdb.set_trace()
 
     def preprocess(self, state):
         import pdb; pdb.set_trace()
