@@ -354,6 +354,7 @@ class Trainer(object):
     def train(self):
         import time
         start = time.time()
+        self.env.render()
         self.renderalot(20)
         end = time.time()
         print('difference:', end - start)
