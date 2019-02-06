@@ -169,7 +169,7 @@ class Trainer(object):
         self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
 
-        self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], self.params['epsilon_frames'])
+        self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['epsilon_frames'])
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
