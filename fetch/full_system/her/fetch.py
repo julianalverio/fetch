@@ -240,7 +240,7 @@ class Trainer(object):
             self.resetforPlacing(env)
         self.gripper_states[self.task] = 0
         self.env = env
-        # self.env.renderalot()
+        self.env.render()
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
@@ -355,6 +355,8 @@ class Trainer(object):
             print('one episode:', time.time() - start)
 
     def train(self):
+        self.reset()
+        self.env.render()
         import time
         start = time.time()
         for _ in range(20):
