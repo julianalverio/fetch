@@ -182,10 +182,10 @@ class Trainer(object):
 
     def makeEnvs(self):
         envs = list()
-        # envs.append(FetchPickAndPlaceEnv())
+        envs.append(FetchPickAndPlaceEnv())
         # envs.append(FetchSlideEnv)
         # envs.append(FetchPushEnv())
-        envs.append(FetchReachEnv())
+        # envs.append(FetchReachEnv())
         # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
         # self.place_env_idx = len(envs) - 1
         return envs
@@ -243,8 +243,12 @@ class Trainer(object):
         if self.task == self.place_env_idx:
             self.resetforPlacing(env)
         env.renderalot()
-        self.env = env
         self.gripper_states[self.task] = 0
+        self.env = env
+
+
+        self.env.viewer.cam.lookat[]
+
 
     def preprocess(self, state):
         import pdb; pdb.set_trace()
