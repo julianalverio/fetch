@@ -283,7 +283,6 @@ class Trainer(object):
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(state), dim=1).to(self.device)
-        print(self.epsilon_scheduler.observeValue())
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
@@ -342,6 +341,8 @@ class Trainer(object):
     def prefetch(self):
         while 1:
             self.reset()
+            import time
+            start = time.time()
             for iteration in range(MAX_ITERATIONS):
                 reward = self.addExperience()
                 done = reward == 0
@@ -349,6 +350,7 @@ class Trainer(object):
                     print('Done Prefetching.')
                     return
                 if done:
+                    print('one episode:', time.time() - start)
                     break
 
     def train(self):
