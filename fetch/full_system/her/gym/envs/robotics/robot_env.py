@@ -104,6 +104,14 @@ class RobotEnv(gym.GoalEnv):
             self._viewer_setup()
         return self.viewer
 
+    def renderalot(self, count=6):
+        for _ in range(count):
+            self.render(mode='human')
+
+    def move(self, action, count=10):
+        for _ in range(count):
+            self.step(action)
+
     # Extension methods
     # ----------------------------
 
