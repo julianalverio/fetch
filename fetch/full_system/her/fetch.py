@@ -240,7 +240,8 @@ class Trainer(object):
             self.resetforPlacing(env)
         self.gripper_states[self.task] = 0
         self.env = env
-        lookat = [1.34 , 0.75 , 0.534]
+        lookat = [1.34, 0.75, 0.534]
+        import pdb; pdb.set_trace()
         self.env.viewer.cam.lookat[0] = lookat[0]
         self.env.viewer.cam.lookat[1] = lookat[1]
         self.env.viewer.cam.lookat[2] = lookat[2]
