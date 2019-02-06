@@ -106,7 +106,7 @@ class RobotEnv(gym.GoalEnv):
 
     def renderalot(self, count=6):
         for _ in range(count):
-            self.render(mode='human')
+            self.render()
 
     def move(self, action, count=10):
         for _ in range(count):
