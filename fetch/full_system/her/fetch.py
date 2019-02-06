@@ -110,7 +110,6 @@ class DQN(nn.Module):
         state, goal = state_and_goal
         state = self.conv(state)
         state = state.view(state.size(0), -1)
-        import pdb; pdb.set_trace()
         x = torch.cat([state, goal], dim=1)
         return self.fc(x)
 
