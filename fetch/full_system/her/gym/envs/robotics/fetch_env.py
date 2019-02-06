@@ -188,6 +188,7 @@ class FetchEnv(robot_env.RobotEnv):
     def getStateAndGoal(self):
         goal = self.goal.copy()
         goal.dtype = np.float32
+        np.expand_dims(goal, axis=0)
         return self.render(mode='rgb_array'), goal
 
     def getReward(self):
