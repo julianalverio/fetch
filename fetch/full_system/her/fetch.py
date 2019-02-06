@@ -355,14 +355,6 @@ class Trainer(object):
             print('one episode:', time.time() - start)
 
     def train(self):
-        self.reset()
-        self.env.render()
-        import time
-        start = time.time()
-        for _ in range(100):
-            self.prepareState()
-        print('difference:', time.time() - start)
-        import pdb; pdb.set_trace()
         self.prefetch()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
