@@ -280,11 +280,10 @@ class Trainer(object):
     def addExperience(self):
         state = self.prepareState()
         if random.random() < self.epsilon_scheduler.updateAndGetValue():
-            print('1')
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            print('2')
             action = torch.argmax(self.policy_net(state), dim=1).to(self.device)
+        print(self.epsilon_scheduler.observeValue())
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
