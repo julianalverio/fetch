@@ -121,12 +121,12 @@ class FetchEnv(robot_env.RobotEnv):
         }
 
     def _viewer_setup(self):
-        self.env.viewer.cam.lookat[0] = 1.
-        self.env.viewer.cam.lookat[1] = 1.5
-        self.env.viewer.cam.lookat[2] = 1.1
-        self.env.viewer.cam.azimuth = 165.
-        self.env.viewer.cam.elevation = 10.
-        self.env.viewer.cam.distance = 2.5
+        self.viewer.cam.lookat[0] = 1.
+        self.viewer.cam.lookat[1] = 1.5
+        self.viewer.cam.lookat[2] = 1.1
+        self.viewer.cam.azimuth = 165.
+        self.viewer.cam.elevation = 10.
+        self.viewer.cam.distance = 2.5
 
     def _render_callback(self):
         # Visualize target.
