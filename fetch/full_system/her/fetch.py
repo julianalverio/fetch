@@ -352,6 +352,7 @@ class Trainer(object):
                 if done:
                     print('one episode:', time.time() - start)
                     break
+            print('one episode:', time.time() - start)
 
     def train(self):
         self.prefetch()
