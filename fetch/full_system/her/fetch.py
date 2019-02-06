@@ -278,7 +278,6 @@ class Trainer(object):
         return np.array([state, goal], dtype=np.object)
 
     def addExperience(self):
-        import pdb; pdb.set_trace()
         state = self.prepareState()
         if random.random() < self.epsilon_scheduler.updateAndGetValue():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
