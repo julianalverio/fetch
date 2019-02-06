@@ -59,14 +59,15 @@ class RobotEnv(gym.GoalEnv):
         self._set_action(action)
         self.sim.step()
         self._step_callback()
-        obs = self._get_obs()
 
-        done = False
-        info = {
-            'is_success': self._is_success(obs['achieved_goal'], self.goal),
-        }
-        reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
-        return obs, reward, done, info
+        # obs = self._get_obs()
+        #
+        # done = False
+        # info = {
+        #     'is_success': self._is_success(obs['achieved_goal'], self.goal),
+        # }
+        # reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
+        # return obs, reward, done, info
 
     def reset(self):
         # Attempt to reset the simulator. Since we randomize initial conditions, it
@@ -78,8 +79,8 @@ class RobotEnv(gym.GoalEnv):
         while not did_reset_sim:
             did_reset_sim = self._reset_sim()
         self.goal = self._sample_goal().copy()
-        obs = self._get_obs()
-        return obs
+        # obs = self._get_obs()
+        # return obs
 
     def close(self):
         if self.viewer is not None:

@@ -240,7 +240,7 @@ class Trainer(object):
             self.resetforPlacing(env)
         self.gripper_states[self.task] = 0
         self.env = env
-        self.env.renderalot()
+        # self.env.renderalot()
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
@@ -248,7 +248,7 @@ class Trainer(object):
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
-    def renderalot(self, count=20):
+    def renderalot(self, count=6):
         for _ in range(count):
             self.env.render(count)
 
@@ -355,6 +355,12 @@ class Trainer(object):
             print('one episode:', time.time() - start)
 
     def train(self):
+        import time
+        start = time.time()
+        for _ in range(20):
+            self.prepareState()
+        print('difference:', time.time() - start)
+        import pdb; pdb.set_trace()
         self.prefetch()
         frame_idx = 0
         for episode in range(NUM_EPISODES):

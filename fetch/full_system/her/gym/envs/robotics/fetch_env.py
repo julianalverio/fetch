@@ -68,14 +68,14 @@ class FetchEnv(robot_env.RobotEnv):
             self.sim.forward()
 
     def _set_action(self, action):
-        assert action.shape == (4,)
+        # assert action.shape == (4,)
         action = action.copy()  # ensure that we don't change the action outside of this scope
         pos_ctrl, gripper_ctrl = action[:3], action[3]
 
         pos_ctrl *= 0.05  # limit maximum change in position
         rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
-        assert gripper_ctrl.shape == (2,)
+        # assert gripper_ctrl.shape == (2,)
         if self.block_gripper:
             gripper_ctrl = np.zeros_like(gripper_ctrl)
         action = np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl])
@@ -84,41 +84,41 @@ class FetchEnv(robot_env.RobotEnv):
         utils.ctrl_set_action(self.sim, action)
         utils.mocap_set_action(self.sim, action)
 
-    def _get_obs(self):
-        # positions
-        grip_pos = self.sim.data.get_site_xpos('robot0:grip')
-        dt = self.sim.nsubsteps * self.sim.model.opt.timestep
-        grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
-        robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
-        if self.has_object:
-            object_pos = self.sim.data.get_site_xpos('object0')
-            # rotations
-            object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
-            # velocities
-            object_velp = self.sim.data.get_site_xvelp('object0') * dt
-            object_velr = self.sim.data.get_site_xvelr('object0') * dt
-            # gripper state
-            object_rel_pos = object_pos - grip_pos
-            object_velp -= grip_velp
-        else:
-            object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
-        gripper_state = robot_qpos[-2:]
-        gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
-
-        if not self.has_object:
-            achieved_goal = grip_pos.copy()
-        else:
-            achieved_goal = np.squeeze(object_pos.copy())
-        obs = np.concatenate([
-            grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
-            object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
-        ])
-
-        return {
-            'observation': obs.copy(),
-            'achieved_goal': achieved_goal.copy(),
-            'desired_goal': self.goal.copy(),
-        }
+    # def _get_obs(self):
+    #     # positions
+    #     grip_pos = self.sim.data.get_site_xpos('robot0:grip')
+    #     dt = self.sim.nsubsteps * self.sim.model.opt.timestep
+    #     grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
+    #     robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
+    #     if self.has_object:
+    #         object_pos = self.sim.data.get_site_xpos('object0')
+    #         # rotations
+    #         object_rot = rotations.mat2euler(self.sim.data.get_site_xmat('object0'))
+    #         # velocities
+    #         object_velp = self.sim.data.get_site_xvelp('object0') * dt
+    #         object_velr = self.sim.data.get_site_xvelr('object0') * dt
+    #         # gripper state
+    #         object_rel_pos = object_pos - grip_pos
+    #         object_velp -= grip_velp
+    #     else:
+    #         object_pos = object_rot = object_velp = object_velr = object_rel_pos = np.zeros(0)
+    #     gripper_state = robot_qpos[-2:]
+    #     gripper_vel = robot_qvel[-2:] * dt  # change to a scalar if the gripper is made symmetric
+    #
+    #     if not self.has_object:
+    #         achieved_goal = grip_pos.copy()
+    #     else:
+    #         achieved_goal = np.squeeze(object_pos.copy())
+    #     obs = np.concatenate([
+    #         grip_pos, object_pos.ravel(), object_rel_pos.ravel(), gripper_state, object_rot.ravel(),
+    #         object_velp.ravel(), object_velr.ravel(), grip_velp, gripper_vel,
+    #     ])
+    #
+    #     return {
+    #         'observation': obs.copy(),
+    #         'achieved_goal': achieved_goal.copy(),
+    #         'desired_goal': self.goal.copy(),
+    #     }
 
     def _viewer_setup(self):
         self.viewer.cam.lookat[0] = 1.
