@@ -359,7 +359,7 @@ class Trainer(object):
         self.env.render()
         import time
         start = time.time()
-        for _ in range(20):
+        for _ in range(100):
             self.prepareState()
         print('difference:', time.time() - start)
         import pdb; pdb.set_trace()
