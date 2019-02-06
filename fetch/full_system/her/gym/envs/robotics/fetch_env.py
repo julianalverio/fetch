@@ -186,6 +186,7 @@ class FetchEnv(robot_env.RobotEnv):
             self.height_offset = self.sim.data.get_site_xpos('object0')[2]
 
     def getStateAndGoal(self):
+        import pdb; pdb.set_trace()
         goal = self.goal.copy()
         goal.dtype = np.float32
         return self.render(mode='rgb_array'), goal

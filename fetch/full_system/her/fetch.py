@@ -271,7 +271,6 @@ class Trainer(object):
         return movement
 
     def prepareState(self, goal_prime=None):
-        import pdb; pdb.set_trace()
         state, goal = self.env.getStateAndGoal()
         if goal_prime:
             goal = goal_prime
