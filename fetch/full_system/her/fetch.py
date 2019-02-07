@@ -76,6 +76,7 @@ class DuelingDQN(nn.Module):
         )
 
     def forward(self, state_and_goal):
+        #   WARNING: CURRENTLY BROKEN METHOD
         state, goal = state_and_goal
         state = self.conv(state)
         state = state.view(state.size(0), -1)
@@ -108,7 +109,6 @@ class DQN(nn.Module):
         )
 
     def forward(self, state_and_goal):
-        import pdb; pdb.set_trace()
         state = state_and_goal[:, 0:3, :, :]
         goal = state_and_goal[:, -1, 0, :3]
         state = self.conv(state)
@@ -297,13 +297,13 @@ class Trainer(object):
         return reward, reward == 0
 
     def optimizeModel(self):
-        import pdb; pdb.set_trace()
         states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
         states = torch.tensor(states, device=self.device).squeeze(1)
         actions = torch.tensor(actions, device=self.device)
         rewards = torch.tensor(rewards, device=self.device)
         next_states = torch.tensor(next_states, device=self.device).squeeze(1)
-        state_action_values = self.policy_net(states).gather(1, actions.unsqueeze(1))
+        import pdb; pdb.set_trace()
+        state_action_values = self.policy_net(states).gather(1, actions)
         next_state_values = self.target_net(next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + rewards
         loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
