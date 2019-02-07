@@ -344,19 +344,14 @@ class Trainer(object):
     def prefetch(self):
         while 1:
             self.reset()
-            # import time
-            # start = time.time()
             for iteration in range(MAX_ITERATIONS):
-                import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
                 if len(self.memory) >= self.params['replay_initial']:
                     print('Done Prefetching.')
                     return
                 if done:
-                    # print('one episode:', time.time() - start)
                     break
-            # print('one episode:', time.time() - start)
 
     def train(self):
         self.prefetch()
