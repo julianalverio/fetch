@@ -19,6 +19,7 @@ from gym.envs.robotics.fetch.pick_and_place import FetchPickAndPlaceEnv
 from gym.envs.robotics.fetch.push import FetchPushEnv
 from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
+import time
 
 NUM_EPISODES = 3000
 MAX_ITERATIONS = 700
