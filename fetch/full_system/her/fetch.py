@@ -35,8 +35,8 @@ MAX_ITERATIONS = 700
 # 7 -- continuously try to close gripper
 
 HYPERPARAMS = {
-        'replay_size':      100,  # 8k
-        'replay_initial':   100,
+        'replay_size':      8000,  # 8k
+        'replay_initial':   8000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
