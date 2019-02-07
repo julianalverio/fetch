@@ -277,8 +277,10 @@ class Trainer(object):
             goal = goal_prime
         state = self.preprocess(state)
         import pdb; pdb.set_trace()
-        goal = torch.tensor(goal, device=self.device).unsqueeze(0)
-        return np.array([state, goal], dtype=np.object)
+        goal_zeros = np.zeros([1, 205, 102], dtype=np.float32)
+        goal_zeros[0, 0, 0, 0:3] = goal
+        goal = torch.tensor(goal_zeros, device=self.device)
+        return torch.cat([state, goal]).unsqueeze(0)
 
     def addExperience(self):
         state = self.prepareState()
