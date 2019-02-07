@@ -251,7 +251,7 @@ class Trainer(object):
 
     def renderalot(self, count=6):
         for _ in range(count):
-            self.env.render(count)
+            self.env.render()
 
     # indices are x, y, z, gripper
     def convertAction(self, action):
