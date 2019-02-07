@@ -302,7 +302,6 @@ class Trainer(object):
         actions = torch.tensor(actions, device=self.device)
         rewards = torch.tensor(rewards, device=self.device)
         next_states = torch.tensor(next_states, device=self.device).squeeze(1)
-        import pdb; pdb.set_trace()
         state_action_values = self.policy_net(states).gather(1, actions)
         next_state_values = self.target_net(next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + rewards
