@@ -275,7 +275,8 @@ class Trainer(object):
         state, goal = self.env.getStateAndGoal()
         if goal_prime:
             goal = goal_prime
-        state = torch.tensor(self.preprocess(state), device=self.device)
+        state = self.preprocess(state)
+        import pdb; pdb.set_trace()
         goal = torch.tensor(goal, device=self.device).unsqueeze(0)
         return np.array([state, goal], dtype=np.object)
 
