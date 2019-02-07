@@ -518,7 +518,7 @@ class Trainer(object):
                 # are we  done prefetching?
                 # if not self.memory.tree.done_prefetching:
                 if len(self.memory) < self.params['replay_initial']:
-                    print('prefetching still')
+                    print(len(self.memory))
                     if done:
                         break
                     continue
