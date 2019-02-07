@@ -110,7 +110,7 @@ class DQN(nn.Module):
     def forward(self, state_and_goal):
         import pdb; pdb.set_trace()
         state = state_and_goal[:, 0:3, :, :]
-        goal = state_and_goal[:, -1, :, :3]
+        goal = state_and_goal[:, -1, 0, :3]
         state = self.conv(state)
         state = state.view(state.size(0), -1)
         x = torch.cat([state, goal], dim=1)
