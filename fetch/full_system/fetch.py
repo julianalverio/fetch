@@ -23,7 +23,7 @@ MAX_ITERATIONS = 700
 
 
 HYPERPARAMS = {
-        'replay_size':      200,  # normally 8k
+        'replay_size':      100,  # normally 8k
         'replay_initial':   7900,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
@@ -518,6 +518,7 @@ class Trainer(object):
                 # are we  done prefetching?
                 # if not self.memory.tree.done_prefetching:
                 if len(self.memory) < self.params['replay_initial']:
+                    print('prefetching still')
                     if done:
                         break
                     continue
