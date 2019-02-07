@@ -439,13 +439,13 @@ class Trainer(object):
             else:
                 return -2*distance, False
 
-            if self.validGrip():
-                print('I GOT A VALID GRIP!')
-                return 1., True
-            if self.gripPrep():
-                print('PREPARED TO GRIP')
-                return 0.5, False
-            return reward, False
+            # if self.validGrip():
+            #     print('I GOT A VALID GRIP!')
+            #     return 1., True
+            # if self.gripPrep():
+            #     print('PREPARED TO GRIP')
+            #     return 0.5, False
+            # return reward, False
 
         if self.task == 1.:
             if not self.validGrip():
@@ -503,18 +503,11 @@ class Trainer(object):
 
 
     def train(self):
-        import time
-        start = time.time()
-        self.renderalot(20)
-        stop = time.time()
-        print('difference:', stop - start)
-        import pdb; pdb.set_trace()
         frame_idx = 0
         for episode in range(NUM_EPISODES):
             self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
-            import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
                 frame_idx += 1
