@@ -280,7 +280,7 @@ class Trainer(object):
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
-        return torch.cat([state, goal])
+        return torch.cat([state, goal], dim=1)
 
     def addExperience(self):
         state = self.prepareState()
