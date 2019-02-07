@@ -34,8 +34,8 @@ MAX_ITERATIONS = 700
 # 7 -- continuously try to close gripper
 
 HYPERPARAMS = {
-        'replay_size':      8000,
-        'replay_initial':   7900,
+        'replay_size':      100,  # 8k
+        'replay_initial':   100,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,
         'epsilon_start':    1.0,
@@ -284,7 +284,6 @@ class Trainer(object):
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(state), dim=1).to(self.device)
-        action = torch.tensor([2], device=self.device)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
