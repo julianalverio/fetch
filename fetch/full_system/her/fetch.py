@@ -274,12 +274,13 @@ class Trainer(object):
         return movement
 
     def prepareState(self, goal_prime=None):
+        import pdb; pdb.set_trace()
         state, goal = self.env.getStateAndGoal()
         if goal_prime:
             goal = goal_prime
         state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
-        goal_zeros[0, 0, 0:3] = goal
+        goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
         return torch.cat([state, goal], dim=0)
 
