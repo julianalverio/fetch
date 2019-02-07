@@ -362,6 +362,7 @@ class Trainer(object):
         for episode in range(NUM_EPISODES):
             self.reset()
             for iteration in range(MAX_ITERATIONS):
+                import pdb; pdb.set_trace()
                 reward, done = self.addExperience()
                 self.optimizeModel()
                 frame_idx += 1
