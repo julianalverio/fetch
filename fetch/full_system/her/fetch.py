@@ -108,7 +108,9 @@ class DQN(nn.Module):
         )
 
     def forward(self, state_and_goal):
-        state, goal = state_and_goal
+        import pdb; pdb.set_trace()
+        state = state_and_goal[:, 0:3, :, :]
+        goal = state_and_goal[:, -1, :, :3]
         state = self.conv(state)
         state = state.view(state.size(0), -1)
         x = torch.cat([state, goal], dim=1)
@@ -276,7 +278,6 @@ class Trainer(object):
         if goal_prime:
             goal = goal_prime
         state = self.preprocess(state)
-        import pdb; pdb.set_trace()
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
