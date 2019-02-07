@@ -293,7 +293,7 @@ class Trainer(object):
         self.env.step(action_converted)
         next_state = self.prepareState()
         reward = torch.tensor(self.env.getReward(), device=self.device)  # 0 or -1
-
+        import pdb; pdb.set_trace()
         self.memory.add(state, action, reward, next_state, reward * 1)
         return reward, reward == 0
 
