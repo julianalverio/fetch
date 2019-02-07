@@ -156,6 +156,7 @@ class LinearScheduler(object):
 
 # TODO: add support for extensions: Dueling, PER, HER
 # TODO: add a pick and place environment where the starting position can also change
+# TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
     def __init__(self):
         self.params = HYPERPARAMS
