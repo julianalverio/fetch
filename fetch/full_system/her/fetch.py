@@ -294,6 +294,7 @@ class Trainer(object):
         return reward, reward == 0
 
     def optimizeModel(self):
+        import pdb; pdb.set_trace()
         states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
         states = torch.tensor(states, device=self.device)
         actions = torch.tensor(actions, device=self.device)
