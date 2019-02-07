@@ -345,7 +345,6 @@ class Trainer(object):
             # import time
             # start = time.time()
             for iteration in range(MAX_ITERATIONS):
-                import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
                 if len(self.memory) >= self.params['replay_initial']:
