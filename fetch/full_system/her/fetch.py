@@ -109,8 +109,8 @@ class DQN(nn.Module):
 
     def forward(self, state_and_goal):
         import pdb; pdb.set_trace()
-        state = state_and_goal[:, 0:3, :, :]
-        goal = state_and_goal[:, -1, 0, :3]
+        state = state_and_goal[0:3, :, :]
+        goal = state_and_goal[-1, 0, :3]
         state = self.conv(state)
         state = state.view(state.size(0), -1)
         x = torch.cat([state, goal], dim=1)
@@ -250,7 +250,7 @@ class Trainer(object):
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
-        return torch.tensor(state, device=self.device).unsqueeze(0)
+        return torch.tensor(state, device=self.device)
 
     def renderalot(self, count=6):
         for _ in range(count):
@@ -278,8 +278,8 @@ class Trainer(object):
         if goal_prime:
             goal = goal_prime
         state = self.preprocess(state)
-        goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
-        goal_zeros[0, 0, 0, 0:3] = goal
+        goal_zeros = np.zeros([1, 205, 102], dtype=np.float32)
+        goal_zeros[0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
         return torch.cat([state, goal], dim=1)
 
