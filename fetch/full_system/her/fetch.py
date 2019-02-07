@@ -284,6 +284,7 @@ class Trainer(object):
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
             action = torch.argmax(self.policy_net(state), dim=1).to(self.device)
+        action = torch.tensor([2], device=self.device)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
