@@ -13,15 +13,14 @@ from tensorboardX import SummaryWriter
 import shutil
 import os
 import time
-import pdb; pdb.set_trace()
 try:
-    from gym.envs.robotics import fetch_env
-    from gym.wrappers.time_limit import TimeLimit
-    from replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
-    from gym.envs.robotics.fetch.pick_and_place import FetchPickAndPlaceEnv
-    from gym.envs.robotics.fetch.push import FetchPushEnv
-    from gym.envs.robotics.fetch.slide import FetchSlideEnv
-    from gym.envs.robotics.fetch.reach import FetchReachEnv
+    from .gym.envs.robotics import fetch_env
+    from .gym.wrappers.time_limit import TimeLimit
+    from .replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
+    from .gym.envs.robotics.fetch.pick_and_place import FetchPickAndPlaceEnv
+    from .gym.envs.robotics.fetch.push import FetchPushEnv
+    from .gym.envs.robotics.fetch.slide import FetchSlideEnv
+    from .gym.envs.robotics.fetch.reach import FetchReachEnv
 except ImportError:
     import sys
     sys.path.insert(0, '..')
