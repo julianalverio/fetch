@@ -262,6 +262,7 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
+        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -293,7 +294,8 @@ class Trainer(object):
             goal = goal_prime
         if state_prime is not None:
             state = state_prime
-        state = self.preprocess(state)
+        else:
+            state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
@@ -377,8 +379,9 @@ class Trainer(object):
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
             next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
-            reward = torch.tensor(np.array(float(goal_achieved == final_goal)).astype(np.float32), device=self.device)
-            self.memory.add(state, action, reward, next_state)
+            reward = torch.tensor(np.array(float(np.array_equal(goal_achieved, final_goal))).astype(np.float32), device=self.device)
+            self.memory.add(state, action, reward, next_state, 0)
+        self.episode_buffer = list()
 
     def train(self):
         self.prefetch()
