@@ -35,7 +35,7 @@ MAX_ITERATIONS = 400
 # 7 -- continuously try to close gripper
 
 HYPERPARAMS = {
-        'replay_size':      15000,  # 8k baseline
+        'replay_size':      100,  # 8k baseline
         'replay_initial':   8000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
@@ -292,7 +292,8 @@ class Trainer(object):
             goal = goal_prime
         if state_prime is not None:
             state = state_prime
-        state = self.preprocess(state)
+        else:
+            state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
@@ -361,16 +362,14 @@ class Trainer(object):
         self.episode_counters[self.task] += 1
 
     def prefetch(self):
-        while 1:
+        while len(self.memory) < self.params['replay_size']:
             self.reset()
             for iteration in range(MAX_ITERATIONS):
                 reward = self.addExperience()
                 done = reward == 0
-                if len(self.memory) >= self.params['replay_initial']:
-                    print('Done Prefetching.')
-                    return
                 if done:
                     break
+        print('Done Prefetching.')
 
     # 'FINAL' implementation
     def HERFinal(self):
@@ -420,10 +419,8 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    parser.add_argument('her', type=bool)
     args = parser.parse_args()
     gpu_num = args.gpu
-    her =
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
