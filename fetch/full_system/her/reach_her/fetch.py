@@ -219,7 +219,6 @@ class Trainer(object):
         self.gripper_states[self.task] = 0
         self.env = env
         self.env.render()
-        import pdb; pdb.set_trace()
 
     # there are some additional movements here to compensate for momentum
     def resetforPlacing(self, env):
@@ -264,7 +263,6 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
-        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
