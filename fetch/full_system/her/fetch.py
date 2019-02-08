@@ -381,7 +381,9 @@ class Trainer(object):
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
             next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
-            reward = torch.tensor(np.array(float(np.array_equal(goal_achieved, final_goal))).astype(np.float32), device=self.device)
+            distance = np.linalg.norm(goal_achieved - final_goal)
+            reward = -(distance < self.env.distance_threshold).astype(np.float32)
+            reward = torch.tensor(np.array(reward), device=self.device)
             self.memory.add(state, action, reward, next_state, 0)
         self.episode_buffer = list()
 
