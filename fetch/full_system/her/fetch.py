@@ -282,14 +282,11 @@ class Trainer(object):
         return movement
 
     def prepareState(self, state_prime=None, goal_prime=None):
-        import pdb; pdb.set_trace()
-        state, goal = self.env.getStateAndGoal()
-        if goal_prime is not None:
+        if goal_prime is not None and state_prime is not None:
             goal = goal_prime
-        if state_prime is not None:
             state = state_prime
         else:
-            state = self.preprocess(state)
+            state, goal = self.env.getStateAndGoal()
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
