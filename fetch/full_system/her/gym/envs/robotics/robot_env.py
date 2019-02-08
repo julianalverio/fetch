@@ -109,10 +109,6 @@ class RobotEnv(gym.GoalEnv):
         for _ in range(count):
             self.render()
 
-    def move(self, action, count=10):
-        for _ in range(count):
-            self.step(action)
-
     # Extension methods
     # ----------------------------
 

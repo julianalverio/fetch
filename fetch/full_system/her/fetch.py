@@ -216,7 +216,7 @@ class Trainer(object):
         if self.task == self.place_env_idx:
             self.resetforPlacing(env)
         else:
-            env.move([0, 0, 0, 0], 40)
+            self.move([0, 0, 0, 0], 40)
         self.gripper_states[self.task] = 0
         self.env = env
         self.env.render()
@@ -373,6 +373,10 @@ class Trainer(object):
                 if done:
                     break
         print('Done Prefetching.')
+
+    def move(self, action, count=10):
+        for _ in range(count):
+            self.env.step(action)
 
     # 'FINAL' implementation
     def HERFinal(self):
