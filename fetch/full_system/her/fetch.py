@@ -21,8 +21,8 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 import time
 
-NUM_EPISODES = 3000
-MAX_ITERATIONS = 700
+NUM_EPISODES = 2000
+MAX_ITERATIONS = 400
 
 # Actions:
 # 0 -- increment X
@@ -38,7 +38,7 @@ HYPERPARAMS = {
         'replay_size':      8000,  # 8k
         'replay_initial':   8000,
         'target_net_sync':  1000,
-        'epsilon_frames':   10**5,
+        'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
         'epsilon_final':    0.02,
         'learning_rate':    0.0001,
