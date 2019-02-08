@@ -15,10 +15,10 @@ import os
 import time
 import sys
 import copy
-old_path = copy.deepcopy(sys.path)
+sys.path.insert(0, '..')
+sys.path.insert(0, '.')
 import pdb; pdb.set_trace()
 try:
-    sys.path = ['.']
     from gym.envs.robotics import fetch_env
     from gym.wrappers.time_limit import TimeLimit
     from replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
@@ -27,7 +27,6 @@ try:
     from gym.envs.robotics.fetch.slide import FetchSlideEnv
     from gym.envs.robotics.fetch.reach import FetchReachEnv
 except:
-    sys.path = ['..']
     from gym.envs.robotics import fetch_env
     from gym.wrappers.time_limit import TimeLimit
     from replay_buffer import PrioritizedReplayBuffer, ReplayBuffer
@@ -35,7 +34,6 @@ except:
     from gym.envs.robotics.fetch.push import FetchPushEnv
     from gym.envs.robotics.fetch.slide import FetchSlideEnv
     from gym.envs.robotics.fetch.reach import FetchReachEnv
-sys.path = old_path
 
 
 
