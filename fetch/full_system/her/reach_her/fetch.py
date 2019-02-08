@@ -377,6 +377,7 @@ class Trainer(object):
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
             next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
+            import pdb; pdb.set_trace()
             reward = torch.tensor(np.array(float(goal_achieved == final_goal)).astype(np.float32), device=self.device)
             self.memory.add(state, action, reward, next_state)
 
