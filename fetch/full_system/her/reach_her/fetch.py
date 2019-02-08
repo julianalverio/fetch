@@ -379,6 +379,7 @@ class Trainer(object):
             next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
             reward = torch.tensor(np.array(float(np.array_equal(goal_achieved, final_goal))).astype(np.float32), device=self.device)
             self.memory.add(state, action, reward, next_state, 0)
+        self.episode_buffer = list()
 
     def train(self):
         self.prefetch()
