@@ -47,6 +47,9 @@ class FetchEnv(robot_env.RobotEnv):
         super(FetchEnv, self).__init__(
             model_path=model_path, n_substeps=2, n_actions=4,
             initial_qpos=initial_qpos)
+        # to speed up the simulation, I have been using a gain of 0.2
+        # openai default is a gain of 0.05
+        self.gain = 0.2
 
     # GoalEnv methods
     # ----------------------------
@@ -73,7 +76,7 @@ class FetchEnv(robot_env.RobotEnv):
         action = action.copy()  # ensure that we don't change the action outside of this scope
         pos_ctrl, gripper_ctrl = action[:3], action[3]
 
-        pos_ctrl *= 0.2  # limit maximum change in position  # WARNING: ORIGINAL VALUE = 0.05
+        pos_ctrl *= self.gain  # limit maximum change in position  # WARNING: ORIGINAL VALUE = 0.05
         rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
         # assert gripper_ctrl.shape == (2,)
