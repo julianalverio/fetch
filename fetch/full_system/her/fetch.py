@@ -21,7 +21,7 @@ try:
     from .gym.envs.robotics.fetch.push import FetchPushEnv
     from .gym.envs.robotics.fetch.slide import FetchSlideEnv
     from .gym.envs.robotics.fetch.reach import FetchReachEnv
-except ImportError:
+except:
     import sys
     sys.path.insert(0, '..')
     from gym.envs.robotics import fetch_env
