@@ -21,8 +21,6 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 import time
 
-NUM_EPISODES = 2000
-MAX_ITERATIONS = 400
 
 # Actions:
 # 0 -- increment X
@@ -33,19 +31,6 @@ MAX_ITERATIONS = 400
 # 5 -- decrement Z
 # 6 -- continuously try to open gripper
 # 7 -- continuously try to close gripper
-
-HYPERPARAMS = {
-        'replay_size':      100,  # 8k baseline
-        'replay_initial':   8000,
-        'target_net_sync':  1000,
-        'epsilon_frames':   10**5 * 2,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.02,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       32
-}
-
 
 class DuelingDQN(nn.Module):
     def __init__(self, input_shape, num_actions):
@@ -161,8 +146,8 @@ class LinearScheduler(object):
 # TODO: add a pick and place environment where the starting position can also change
 # TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self, dueling=False, HER=False):
-        self.params = HYPERPARAMS
+    def __init__(self, hyperparams, dueling=False, HER=False):
+        self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
         self.observation_space = [3, 102, 205]
@@ -363,10 +348,10 @@ class Trainer(object):
         self.tb_writer.add_scalar('Epsilon', self.epsilon_scheduler.observeValue(), sum(self.episode_counters))
         self.episode_counters[self.task] += 1
 
-    def prefetch(self):
+    def prefetch(self, max_iterations):
         while len(self.memory) < self.params['replay_size']:
             self.reset()
-            for iteration in range(MAX_ITERATIONS):
+            for iteration in range(max_iterations):
                 reward = self.addExperience()
                 done = reward == 0
                 if done:
@@ -385,19 +370,19 @@ class Trainer(object):
             self.memory.add(state, action, reward, next_state, 0)
         self.episode_buffer = list()
 
-    def train(self):
-        self.prefetch()
+    def train(self, num_episodes, max_iterations):
+        self.prefetch(max_iterations)
         frame_idx = 0
-        for episode in range(NUM_EPISODES):
+        for episode in range(num_episodes):
             self.reset()
-            for iteration in range(MAX_ITERATIONS):
+            for iteration in range(max_iterations):
                 reward, done = self.addExperience()
                 self.optimizeModel()
                 frame_idx += 1
                 if frame_idx % self.params['target_net_sync'] == 0:
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
-                if done or iteration == MAX_ITERATIONS - 1:
+                if done or iteration == max_iterations - 1:
                     print('Episode Completed:', episode, 'Task:', self.task, 'Score:', reward)
                     self.logEpisode(iteration, reward)
                     if self.HER:
@@ -406,8 +391,8 @@ class Trainer(object):
 
 
 def cleanup():
-    if os.path.isdir('results_continuous'):
-        shutil.rmtree('results_continuous')
+    if os.path.isdir('results'):
+        shutil.rmtree('results')
     csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
     for csv_txt_file in csv_txt_files:
         os.remove(csv_txt_file)
@@ -422,6 +407,21 @@ def cleanup():
 
 
 if __name__ == "__main__":
+    hyperparams = {
+        'replay_size': 100,  # 8k baseline
+        'replay_initial': 8000,
+        'target_net_sync': 1000,
+        'epsilon_frames': 10 ** 5 * 2,
+        'epsilon_start': 1.0,
+        'epsilon_final': 0.02,
+        'learning_rate': 0.0001,
+        'gamma': 0.99,
+        'batch_size': 32
+    }
+
+    NUM_EPISODES = 2000
+    MAX_ITERATIONS = 400
+
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
     args = parser.parse_args()
@@ -430,9 +430,9 @@ if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
     print('Creating Trainer')
-    trainer = Trainer(dueling=False, HER=True)
+    trainer = Trainer(hyperparams, dueling=False, HER=True)
     print('Trainer Initialized')
-    trainer.train()
+    trainer.train(NUM_EPISODES, MAX_ITERATIONS)
 
 
 
