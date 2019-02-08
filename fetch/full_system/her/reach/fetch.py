@@ -21,8 +21,8 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 import time
 
-NUM_EPISODES = 3000
-MAX_ITERATIONS = 700
+NUM_EPISODES = 2000
+MAX_ITERATIONS = 400
 
 # Actions:
 # 0 -- increment X
@@ -38,7 +38,7 @@ HYPERPARAMS = {
         'replay_size':      8000,  # 8k
         'replay_initial':   8000,
         'target_net_sync':  1000,
-        'epsilon_frames':   10**5,
+        'epsilon_frames':   10**5 * 2,
         'epsilon_start':    1.0,
         'epsilon_final':    0.02,
         'learning_rate':    0.0001,
@@ -167,7 +167,7 @@ class Trainer(object):
         self.action_space = 8
         self.observation_space = [3, 102, 205]
 
-        self.envs = self.makeEnvs()
+        self.envs, self.env_names = self.makeEnvs()
         self.env = None
 
         self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
@@ -186,13 +186,19 @@ class Trainer(object):
 
     def makeEnvs(self):
         envs = list()
+        env_names = list()
         # envs.append(FetchPickAndPlaceEnv())
+        # env_names.append('pick and place')
         # envs.append(FetchSlideEnv)
+        # env_names.append('slide')
         # envs.append(FetchPushEnv())
+        # env_names.append('push')
         envs.append(FetchReachEnv())
+        env_names.append('reach')
         # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
+        # env_names.append('place')
         # self.place_env_idx = len(envs) - 1
-        return envs
+        return envs, env_names
 
     # there are some additional movements here to compensate for momentum
     def resetforPlacing(self, env):
@@ -337,9 +343,9 @@ class Trainer(object):
 
     def logEpisode(self, iteration, reward):
         self.reward_trackers[self.task].add(reward)
-        self.tb_writer.add_scalar('Steps per episode | task=%s' % self.task, iteration, self.episode_counters[self.task])
-        self.tb_writer.add_scalar('Score | task=%s' % self.task, reward, self.episode_counters[self.task])
-        self.tb_writer.add_scalar('Average Score | task=%s' % self.task, self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
+        self.tb_writer.add_scalar('Steps per episode | task=%s' % self.env_names[self.task], iteration, self.episode_counters[self.task])
+        self.tb_writer.add_scalar('Score | task=%s' % self.env_names[self.task], reward, self.episode_counters[self.task])
+        self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
         self.tb_writer.add_scalar('Epsilon', self.epsilon_scheduler.observeValue(), sum(self.episode_counters))
         self.episode_counters[self.task] += 1
 
