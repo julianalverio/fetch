@@ -158,7 +158,7 @@ class LinearScheduler(object):
 # TODO: add a pick and place environment where the starting position can also change
 # TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self, hyperparams, dueling=False, HER=False):
+    def __init__(self, hyperparams, dueling=False, HER=False, PER=False, ):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -181,7 +181,11 @@ class Trainer(object):
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
-        self.memory = ReplayBuffer(self.params['replay_size'])
+        if PER:
+            pass
+            # self.memory = PrioritizedReplayBuffer(self.params['replay_size'], alpha=)
+        else:
+            self.memory = ReplayBuffer(self.params['replay_size'])
         self.tb_writer = SummaryWriter('results')
 
         self.gripper_states = [0] * len(self.envs)  # 0 for opening, 1 for closing
@@ -435,15 +439,17 @@ if __name__ == "__main__":
     MAX_ITERATIONS = 400
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--her", action="store_true")
+    parser.add_argument("--dueling", action="store_true")
+    parser.add_argument("--per", action="store_true")
     parser.add_argument('gpu', type=int)
-    parser.add_argument('her', type=bool)
     args = parser.parse_args()
     gpu_num = args.gpu
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
     print('Creating Trainer')
-    trainer = Trainer(hyperparams, dueling=False, HER=args.her)
+    trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, PER=args.per)
     print('Trainer Initialized')
     trainer.train(NUM_EPISODES, MAX_ITERATIONS)
 
