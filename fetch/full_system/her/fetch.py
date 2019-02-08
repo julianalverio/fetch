@@ -208,52 +208,52 @@ class Trainer(object):
         self.env.reset()
         self.env.sim.nsubsteps = 2
         if self.task == self.place_env_idx:
-            self.resetforPlacing(self.env)
+            self.resetforPlacing()
         else:
             self.move([0, 0, 0, 0], 40)
         self.gripper_states[self.task] = 0
         self.env.render()
 
     # there are some additional movements here to compensate for momentum
-    def resetforPlacing(self, env):
-        object_position = env.sim.data.get_site_xpos('object0')
-        gripper_position = env.sim.data.get_site_xpos('robot0:grip')
+    def resetforPlacing(self):
+        object_position = self.env.sim.data.get_site_xpos('object0')
+        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         starting_position = copy.deepcopy(gripper_position)
 
         # Get x just right
         while gripper_position[0] > object_position[0]:
-            env.step([-1, 0, 0, 0])
+            self.env.step([-1, 0, 0, 0])
         while gripper_position[0] < object_position[0]:
-            env.step([1, 0, 0, 0])
+            self.env.step([1, 0, 0, 0])
 
         # Get y just right
         while gripper_position[1] > object_position[1]:
-            env.step([0, -1, 0, 0])
+            self.env.step([0, -1, 0, 0])
         while gripper_position[1] < object_position[1]:
-            env.step([0, 1, 0, 0])
+            self.env.step([0, 1, 0, 0])
 
-        env.move([0, 0, 0, 1], count=10)  # open
-        env.move([0, 0, -1, 1], count=20)  # drop
-        env.move([0, 0, 0, -1], count=15)  # close
+        self.env.move([0, 0, 0, 1], count=10)  # open
+        self.env.move([0, 0, -1, 1], count=20)  # drop
+        self.env.move([0, 0, 0, -1], count=15)  # close
 
         # get z right
         while gripper_position[2] < starting_position[2]:
-            env.step([0, 0, 1, -1])
-        env.step([0, 0, -1, -1])
+            self.env.step([0, 0, 1, -1])
+        self.env.step([0, 0, -1, -1])
         # get y right
         while gripper_position[1] < starting_position[1]:
-            env.step([0, 1, 0, -1])
-        env.step([0, -1, 0, -1])
+            self.env.step([0, 1, 0, -1])
+        self.env.step([0, -1, 0, -1])
         while gripper_position[1] > starting_position[1]:
-            env.step([0, -1, 0, -1])
-        env.step([0, 1, 0, -1])
+            self.env.step([0, -1, 0, -1])
+        self.env.step([0, 1, 0, -1])
         # get x right
         while gripper_position[0] > starting_position[0]:
-            env.step([-1, 0, 0 -1])
-        env.step([1, 0, 0 -1])
+            self.env.step([-1, 0, 0 -1])
+        self.env.step([1, 0, 0 -1])
         while gripper_position[0] < starting_position[0]:
-            env.step([1, 0, 0 - 1])
-        env.step([-1, 0, 0 - 1])
+            self.env.step([1, 0, 0 - 1])
+        self.env.step([-1, 0, 0 - 1])
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
