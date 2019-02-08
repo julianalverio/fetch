@@ -21,8 +21,6 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 import time
 
-NUM_EPISODES = 2000
-MAX_ITERATIONS = 400
 
 # Actions:
 # 0 -- increment X
@@ -33,19 +31,6 @@ MAX_ITERATIONS = 400
 # 5 -- decrement Z
 # 6 -- continuously try to open gripper
 # 7 -- continuously try to close gripper
-
-HYPERPARAMS = {
-        'replay_size':      8000,  # 8k
-        'replay_initial':   8000,
-        'target_net_sync':  1000,
-        'epsilon_frames':   10**5 * 2,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.02,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       32
-}
-
 
 class DuelingDQN(nn.Module):
     def __init__(self, input_shape, num_actions):
@@ -64,20 +49,20 @@ class DuelingDQN(nn.Module):
         conv_out_size = int(np.prod(conv_out.size()))
 
         self.fc_adv = nn.Sequential(
-            nn.Linear(in_features=conv_out_size + 1, out_features=512),
+            nn.Linear(in_features=conv_out_size + 3, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=num_actions)
         )
 
         self.fc_val = nn.Sequential(
-            nn.Linear(in_features=conv_out_size + 1, out_features=512),
+            nn.Linear(in_features=conv_out_size + 3, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=1)
         )
 
     def forward(self, state_and_goal):
-        #   WARNING: CURRENTLY BROKEN METHOD
-        state, goal = state_and_goal
+        state = state_and_goal[:, 0:3, :, :]
+        goal = state_and_goal[:, -1, 0, :3]
         state = self.conv(state)
         state = state.view(state.size(0), -1)
         x = torch.cat([state, goal], dim=1)
@@ -161,16 +146,23 @@ class LinearScheduler(object):
 # TODO: add a pick and place environment where the starting position can also change
 # TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self):
-        self.params = HYPERPARAMS
+    def __init__(self, hyperparams, dueling=False, HER=False):
+        self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
         self.observation_space = [3, 102, 205]
 
+        if HER:
+            self.episode_buffer = []
+        self.HER = HER
+
         self.envs, self.env_names = self.makeEnvs()
         self.env = None
 
-        self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
+        if dueling:
+            self.policy_net = DuelingDQN(self.observation_space, self.action_space).to(self.device)
+        else:
+            self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
 
         self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['epsilon_frames'])
@@ -199,6 +191,19 @@ class Trainer(object):
         # env_names.append('place')
         # self.place_env_idx = len(envs) - 1
         return envs, env_names
+
+    def reset(self):
+        self.task = random.randrange(0, len(self.envs))
+        print('Task:', self.task)
+        env = self.envs[self.task]
+        env.reset()
+        if self.task == self.place_env_idx:
+            self.resetforPlacing(env)
+        else:
+            env.move([0, 0, 0, 0], 40)
+        self.gripper_states[self.task] = 0
+        self.env = env
+        self.env.render()
 
     # there are some additional movements here to compensate for momentum
     def resetforPlacing(self, env):
@@ -241,17 +246,6 @@ class Trainer(object):
             env.step([1, 0, 0 - 1])
         env.step([-1, 0, 0 - 1])
 
-    def reset(self):
-        self.task = random.randrange(0, len(self.envs))
-        print('Task:', self.task)
-        env = self.envs[self.task]
-        env.reset()
-        if self.task == self.place_env_idx:
-            self.resetforPlacing(env)
-        self.gripper_states[self.task] = 0
-        self.env = env
-        self.env.render()
-
     def preprocess(self, state):
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
@@ -279,11 +273,14 @@ class Trainer(object):
             movement[-1] = -1
         return movement
 
-    def prepareState(self, goal_prime=None):
+    def prepareState(self, state_prime=None, goal_prime=None):
         state, goal = self.env.getStateAndGoal()
-        if goal_prime:
+        if goal_prime is not None:
             goal = goal_prime
-        state = self.preprocess(state)
+        if state_prime is not None:
+            state = state_prime
+        else:
+            state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
@@ -300,6 +297,8 @@ class Trainer(object):
         next_state = self.prepareState()
         reward = torch.tensor(self.env.getReward(), device=self.device)  # 0 or -1
         self.memory.add(state, action, reward, next_state, reward)
+        if self.HER:
+            self.episode_buffer.append((state[:, 0:3, :, :], action, next_state[:, 0:3, :, :], self.env.getGoalAchieved()))
         return reward, reward == 0
 
     def optimizeModel(self):
@@ -349,39 +348,51 @@ class Trainer(object):
         self.tb_writer.add_scalar('Epsilon', self.epsilon_scheduler.observeValue(), sum(self.episode_counters))
         self.episode_counters[self.task] += 1
 
-    def prefetch(self):
-        while 1:
+    def prefetch(self, max_iterations):
+        while len(self.memory) < self.params['replay_size']:
             self.reset()
-            for iteration in range(MAX_ITERATIONS):
+            for iteration in range(max_iterations):
                 reward = self.addExperience()
                 done = reward == 0
-                if len(self.memory) >= self.params['replay_initial']:
-                    print('Done Prefetching.')
-                    return
                 if done:
                     break
+        print('Done Prefetching.')
 
-    def train(self):
-        self.prefetch()
+    # 'FINAL' implementation
+    def HERFinal(self):
+        final_goal = self.episode_buffer[-1][-1]
+        for state, action, next_state, goal_achieved in self.episode_buffer:
+            state = self.prepareState(state_prime=state, goal_prime=final_goal)
+            next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
+            distance = np.linalg.norm(goal_achieved - final_goal)
+            reward = -(distance < self.env.distance_threshold).astype(np.float32)
+            reward = torch.tensor(np.array(reward), device=self.device)
+            self.memory.add(state, action, reward, next_state, 0)
+        self.episode_buffer = list()
+
+    def train(self, num_episodes, max_iterations):
+        self.prefetch(max_iterations)
         frame_idx = 0
-        for episode in range(NUM_EPISODES):
+        for episode in range(num_episodes):
             self.reset()
-            for iteration in range(MAX_ITERATIONS):
+            for iteration in range(max_iterations):
                 reward, done = self.addExperience()
                 self.optimizeModel()
                 frame_idx += 1
                 if frame_idx % self.params['target_net_sync'] == 0:
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
-                if done or iteration == MAX_ITERATIONS - 1:
+                if done or iteration == max_iterations - 1:
                     print('Episode Completed:', episode, 'Task:', self.task, 'Score:', reward)
                     self.logEpisode(iteration, reward)
+                    if self.HER:
+                        self.HERFinal()
                     break
 
 
 def cleanup():
-    if os.path.isdir('results_continuous'):
-        shutil.rmtree('results_continuous')
+    if os.path.isdir('results'):
+        shutil.rmtree('results')
     csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
     for csv_txt_file in csv_txt_files:
         os.remove(csv_txt_file)
@@ -396,16 +407,33 @@ def cleanup():
 
 
 if __name__ == "__main__":
+    hyperparams = {
+        'replay_size': 100,  # 8k baseline
+        'replay_initial': 8000,
+        'target_net_sync': 1000,
+        'epsilon_frames': 10 ** 5 * 2,
+        'epsilon_start': 1.0,
+        'epsilon_final': 0.02,
+        'learning_rate': 0.0001,
+        'gamma': 0.99,
+        'batch_size': 32
+    }
+
+    NUM_EPISODES = 2000
+    MAX_ITERATIONS = 400
+
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    gpu_num = parser.parse_args().gpu
+    parser.add_argument('her', type=bool)
+    args = parser.parse_args()
+    gpu_num = args.gpu
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
     print('Creating Trainer')
-    trainer = Trainer()
+    trainer = Trainer(hyperparams, dueling=False, HER=args.her)
     print('Trainer Initialized')
-    trainer.train()
+    trainer.train(NUM_EPISODES, MAX_ITERATIONS)
 
 
 

@@ -424,13 +424,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
+    parser.add_argument('her', type=bool)
     args = parser.parse_args()
     gpu_num = args.gpu
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
     print('Creating Trainer')
-    trainer = Trainer(hyperparams, dueling=False, HER=True)
+    trainer = Trainer(hyperparams, dueling=False, HER=args.her)
     print('Trainer Initialized')
     trainer.train(NUM_EPISODES, MAX_ITERATIONS)
 
