@@ -211,8 +211,8 @@ class Trainer(object):
         self.env.gain = 0.2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
-        else:
-            self.move([0, 0, 0, 0], 40)
+        # else:
+        #     self.move([0, 0, 0, 0], 40)
         self.gripper_states[self.task] = 0
         self.env.render()
 
