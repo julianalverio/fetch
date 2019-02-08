@@ -35,7 +35,7 @@ MAX_ITERATIONS = 400
 # 7 -- continuously try to close gripper
 
 HYPERPARAMS = {
-        'replay_size':      8000,  # 8k
+        'replay_size':      15000,  # 8k baseline
         'replay_initial':   8000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5 * 2,
@@ -64,20 +64,20 @@ class DuelingDQN(nn.Module):
         conv_out_size = int(np.prod(conv_out.size()))
 
         self.fc_adv = nn.Sequential(
-            nn.Linear(in_features=conv_out_size + 1, out_features=512),
+            nn.Linear(in_features=conv_out_size + 3, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=num_actions)
         )
 
         self.fc_val = nn.Sequential(
-            nn.Linear(in_features=conv_out_size + 1, out_features=512),
+            nn.Linear(in_features=conv_out_size + 3, out_features=512),
             nn.ReLU(),
             nn.Linear(in_features=512, out_features=1)
         )
 
     def forward(self, state_and_goal):
-        #   WARNING: CURRENTLY BROKEN METHOD
-        state, goal = state_and_goal
+        state = state_and_goal[:, 0:3, :, :]
+        goal = state_and_goal[:, -1, 0, :3]
         state = self.conv(state)
         state = state.view(state.size(0), -1)
         x = torch.cat([state, goal], dim=1)
@@ -161,16 +161,23 @@ class LinearScheduler(object):
 # TODO: add a pick and place environment where the starting position can also change
 # TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self):
+    def __init__(self, dueling=False, HER=False):
         self.params = HYPERPARAMS
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
         self.observation_space = [3, 102, 205]
 
+        if HER:
+            self.episode_buffer = []
+        self.HER = HER
+
         self.envs, self.env_names = self.makeEnvs()
         self.env = None
 
-        self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
+        if dueling:
+            self.policy_net = DuelingDQN(self.observation_space, self.action_space).to(self.device)
+        else:
+            self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
 
         self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['epsilon_frames'])
@@ -279,10 +286,12 @@ class Trainer(object):
             movement[-1] = -1
         return movement
 
-    def prepareState(self, goal_prime=None):
+    def prepareState(self, state_prime=None, goal_prime=None):
         state, goal = self.env.getStateAndGoal()
-        if goal_prime:
+        if goal_prime is not None:
             goal = goal_prime
+        if state_prime is not None:
+            state = state_prime
         state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
@@ -300,6 +309,8 @@ class Trainer(object):
         next_state = self.prepareState()
         reward = torch.tensor(self.env.getReward(), device=self.device)  # 0 or -1
         self.memory.add(state, action, reward, next_state, reward)
+        if self.HER:
+            self.episode_buffer.append((state[:, 0:3, :, :], action, next_state[:, 0:3, :, :], self.env.getGoalAchieved()))
         return reward, reward == 0
 
     def optimizeModel(self):
@@ -361,6 +372,15 @@ class Trainer(object):
                 if done:
                     break
 
+    # 'FINAL' implementation
+    def HERFinal(self):
+        final_goal = self.episode_buffer[-1][-1]
+        for state, action, next_state, goal_achieved in self.episode_buffer:
+            state = self.prepareState(state_prime=state, goal_prime=final_goal)
+            next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
+            reward = torch.tensor(np.array(float(goal_achieved == final_goal)).astype(np.float32), device=self.device)
+            self.memory.add(state, action, reward, next_state)
+
     def train(self):
         self.prefetch()
         frame_idx = 0
@@ -376,6 +396,8 @@ class Trainer(object):
                 if done or iteration == MAX_ITERATIONS - 1:
                     print('Episode Completed:', episode, 'Task:', self.task, 'Score:', reward)
                     self.logEpisode(iteration, reward)
+                    if self.HER:
+                        self.HERFinal()
                     break
 
 
@@ -398,12 +420,15 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    gpu_num = parser.parse_args().gpu
+    parser.add_argument('her', type=bool)
+    args = parser.parse_args()
+    gpu_num = args.gpu
+    her =
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
     print('Creating Trainer')
-    trainer = Trainer()
+    trainer = Trainer(dueling=False, HER=True)
     print('Trainer Initialized')
     trainer.train()
 

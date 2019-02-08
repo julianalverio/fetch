@@ -199,6 +199,12 @@ class FetchEnv(robot_env.RobotEnv):
         reward = self.compute_reward(goal_achieved, goal, dict())
         return np.array(reward)
 
+    def getGoalAchieved(self):
+        if self.has_object:
+            return self.sim.data.get_site_xpos('object0').copy()
+        else:
+            return self.sim.data.get_site_xpos('robot0:grip')
+
     def getDistance(self):
         if self.has_object:
             goal_achieved = self.sim.data.get_site_xpos('object0').copy()
