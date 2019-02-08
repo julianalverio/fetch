@@ -287,6 +287,7 @@ class Trainer(object):
             state = state_prime
         else:
             state, goal = self.env.getStateAndGoal()
+        import pdb; pdb.set_trace()
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
