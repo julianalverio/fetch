@@ -26,8 +26,6 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 
 
-
-
 # Actions:
 # 0 -- increment X
 # 1 -- decrement X
@@ -421,7 +419,7 @@ def cleanup():
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 100,  # 8k baseline
+        'replay_size': 15000,  # 8k baseline
         'replay_initial': 8000,
         'target_net_sync': 1000,
         'epsilon_frames': 10 ** 5 * 2,
@@ -433,7 +431,7 @@ if __name__ == "__main__":
     }
 
     NUM_EPISODES = 2000
-    MAX_ITERATIONS = 400
+    MAX_ITERATIONS = 300
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--her", action="store_true")
