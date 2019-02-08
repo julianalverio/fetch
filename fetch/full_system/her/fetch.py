@@ -16,6 +16,7 @@ import time
 import sys
 import copy
 old_path = copy.deepcopy(sys.path)
+import pdb; pdb.set_trace()
 try:
     sys.path = ['.']
     from .gym.envs.robotics import fetch_env
