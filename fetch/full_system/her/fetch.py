@@ -204,7 +204,9 @@ class Trainer(object):
         self.task = random.randrange(0, len(self.envs))
         print('Task:', self.task)
         self.env = self.envs[self.task]
+        self.env.sim.nsubsteps = 20
         self.env.reset()
+        self.env.sim.nsubsteps = 2
         if self.task == self.place_env_idx:
             self.resetforPlacing(self.env)
         else:
