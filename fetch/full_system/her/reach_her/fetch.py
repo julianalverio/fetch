@@ -207,6 +207,20 @@ class Trainer(object):
         # self.place_env_idx = len(envs) - 1
         return envs, env_names
 
+    def reset(self):
+        self.task = random.randrange(0, len(self.envs))
+        print('Task:', self.task)
+        env = self.envs[self.task]
+        env.reset()
+        if self.task == self.place_env_idx:
+            self.resetforPlacing(env)
+        else:
+            env.move([0, 0, 0, 0], 40)
+        self.gripper_states[self.task] = 0
+        self.env = env
+        self.env.render()
+        import pdb; pdb.set_trace()
+
     # there are some additional movements here to compensate for momentum
     def resetforPlacing(self, env):
         object_position = env.sim.data.get_site_xpos('object0')
@@ -247,17 +261,6 @@ class Trainer(object):
         while gripper_position[0] < starting_position[0]:
             env.step([1, 0, 0 - 1])
         env.step([-1, 0, 0 - 1])
-
-    def reset(self):
-        self.task = random.randrange(0, len(self.envs))
-        print('Task:', self.task)
-        env = self.envs[self.task]
-        env.reset()
-        if self.task == self.place_env_idx:
-            self.resetforPlacing(env)
-        self.gripper_states[self.task] = 0
-        self.env = env
-        self.env.render()
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
@@ -378,7 +381,9 @@ class Trainer(object):
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
             next_state = self.prepareState(state_prime=next_state, goal_prime=final_goal)
-            reward = torch.tensor(np.array(float(np.array_equal(goal_achieved, final_goal))).astype(np.float32), device=self.device)
+            distance = np.linalg.norm(goal_achieved - final_goal)
+            reward = -(distance < self.env.distance_threshold).astype(np.float32)
+            reward = torch.tensor(np.array(reward), device=self.device)
             self.memory.add(state, action, reward, next_state, 0)
         self.episode_buffer = list()
 
