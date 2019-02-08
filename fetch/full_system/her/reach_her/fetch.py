@@ -288,9 +288,9 @@ class Trainer(object):
 
     def prepareState(self, state_prime=None, goal_prime=None):
         state, goal = self.env.getStateAndGoal()
-        if goal_prime:
+        if goal_prime is not None:
             goal = goal_prime
-        if state_prime:
+        if state_prime is not None:
             state = state_prime
         state = self.preprocess(state)
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
@@ -420,7 +420,10 @@ def cleanup():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('gpu', type=int)
-    gpu_num = parser.parse_args().gpu
+    parser.add_argument('her', type=bool)
+    args = parser.parse_args()
+    gpu_num = args.gpu
+    her =
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     cleanup()
