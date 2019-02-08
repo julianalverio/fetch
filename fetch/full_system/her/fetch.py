@@ -211,14 +211,13 @@ class Trainer(object):
     def reset(self):
         self.task = random.randrange(0, len(self.envs))
         print('Task:', self.task)
-        env = self.envs[self.task]
-        env.reset()
+        self.env = self.envs[self.task]
+        self.env.reset()
         if self.task == self.place_env_idx:
-            self.resetforPlacing(env)
+            self.resetforPlacing(self.env)
         else:
             self.move([0, 0, 0, 0], 40)
         self.gripper_states[self.task] = 0
-        self.env = env
         self.env.render()
 
     # there are some additional movements here to compensate for momentum
