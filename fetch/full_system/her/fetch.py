@@ -188,17 +188,17 @@ class Trainer(object):
     def makeEnvs(self):
         envs = list()
         env_names = list()
-        envs.append(FetchPickAndPlaceEnv())
-        env_names.append('pick and place')
+        # envs.append(FetchPickAndPlaceEnv())
+        # env_names.append('pick and place')
         # envs.append(FetchSlideEnv())
         # env_names.append('slide')
         # envs.append(FetchPushEnv())
         # env_names.append('push')
         # envs.append(FetchReachEnv())
         # env_names.append('reach')
-        # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
-        # env_names.append('place')
-        # self.place_env_idx = len(envs) - 1
+        envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
+        env_names.append('place')
+        self.place_env_idx = len(envs) - 1
         return envs, env_names
 
     def reset(self):
