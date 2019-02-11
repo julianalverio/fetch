@@ -204,6 +204,7 @@ class Trainer(object):
         self.task = random.randrange(0, len(self.envs))
         print('Task:', self.task)
         self.env = self.envs[self.task]
+        import pdb; pdb.set_trace()
         self.env.sim.nsubsteps = 20
         self.env.gain = 0.05
         self.env.reset()
