@@ -151,7 +151,7 @@ class LinearScheduler(object):
 # TODO: add a pick and place environment where the starting position can also change
 # TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self, hyperparams, dueling=False, HER=False, PER=False, ):
+    def __init__(self, hyperparams, dueling=False, HER=False, PER=False):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -259,8 +259,7 @@ class Trainer(object):
         self.env.step([-1, 0, 0 - 1])
 
     def preprocess(self, state):
-        import pdb; pdb.set_trace()
-        state = state[230:435, 50:460]
+        state = state[180:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -293,6 +292,7 @@ class Trainer(object):
         else:
             state, goal = self.env.getStateAndGoal()
             state = self.preprocess(state)
+        import pdb; pdb.set_trace()
         goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
