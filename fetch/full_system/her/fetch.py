@@ -188,17 +188,17 @@ class Trainer(object):
     def makeEnvs(self):
         envs = list()
         env_names = list()
-        # envs.append(FetchPickAndPlaceEnv())
-        # env_names.append('pick and place')
+        envs.append(FetchPickAndPlaceEnv())
+        env_names.append('pick and place')
         # envs.append(FetchSlideEnv())
         # env_names.append('slide')
         # envs.append(FetchPushEnv())
         # env_names.append('push')
         # envs.append(FetchReachEnv())
         # env_names.append('reach')
-        envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
-        env_names.append('place')
-        self.place_env_idx = len(envs) - 1
+        # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
+        # env_names.append('place')
+        # self.place_env_idx = len(envs) - 1
         return envs, env_names
 
     def reset(self):
@@ -455,7 +455,7 @@ def cleanup():
 if __name__ == "__main__":
     hyperparams = {
         'replay_size': 15000,  # 8k baseline
-        'replay_initial': 8000,
+        'replay_initial': 15000,  # TODO: tune this
         'target_net_sync': 1000,
         'epsilon_frames': 10 ** 5 * 2,
         'epsilon_start': 1.0,
@@ -468,6 +468,7 @@ if __name__ == "__main__":
     NUM_EPISODES = 2000
     MAX_ITERATIONS = 300
 
+    # TODO: make it easier to specify envs from command line
     parser = argparse.ArgumentParser()
     parser.add_argument("--her", action="store_true")
     parser.add_argument("--dueling", action="store_true")
