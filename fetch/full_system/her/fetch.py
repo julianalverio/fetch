@@ -223,6 +223,7 @@ class Trainer(object):
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         starting_position = copy.deepcopy(gripper_position)
 
+        self.renderalot()
         import pdb; pdb.set_trace()
         # Get x just right
         while gripper_position[0] > object_position[0]:
