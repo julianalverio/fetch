@@ -73,7 +73,7 @@ class FetchEnv(robot_env.RobotEnv):
         # assert action.shape == (4,)
         action = action.copy()  # ensure that we don't change the action outside of this scope
         pos_ctrl, gripper_ctrl = action[:3], action[3]
-
+        import pdb; pdb.set_trace()
         pos_ctrl *= self.gain  # limit maximum change in position  # WARNING: ORIGINAL VALUE = 0.05
         rot_ctrl = [1., 0., 1., 0.]  # fixed rotation of the end effector, expressed as a quaternion
         gripper_ctrl = np.array([gripper_ctrl, gripper_ctrl])
