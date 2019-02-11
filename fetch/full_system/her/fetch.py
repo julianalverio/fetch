@@ -156,6 +156,7 @@ class Trainer(object):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
         self.observation_space = [3, 127, 205]
+        self.place_env_idx = None
 
         if HER:
             self.episode_buffer = []
@@ -183,7 +184,6 @@ class Trainer(object):
 
         self.gripper_states = [0] * len(self.envs)  # 0 for opening, 1 for closing
         self.task = 0
-        self.place_env_idx = None
 
     def makeEnvs(self):
         envs = list()
