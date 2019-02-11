@@ -190,7 +190,7 @@ class Trainer(object):
         env_names = list()
         # envs.append(FetchPickAndPlaceEnv())
         # env_names.append('pick and place')
-        envs.append(FetchSlideEnv)
+        envs.append(FetchSlideEnv())
         env_names.append('slide')
         # envs.append(FetchPushEnv())
         # env_names.append('push')
