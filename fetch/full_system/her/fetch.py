@@ -187,6 +187,7 @@ class Trainer(object):
     def makeEnvs(self):
         envs = list()
         env_names = list()
+        import pdb; pdb.set_trace()
         envs.append(FetchPickAndPlaceEnv())
         env_names.append('pick and place')
         # envs.append(FetchSlideEnv)
