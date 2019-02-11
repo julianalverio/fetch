@@ -218,6 +218,7 @@ class Trainer(object):
         self.env.render()
 
     # there are some additional movements here to compensate for momentum
+    # WARNING: THIS METHOD HAS YET TO BE TUNED
     def resetforPlacing(self):
         object_position = self.env.sim.data.get_site_xpos('object0')
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
@@ -254,6 +255,7 @@ class Trainer(object):
         self.renderalot()
         self.env.move([0., 0., -1., 1.], count=20)  # drop
         self.renderalot()
+        import pdb; pdb.set_trace()
         self.env.move([0., 0., 0., -1.], count=15)  # close
         self.renderalot()
 
