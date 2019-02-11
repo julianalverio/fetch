@@ -22,7 +22,7 @@ class RobotEnv(gym.GoalEnv):
             raise IOError('File {} does not exist'.format(fullpath))
 
         model = mujoco_py.load_model_from_path(fullpath)
-        self.sim = mujoco_py.MjSim(model, nsubsteps=2)
+        self.sim = mujoco_py.MjSim(model, nsubsteps=n_substeps)
         self.viewer = None
 
         self.metadata = {
@@ -33,15 +33,6 @@ class RobotEnv(gym.GoalEnv):
         self.seed()
         self._env_setup(initial_qpos=initial_qpos)
         self.initial_state = copy.deepcopy(self.sim.get_state())
-
-        self.goal = self._sample_goal()
-        obs = self._get_obs()
-        self.action_space = spaces.Box(-1., 1., shape=(n_actions,), dtype='float32')
-        self.observation_space = spaces.Dict(dict(
-            desired_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
-            achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
-            observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
-        ))
 
     @property
     def dt(self):

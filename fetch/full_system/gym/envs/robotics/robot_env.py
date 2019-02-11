@@ -33,8 +33,6 @@ class RobotEnv(gym.GoalEnv):
         self.seed()
         self._env_setup(initial_qpos=initial_qpos)
         self.initial_state = copy.deepcopy(self.sim.get_state())
-        print(self.initial_state)
-        import pdb; pdb.set_trace()
 
         # self.goal = self._sample_goal()
         # obs = self._get_obs()
