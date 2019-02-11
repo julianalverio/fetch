@@ -55,8 +55,8 @@ class RobotEnv(gym.GoalEnv):
         return [seed]
 
     def step(self, action):
-        import pdb; pdb.set_trace()
-        action = np.clip(action, self.action_space.low, self.action_space.high)
+        action = np.array(action)
+        # action = np.clip(action, self.action_space.low, self.action_space.high)
         self._set_action(action)
         self.sim.step()
         self._step_callback()
