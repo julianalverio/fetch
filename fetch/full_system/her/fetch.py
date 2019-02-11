@@ -188,17 +188,17 @@ class Trainer(object):
     def makeEnvs(self):
         envs = list()
         env_names = list()
-        # envs.append(FetchPickAndPlaceEnv())
-        # env_names.append('pick and place')
+        envs.append(FetchPickAndPlaceEnv())
+        env_names.append('pick and place')
         # envs.append(FetchSlideEnv())
         # env_names.append('slide')
         # envs.append(FetchPushEnv())
         # env_names.append('push')
         # envs.append(FetchReachEnv())
         # env_names.append('reach')
-        envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
-        env_names.append('place')
-        self.place_env_idx = len(envs) - 1
+        # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
+        # env_names.append('place')
+        # self.place_env_idx = len(envs) - 1
         return envs, env_names
 
     def reset(self):
@@ -260,7 +260,6 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[230:435, 50:460]
-        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
