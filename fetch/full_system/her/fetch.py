@@ -205,8 +205,8 @@ class Trainer(object):
         print('Task:', self.task)
         self.env = self.envs[self.task]
         import pdb; pdb.set_trace()
-        # self.env.sim.nsubsteps = 20
-        # self.env.gain = 0.05
+        self.env.sim.nsubsteps = 20
+        self.env.gain = 0.05
         self.env.reset()
         self.env.sim.nsubsteps = 2
         self.env.gain = 0.2
