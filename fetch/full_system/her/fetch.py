@@ -209,7 +209,7 @@ class Trainer(object):
         # self.env.gain = 0.05
         self.env.reset()
         self.env.sim.nsubsteps = 2
-        self.env.gain = 0.2
+        # self.env.gain = 0.2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         # else:

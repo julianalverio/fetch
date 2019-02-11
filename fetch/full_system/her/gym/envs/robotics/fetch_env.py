@@ -47,7 +47,7 @@ class FetchEnv(robot_env.RobotEnv):
             initial_qpos=initial_qpos)
         # to speed up the simulation, I have been using a gain of 0.2
         # openai default is a gain of 0.05
-        self.gain = 0.05
+        self.gain = 0.2
 
     # GoalEnv methods
     # ----------------------------
