@@ -225,38 +225,38 @@ class Trainer(object):
 
         # Get x just right
         while gripper_position[0] > object_position[0]:
-            self.env.step([-1, 0, 0, 0])
+            self.env.step([-1., 0., 0., 0.])
         while gripper_position[0] < object_position[0]:
-            self.env.step([1, 0, 0, 0])
+            self.env.step([1., 0., 0., 0.])
 
         # Get y just right
         while gripper_position[1] > object_position[1]:
-            self.env.step([0, -1, 0, 0])
+            self.env.step([0., -1., 0., 0.])
         while gripper_position[1] < object_position[1]:
-            self.env.step([0, 1, 0, 0])
+            self.env.step([0., 1., 0., 0.])
 
-        self.env.move([0, 0, 0, 1], count=10)  # open
-        self.env.move([0, 0, -1, 1], count=20)  # drop
-        self.env.move([0, 0, 0, -1], count=15)  # close
+        self.env.move([0., 0., 0., 1.], count=10)  # open
+        self.env.move([0., 0., -1., 1.], count=20)  # drop
+        self.env.move([0., 0., 0., -1.], count=15)  # close
 
         # get z right
         while gripper_position[2] < starting_position[2]:
-            self.env.step([0, 0, 1, -1])
-        self.env.step([0, 0, -1, -1])
+            self.env.step([0., 0., 1., -1.])
+        self.env.step([0., 0., -1., -1.])
         # get y right
         while gripper_position[1] < starting_position[1]:
-            self.env.step([0, 1, 0, -1])
-        self.env.step([0, -1, 0, -1])
+            self.env.step([0., 1., 0., -1.])
+        self.env.step([0., -1., 0., -1.])
         while gripper_position[1] > starting_position[1]:
-            self.env.step([0, -1, 0, -1])
-        self.env.step([0, 1, 0, -1])
+            self.env.step([0., -1., 0., -1.])
+        self.env.step([0., 1., 0., -1.])
         # get x right
         while gripper_position[0] > starting_position[0]:
-            self.env.step([-1, 0, 0 -1])
-        self.env.step([1, 0, 0 -1])
+            self.env.step([-1., 0., 0., -1.])
+        self.env.step([1., 0., 0., -1.])
         while gripper_position[0] < starting_position[0]:
-            self.env.step([1, 0, 0 - 1])
-        self.env.step([-1, 0, 0 - 1])
+            self.env.step([1., 0., 0, -1.])
+        self.env.step([-1., 0., 0., -1])
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
