@@ -187,7 +187,6 @@ class Trainer(object):
     def makeEnvs(self):
         envs = list()
         env_names = list()
-        import pdb; pdb.set_trace()
         envs.append(FetchPickAndPlaceEnv())
         env_names.append('pick and place')
         # envs.append(FetchSlideEnv)
@@ -206,8 +205,8 @@ class Trainer(object):
         print('Task:', self.task)
         self.env = self.envs[self.task]
         import pdb; pdb.set_trace()
-        self.env.sim.nsubsteps = 20
-        self.env.gain = 0.05
+        # self.env.sim.nsubsteps = 20
+        # self.env.gain = 0.05
         self.env.reset()
         self.env.sim.nsubsteps = 2
         self.env.gain = 0.2
