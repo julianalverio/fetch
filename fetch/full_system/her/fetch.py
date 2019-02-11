@@ -219,11 +219,11 @@ class Trainer(object):
 
     # there are some additional movements here to compensate for momentum
     def resetforPlacing(self):
-        import pdb; pdb.set_trace()
         object_position = self.env.sim.data.get_site_xpos('object0')
         gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
         starting_position = copy.deepcopy(gripper_position)
 
+        import pdb; pdb.set_trace()
         # Get x just right
         while gripper_position[0] > object_position[0]:
             self.env.step([-1., 0., 0., 0.])
