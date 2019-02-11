@@ -198,7 +198,6 @@ class Trainer(object):
         # env_names.append('reach')
         envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
         env_names.append('place')
-        import pdb; pdb.set_trace()
         self.place_env_idx = len(envs) - 1
         return envs, env_names
 
@@ -211,7 +210,6 @@ class Trainer(object):
         self.env.reset()
         self.env.sim.nsubsteps = 2
         # self.env.gain = 0.2
-        import pdb; pdb.set_trace()
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         # else:

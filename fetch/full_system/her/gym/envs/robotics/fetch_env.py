@@ -214,3 +214,7 @@ class FetchEnv(robot_env.RobotEnv):
             goal_achieved = self.sim.data.get_site_xpos('robot0:grip')
         goal = self.goal.copy()
         return goal_distance(goal_achieved, goal)
+
+    def move(self, action, count=10):
+        for _ in range(count):
+            self.step(action)
