@@ -42,7 +42,7 @@ class RobotEnv(gym.GoalEnv):
             raise IOError('File {} does not exist'.format(fullpath))
 
         model = mujoco_py.load_model_from_path(fullpath)
-        self.sim = mujoco_py.MjSim(model, nsubsteps=n_substeps)
+        self.sim = mujoco_py.MjSim(model, nsubsteps=2)
         self.viewer = None
 
         self.metadata = {
