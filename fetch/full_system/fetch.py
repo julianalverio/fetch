@@ -508,6 +508,7 @@ class Trainer(object):
             self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
             self.reset()
+            import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
                 # execute one move
                 frame_idx += 1
