@@ -227,36 +227,52 @@ class Trainer(object):
         # Get x just right
         while gripper_position[0] > object_position[0]:
             self.env.step([-1., 0., 0., 0.])
+            self.renderalot()
         while gripper_position[0] < object_position[0]:
             self.env.step([1., 0., 0., 0.])
+            self.renderalot()
 
         # Get y just right
         while gripper_position[1] > object_position[1]:
             self.env.step([0., -1., 0., 0.])
+            self.renderalot()
         while gripper_position[1] < object_position[1]:
             self.env.step([0., 1., 0., 0.])
+            self.renderalot()
 
         self.env.move([0., 0., 0., 1.], count=10)  # open
+        self.renderalot()
         self.env.move([0., 0., -1., 1.], count=20)  # drop
+        self.renderalot()
         self.env.move([0., 0., 0., -1.], count=15)  # close
+        self.renderalot()
 
         # get z right
         while gripper_position[2] < starting_position[2]:
             self.env.step([0., 0., 1., -1.])
+            self.renderalot()
         self.env.step([0., 0., -1., -1.])
+        self.renderalot()
         # get y right
         while gripper_position[1] < starting_position[1]:
             self.env.step([0., 1., 0., -1.])
+            self.renderalot()
         self.env.step([0., -1., 0., -1.])
+        self.renderalot()
         while gripper_position[1] > starting_position[1]:
             self.env.step([0., -1., 0., -1.])
+            self.renderalot()
         self.env.step([0., 1., 0., -1.])
+        self.renderalot()
         # get x right
         while gripper_position[0] > starting_position[0]:
             self.env.step([-1., 0., 0., -1.])
+            self.renderalot()
         self.env.step([1., 0., 0., -1.])
+        self.renderalot()
         while gripper_position[0] < starting_position[0]:
             self.env.step([1., 0., 0, -1.])
+            self.renderalot()
         self.env.step([-1., 0., 0., -1])
         self.renderalot()
         import pdb; pdb.set_trace()
