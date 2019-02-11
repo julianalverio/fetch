@@ -210,6 +210,7 @@ class Trainer(object):
         self.env.reset()
         self.env.sim.nsubsteps = 2
         # self.env.gain = 0.2
+        import pdb; pdb.set_trace()
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         # else:
