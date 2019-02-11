@@ -231,7 +231,7 @@ class Trainer(object):
                 self.env.step([-1., 0., 0., 0.])
                 self.renderalot()
             self.move([1., 0., 0., 0.], 2)
-        if gripper_position[0] < object_position[0]:
+        elif gripper_position[0] < object_position[0]:
             while gripper_position[0] < object_position[0]:
                 self.env.step([1., 0., 0., 0.])
                 self.renderalot()
@@ -244,7 +244,7 @@ class Trainer(object):
                 self.renderalot()
             self.env.step([0., 1., 0., 0.])
 
-        if gripper_position[1] < object_position[1]:
+        elif gripper_position[1] < object_position[1]:
             while gripper_position[1] < object_position[1]:
                 self.env.step([0., 1., 0., 0.])
                 self.renderalot()
