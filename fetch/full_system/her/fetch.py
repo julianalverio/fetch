@@ -155,7 +155,7 @@ class Trainer(object):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
-        self.observation_space = [3, 102, 205]
+        self.observation_space = [3, 127, 205]
 
         if HER:
             self.episode_buffer = []
@@ -292,8 +292,7 @@ class Trainer(object):
         else:
             state, goal = self.env.getStateAndGoal()
             state = self.preprocess(state)
-        import pdb; pdb.set_trace()
-        goal_zeros = np.zeros([1, 1, 205, 102], dtype=np.float32)
+        goal_zeros = np.zeros([1, 1, 205, 127], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
         return torch.cat([state, goal], dim=1)
