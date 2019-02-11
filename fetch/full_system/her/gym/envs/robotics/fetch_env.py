@@ -18,7 +18,6 @@ class FetchEnv(robot_env.RobotEnv):
         distance_threshold, initial_qpos, reward_type,
     ):
         """Initializes a new Fetch environment.
-
         Args:
             model_path (string): path to the environments XML file
             n_substeps (int): number of substeps the simulation runs on every call to step
@@ -43,13 +42,12 @@ class FetchEnv(robot_env.RobotEnv):
         self.distance_threshold = distance_threshold
         self.reward_type = reward_type
 
-        # WARNING: SUBSTEP COUNT OVERRIDE
         super(FetchEnv, self).__init__(
-            model_path=model_path, n_substeps=2, n_actions=4,
+            model_path=model_path, n_substeps=n_substeps, n_actions=4,
             initial_qpos=initial_qpos)
         # to speed up the simulation, I have been using a gain of 0.2
         # openai default is a gain of 0.05
-        self.gain = 0.2
+        self.gain = 0.05
 
     # GoalEnv methods
     # ----------------------------
