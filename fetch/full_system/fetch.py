@@ -507,6 +507,7 @@ class Trainer(object):
         for episode in range(NUM_EPISODES):
             self.task = float(random.randrange(0, 4))
             print('Task:', self.task)
+            self.task = 1.0  # remove this!
             self.reset()
             import pdb; pdb.set_trace()
             for iteration in range(MAX_ITERATIONS):
