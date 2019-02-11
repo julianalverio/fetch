@@ -198,6 +198,7 @@ class Trainer(object):
         # env_names.append('reach')
         envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
         env_names.append('place')
+        import pdb; pdb.set_trace()
         self.place_env_idx = len(envs) - 1
         return envs, env_names
 
