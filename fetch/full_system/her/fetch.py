@@ -466,6 +466,7 @@ if __name__ == "__main__":
     parser.add_argument("--place", action="store_true")
     parser.add_argument('gpu', type=int)
     args = parser.parse_args()
+    assert args.reach or args.pick or args.slide or args.place or args.push
     gpu_num = args.gpu
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
