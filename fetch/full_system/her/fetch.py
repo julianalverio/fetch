@@ -147,11 +147,8 @@ class LinearScheduler(object):
             return max(self.value, self.stop)
 
 
-# TODO: add support for extensions: Dueling, PER, HER
-# TODO: add a pick and place environment where the starting position can also change
-# TODO: finish dealing with substeps, then run everything through to the end to make sure it works (most likely the optimizeModel will break)
 class Trainer(object):
-    def __init__(self, hyperparams, dueling=False, HER=False, PER=False):
+    def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -162,44 +159,59 @@ class Trainer(object):
             self.episode_buffer = []
         self.HER = HER
 
-        self.envs, self.env_names = self.makeEnvs()
+        self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
 
+        self.dueling = dueling
         if dueling:
             self.policy_net = DuelingDQN(self.observation_space, self.action_space).to(self.device)
         else:
             self.policy_net = DQN(self.observation_space, self.action_space).to(self.device)
         self.target_net = copy.deepcopy(self.policy_net)
 
-        self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['epsilon_frames'])
+        self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['total_frames'] * 0.1)
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
-        if PER:
-            pass
-            # self.memory = PrioritizedReplayBuffer(self.params['replay_size'], alpha=)
-        else:
-            self.memory = ReplayBuffer(self.params['replay_size'])
-        self.tb_writer = SummaryWriter('results')
+        self.memory = ReplayBuffer(self.params['replay_size'])
+        self.directory = self.getDirectory()
+        self.cleanup()
+        self.tb_writer = SummaryWriter(self.directory)
 
         self.gripper_states = [0] * len(self.envs)  # 0 for opening, 1 for closing
         self.task = 0
 
-    def makeEnvs(self):
+    def getDirectory(self):
+        directory = ''
+        for task in self.env_names:
+            directory += task
+        if self.HER:
+            directory += 'her'
+        if self.dueling:
+            directory += 'dueling'
+        return directory
+
+    def makeEnvs(self, reach, pick, push, slide, place):
         envs = list()
         env_names = list()
-        envs.append(FetchPickAndPlaceEnv())
-        env_names.append('pick and place')
-        # envs.append(FetchSlideEnv())
-        # env_names.append('slide')
-        # envs.append(FetchPushEnv())
-        # env_names.append('push')
-        # envs.append(FetchReachEnv())
-        # env_names.append('reach')
-        # envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
-        # env_names.append('place')
-        # self.place_env_idx = len(envs) - 1
-        return envs, env_names
+        if pick:
+            envs.append(FetchPickAndPlaceEnv())
+            env_names.append('pick and place')
+        if slide:
+            envs.append(FetchSlideEnv())
+            env_names.append('slide')
+        if push:
+            envs.append(FetchPushEnv())
+            env_names.append('push')
+        if reach:
+            envs.append(FetchReachEnv())
+            env_names.append('reach')
+        if place:
+            envs.append(FetchPickAndPlaceEnv(target_in_the_air=False))
+            env_names.append('place')
+            self.place_env_idx = len(envs) - 1
+        self.envs = envs
+        self.env_names = env_names
 
     def reset(self):
         self.task = random.randrange(0, len(self.envs))
@@ -357,31 +369,6 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
-
-    # def optimizeModelPER(self):
-    #     # transitions, ISWeights, tree_idx = self.memory.sample(self.batch_size)
-    #     ISWeights = torch.tensor(ISWeights, device=self.device)
-    #     batch = self.transition(*zip(*transitions))
-    #     next_states = batch.next_state
-    #     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None, next_states)), device=self.device, dtype=torch.uint8)
-    #     non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-    #     non_final_tasks = torch.cat([batch.task[i] for i in range(self.params['batch_size']) if next_states[i] is not None])
-    #     state_batch = torch.cat(list(batch.state))
-    #     action_batch = torch.cat(list(batch.action))
-    #     reward_batch = torch.cat(list(batch.reward))
-    #     task_batch = torch.cat(list(batch.task))
-    #     state_action_values = self.policy_net(state_batch, task_batch).gather(1, action_batch.unsqueeze(1))
-    #     next_state_values = torch.zeros(self.params['batch_size'], device=self.device)
-    #     next_state_values[non_final_mask] = self.target_net(non_final_next_states, non_final_tasks).max(1)[0].detach()
-    #     expected_state_action_values = (next_state_values * self.params['gamma']) + reward_batch
-    #     abs_errors = abs(expected_state_action_values.unsqueeze(1) - state_action_values)
-    #     loss = torch.sum((abs_errors ** 2) * ISWeights)
-    #     self.memory.batch_update(tree_idx, abs_errors.detach().cpu().numpy() + 1e-6)
-    #     # loss = nn.MSELoss()(state_action_values, expected_state_action_values.unsqueeze(1))
-    #     self.optimizer.zero_grad()
-    #     loss.backward()
-    #     self.optimizer.step()
-
     def logEpisode(self, iteration, reward):
         self.reward_trackers[self.task].add(reward)
         self.tb_writer.add_scalar('Steps per episode | task=%s' % self.env_names[self.task], iteration, self.episode_counters[self.task])
@@ -436,12 +423,12 @@ class Trainer(object):
                     break
 
 
-def cleanup():
-    if os.path.isdir('results'):
-        shutil.rmtree('results')
-    csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
-    for csv_txt_file in csv_txt_files:
-        os.remove(csv_txt_file)
+    def cleanup(self):
+        if os.path.isdir(self.directory):
+            shutil.rmtree(self.directory)
+        csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
+        for csv_txt_file in csv_txt_files:
+            os.remove(csv_txt_file)
 
 # def seed():
 #     seed = random.randrange(0, 100)
@@ -454,13 +441,14 @@ def cleanup():
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 15000,  # 8k baseline
-        'replay_initial': 15000,  # TODO: tune this
-        'target_net_sync': 1000,
-        'epsilon_frames': 10 ** 5 * 2,
+        'replay_size': 50000,
+        'replay_initial': 1000,
+        'target_net_sync': 500,
+        'epsilon_frames': 10**5 * 2,
+        'total_frames': 10**5 * 2,
         'epsilon_start': 1.0,
         'epsilon_final': 0.02,
-        'learning_rate': 0.0001,
+        'learning_rate': 5e-4,
         'gamma': 0.99,
         'batch_size': 32
     }
@@ -468,23 +456,20 @@ if __name__ == "__main__":
     NUM_EPISODES = 2000
     MAX_ITERATIONS = 300
 
-    # TODO: make it easier to specify envs from command line
     parser = argparse.ArgumentParser()
     parser.add_argument("--her", action="store_true")
     parser.add_argument("--dueling", action="store_true")
-    parser.add_argument("--per", action="store_true")
+    parser.add_argument("--reach", action="store_true")
+    parser.add_argument("--pick", action="store_true")
+    parser.add_argument("--push", action="store_true")
+    parser.add_argument("--slide", action="store_true")
+    parser.add_argument("--place", action="store_true")
     parser.add_argument('gpu', type=int)
     args = parser.parse_args()
     gpu_num = args.gpu
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
-    cleanup()
     print('Creating Trainer')
-    trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, PER=args.per)
+    trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
     trainer.train(NUM_EPISODES, MAX_ITERATIONS)
-
-
-
-
-
