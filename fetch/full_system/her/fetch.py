@@ -182,7 +182,7 @@ class Trainer(object):
         self.task = 0
 
     def getDirectory(self):
-        directory = ''
+        directory = 'results/'
         for task in self.env_names:
             directory += task
         if self.HER:
