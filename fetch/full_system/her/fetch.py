@@ -416,6 +416,7 @@ class Trainer(object):
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
                 if done or iteration == max_iterations - 1:
+                    print(len(self.memory))
                     print('Episode Completed:', episode, 'Task:', self.task, 'Score:', reward)
                     self.logEpisode(iteration, reward)
                     if self.HER:
