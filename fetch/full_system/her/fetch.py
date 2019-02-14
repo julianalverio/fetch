@@ -153,7 +153,7 @@ class Trainer(object):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
-        self.observation_space = [3, 127, 205]
+        self.observation_space = [3, 127, 102]
         self.place_env_idx = None
 
         if HER:
