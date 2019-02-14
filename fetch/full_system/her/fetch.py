@@ -303,7 +303,7 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
-        state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
+        state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
