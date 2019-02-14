@@ -335,7 +335,8 @@ class Trainer(object):
         else:
             state, goal = self.env.getStateAndGoal()
             state = self.preprocess(state)
-        goal_zeros = np.zeros([1, 1, 205, 127], dtype=np.float32)
+        import pdb; pdb.set_trace()
+        goal_zeros = np.zeros([1, 1, 102, 127], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
         return torch.cat([state, goal], dim=1)
