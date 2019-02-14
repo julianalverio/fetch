@@ -429,7 +429,6 @@ class Trainer(object):
         csv_txt_files = [x for x in os.listdir('.') if '.TXT' in x or '.csv' in x]
         for csv_txt_file in csv_txt_files:
             os.remove(csv_txt_file)
-        import pdb; pdb.set_trace()
 
 # def seed():
 #     seed = random.randrange(0, 100)
