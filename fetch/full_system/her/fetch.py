@@ -441,7 +441,7 @@ class Trainer(object):
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 20000,
+        'replay_size': 19000,
         'replay_initial': 1000,
         'target_net_sync': 500,
         'epsilon_frames': 10**5 * 2,
