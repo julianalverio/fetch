@@ -392,7 +392,6 @@ class Trainer(object):
 
     # 'FINAL' implementation
     def HERFinal(self):
-        start = time.time()
         final_goal = self.episode_buffer[-1][-1]
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
@@ -402,7 +401,6 @@ class Trainer(object):
             reward = torch.tensor(np.array(reward), device=self.device)
             self.memory.add(state, action, reward, next_state, 0)
         self.episode_buffer = list()
-        self.time1 += time.time() - start
 
     def train(self, num_episodes, max_iterations):
         # self.prefetch(max_iterations)
