@@ -440,7 +440,7 @@ if __name__ == "__main__":
         'replay_initial': 1000,
         'target_net_sync': 500,
         'epsilon_frames': 10**5 * 2,
-        'total_frames': 10**5 * 6,
+        'total_frames': 10**6 * 6,
         'epsilon_start': 1.0,
         'epsilon_final': 0.02,
         'learning_rate': 5e-4,
