@@ -475,4 +475,5 @@ if __name__ == "__main__":
     import cProfile
     print('profiling now')
     cProfile.run('trainer.train(5, 200)')
+    print(trainer.time)
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
