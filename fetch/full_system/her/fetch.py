@@ -399,7 +399,7 @@ class Trainer(object):
         self.episode_buffer = list()
 
     def train(self, num_episodes, max_iterations):
-        self.prefetch(max_iterations)
+        # self.prefetch(max_iterations)
         frame_idx = 0
         for episode in range(num_episodes):
             self.reset()
@@ -468,6 +468,8 @@ if __name__ == "__main__":
     print('Creating Trainer')
     trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
+    trainer.prefetch(MAX_ITERATIONS)
+    trainer.train()
     import cProfile
     cProfile.run('trainer.train(5, 200)')
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
