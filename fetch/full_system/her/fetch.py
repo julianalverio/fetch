@@ -469,5 +469,5 @@ if __name__ == "__main__":
     trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
     import cProfile
-    cProfile.run('trainer.train(5, 200)', filename='vanilla_stats')
+    cProfile.run('trainer.train(5, 200)', filename='dueling_stats')
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
