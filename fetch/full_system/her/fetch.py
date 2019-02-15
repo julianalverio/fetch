@@ -469,7 +469,6 @@ if __name__ == "__main__":
     trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
     trainer.prefetch(MAX_ITERATIONS)
-    trainer.train()
     import cProfile
     print('profiling now')
     cProfile.run('trainer.train(5, 200)')
