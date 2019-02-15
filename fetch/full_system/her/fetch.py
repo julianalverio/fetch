@@ -301,19 +301,10 @@ class Trainer(object):
         import pdb; pdb.set_trace()
 
     def preprocess(self, state):
-        start = time.time()
         state = state[180:435, 50:460]
-        self.time1 += time.time() - start
-        start = time.time()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
-        self.time2 += time.time() - start
-        start = time.time()
         state = np.swapaxes(state, 0, 2)
-        self.time3 += time.time() - start
-        start = time.time()
-        ret_value = torch.tensor(state, device=self.device).unsqueeze(0)
-        self.time4 += time.time() - start
-        return ret_value
+        return torch.tensor(state, device=self.device).unsqueeze(0)
 
     def renderalot(self, count=6):
         for _ in range(count):
@@ -401,6 +392,7 @@ class Trainer(object):
 
     # 'FINAL' implementation
     def HERFinal(self):
+        start = time.time()
         final_goal = self.episode_buffer[-1][-1]
         for state, action, next_state, goal_achieved in self.episode_buffer:
             state = self.prepareState(state_prime=state, goal_prime=final_goal)
@@ -410,6 +402,7 @@ class Trainer(object):
             reward = torch.tensor(np.array(reward), device=self.device)
             self.memory.add(state, action, reward, next_state, 0)
         self.episode_buffer = list()
+        self.time1 += time.time() - start
 
     def train(self, num_episodes, max_iterations):
         # self.prefetch(max_iterations)
