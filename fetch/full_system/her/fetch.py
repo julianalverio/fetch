@@ -217,17 +217,12 @@ class Trainer(object):
         self.task = random.randrange(0, len(self.envs))
         print('Task:', self.task)
         self.env = self.envs[self.task]
-        # self.env.sim.nsubsteps = 20
-        # self.env.gain = 0.05
         self.env.reset()
         self.env.sim.nsubsteps = 2
-        # self.env.gain = 0.2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
-        # else:
-        #     self.move([0, 0, 0, 0], 40)
         self.gripper_states[self.task] = 0
-        self.env.render()
+        # self.env.render()  # for debugging
 
     # there are some additional movements here to compensate for momentum
     # WARNING: THIS METHOD HAS YET TO BE TUNED
@@ -453,8 +448,8 @@ if __name__ == "__main__":
         'batch_size': 32
     }
 
-    NUM_EPISODES = 2000
     MAX_ITERATIONS = 300
+    NUM_EPISODES = hyperparams['total_frames'] // MAX_ITERATIONS
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--her", action="store_true")
