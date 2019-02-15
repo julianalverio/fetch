@@ -471,5 +471,6 @@ if __name__ == "__main__":
     trainer.prefetch(MAX_ITERATIONS)
     trainer.train()
     import cProfile
+    print('profiling now')
     cProfile.run('trainer.train(5, 200)')
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
