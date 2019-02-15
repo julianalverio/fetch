@@ -149,7 +149,10 @@ class LinearScheduler(object):
 
 class Trainer(object):
     def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
-        self.time = 0.
+        self.time1 = 0.
+        self.time2 = 0.
+        self.time3 = 0.
+        self.time4 = 0.
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -300,10 +303,17 @@ class Trainer(object):
     def preprocess(self, state):
         start = time.time()
         state = state[180:435, 50:460]
-        self.time += time.time() - start
+        self.time1 += time.time() - start
+        start = time.time()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
+        self.time2 += time.time() - start
+        start = time.time()
         state = np.swapaxes(state, 0, 2)
-        return torch.tensor(state, device=self.device).unsqueeze(0)
+        self.time3 += time.time() - start
+        start = time.time()
+        ret_value = torch.tensor(state, device=self.device).unsqueeze(0)
+        self.time4 += time.time() - start
+        return ret_value
 
     def renderalot(self, count=6):
         for _ in range(count):
@@ -475,5 +485,8 @@ if __name__ == "__main__":
     import cProfile
     print('profiling now')
     cProfile.run('trainer.train(5, 200)')
-    print(trainer.time)
+    print(trainer.time1)
+    print(trainer.time2)
+    print(trainer.time3)
+    print(trainer.time4)
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
