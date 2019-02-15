@@ -25,7 +25,7 @@ from gym.envs.robotics.fetch.push import FetchPushEnv
 from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 from PIL import Image
-
+import time
 
 # Actions:
 # 0 -- increment X
@@ -149,6 +149,7 @@ class LinearScheduler(object):
 
 class Trainer(object):
     def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
+        self.time = 0.
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -297,7 +298,9 @@ class Trainer(object):
         import pdb; pdb.set_trace()
 
     def preprocess(self, state):
+        start = time.time()
         state = state[180:435, 50:460]
+        self.time += time.time() - start
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
