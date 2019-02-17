@@ -195,6 +195,7 @@ class Trainer(object):
         # cut off 13% from the bottom
         # cut off 10% from the left
         # cut off 8% from the right
+        import pdb; pdb.set_trace()
         self.observation_space = [3, 0, 0]
         self.observation_space[1] = int(obs.shape[0] * 0.51)
         self.observation_space[2] = int(obs.shape[1] * 0.82)
