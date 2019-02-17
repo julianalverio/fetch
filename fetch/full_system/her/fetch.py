@@ -246,8 +246,7 @@ class Trainer(object):
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
-        self.env.render()  # for debugging  #TODO: remove
-        import pdb; pdb.set_trace()
+        # self.env.render()  # for debugging
 
     # there are some additional movements here to compensate for momentum
     # WARNING: THIS METHOD HAS YET TO BE TUNED
