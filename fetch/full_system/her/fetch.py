@@ -207,7 +207,7 @@ class Trainer(object):
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
         self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
-        self.memory = ReplayBuffer(self.params['replay_size'], self.transition)
+        self.memory = ReplayMemory(self.params['replay_size'], self.transition)
         self.directory = self.getDirectory()
         self.cleanup()
         self.tb_writer = SummaryWriter(self.directory)
