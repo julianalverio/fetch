@@ -187,6 +187,8 @@ class Trainer(object):
 
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
+        initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array')).shape()
+        import pdb; pdb.set_trace()
         self.dueling = dueling
         if dueling:
             self.policy_net = DuelingDQN(self.observation_space, self.action_space).to(self.device)
@@ -326,14 +328,7 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
-        # Image.fromarray(state).show()
-        state2 = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_NEAREST).astype(np.uint8)
-        Image.fromarray(state2).show()
-        state3 = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_NEAREST).astype(np.uint8)
-        Image.fromarray(state3).show()
-
-        import pdb; pdb.set_trace()
-        state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
+        state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
