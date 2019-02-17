@@ -45,11 +45,12 @@ class ReplayMemory(object):
         self.position = 0
         self.transition = transition
 
-    def push(self, *args):
+    def add(self, *args):
         if len(self.memory) < self.capacity:
-            self.memory.append(None)
-        self.memory[self.position] = self.transition(*args)
-        self.position = (self.position + 1) % self.capacity
+            self.memory.append(self.transition(*args))
+        else:
+            self.memory[self.position] = self.transition(*args)
+            self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
@@ -185,6 +186,10 @@ class Trainer(object):
 
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
+        obs, _ = self.envs[0].getStateAndGoal()
+        import pdb; pdb.set_trace()
+        obs.shape()
+
 
         self.dueling = dueling
         if dueling:
@@ -244,7 +249,7 @@ class Trainer(object):
         print('Task:', self.task)
         self.env = self.envs[self.task]
         self.env.reset()
-        self.env.sim.nsubsteps = 20
+        self.env.sim.nsubsteps = 2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
@@ -324,6 +329,10 @@ class Trainer(object):
         import pdb; pdb.set_trace()
 
     def preprocess(self, state):
+        # cut off 36% from the top
+        # cut off 13% from the bottom
+        # cut off 10% from the left
+        # cut off 8% from the right
         state = state[180:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
@@ -379,11 +388,14 @@ class Trainer(object):
         return reward, reward == 0
 
     def optimizeModel(self):
-        states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
-        states = torch.tensor(states, device=self.device).squeeze(1)
-        actions = torch.tensor(actions, device=self.device)
-        rewards = torch.tensor(rewards, device=self.device)
-        next_states = torch.tensor(next_states, device=self.device).squeeze(1)
+        import pdb; pdb.set_trace()
+        batch = self.transition(*zip(*self.memory.sample(self.params['batch_size'])))
+        states, actions, rewards, next_states = batch.state, batch.action, batch.reward, batch.next_state
+        # states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
+        # states = torch.tensor(states, device=self.device).squeeze(1)
+        # actions = torch.tensor(actions, device=self.device)
+        # rewards = torch.tensor(rewards, device=self.device)
+        # next_states = torch.tensor(next_states, device=self.device).squeeze(1)
         state_action_values = self.policy_net(states).gather(1, actions)
         next_state_values = self.target_net(next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + rewards
@@ -427,7 +439,6 @@ class Trainer(object):
         self.episode_buffer = list()
 
     def train(self, num_episodes, max_iterations):
-        # self.prefetch(max_iterations)
         frame_idx = 0
         for episode in range(num_episodes):
             self.reset()
