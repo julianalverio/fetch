@@ -26,6 +26,7 @@ from gym.envs.robotics.fetch.slide import FetchSlideEnv
 from gym.envs.robotics.fetch.reach import FetchReachEnv
 from PIL import Image
 import time
+import math
 
 # Actions:
 # 0 -- increment X
@@ -177,7 +178,7 @@ class Trainer(object):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
-        self.observation_space = [3, 127, 102]
+        # self.observation_space = [3, 127, 102]
         # 49% off the vertical
         # 18% off the sides
         self.place_env_idx = None
@@ -188,11 +189,21 @@ class Trainer(object):
 
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
-        # obs, _ = self.envs[0].getStateAndGoal()
-        # import pdb; pdb.set_trace()
-        # self.observation_space = [3, 0, 0]
-        # self.observation_space[1] = obs.shape[0]
-        # self.observation_space[2] = obs.shape[1]
+        obs, _ = self.envs[0].getStateAndGoal()
+        # For cropping:
+        # cut off 36% from the top
+        # cut off 13% from the bottom
+        # cut off 10% from the left
+        # cut off 8% from the right
+        self.observation_space = [3, 0, 0]
+        self.observation_space[1] = math.floor(obs.shape[0] * 0.51)
+        self.observation_space[2] = math.floor(obs.shape[1] * 0.82)
+        self.top = obs.shape[0] * 0.36
+        self.bottom = obs.shape[0] * 0.87
+        self.left = obs.shape[1] * 0.1
+        self.right = obs.shape[1] * 0.92
+
+
 
 
         self.dueling = dueling
@@ -333,12 +344,9 @@ class Trainer(object):
         import pdb; pdb.set_trace()
 
     def preprocess(self, state):
-        # cut off 36% from the top
-        # cut off 13% from the bottom
-        # cut off 10% from the left
-        # cut off 8% from the right
         import pdb; pdb.set_trace()
-        state = state[180:435, 50:460]
+        # originally: state = state[230:435, 50:460]
+        state = state[self.top:self.bottom, self.left:self.right]
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
