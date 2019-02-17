@@ -242,7 +242,7 @@ class Trainer(object):
         print('Task:', self.task)
         self.env = self.envs[self.task]
         self.env.reset()
-        self.env.sim.nsubsteps = 20
+        self.env.sim.nsubsteps = 2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
@@ -499,7 +499,7 @@ if __name__ == "__main__":
     for _ in range(5):
         trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
                           push=args.push, slide=args.slide, place=args.place)
-        trainer.prefetch(hyperparams['replay_size'])
+        trainer.prefetch(1000)
         start = time.time()
         trainer.train(5, 200)
         times.append(time.time() - start)
