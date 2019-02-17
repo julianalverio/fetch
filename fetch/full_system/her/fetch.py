@@ -197,13 +197,15 @@ class Trainer(object):
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
-        self.memory = ReplayBuffer(self.params['replay_size'])
+        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
+        self.memory = ReplayBuffer(self.params['replay_size'], self.transition)
         self.directory = self.getDirectory()
         self.cleanup()
         self.tb_writer = SummaryWriter(self.directory)
 
         self.gripper_states = [0] * len(self.envs)  # 0 for opening, 1 for closing
         self.task = 0
+        self.state = None
 
     def getDirectory(self):
         directory = 'results/'
@@ -246,6 +248,7 @@ class Trainer(object):
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
+        self.state = self.prepareState()
         # self.env.render()  # for debugging
 
     # there are some additional movements here to compensate for momentum
@@ -360,18 +363,19 @@ class Trainer(object):
         return torch.cat([state, goal], dim=1)
 
     def addExperience(self):
-        state = self.prepareState()
         if random.random() < self.epsilon_scheduler.updateAndGetValue():
             action = torch.tensor([random.randrange(self.action_space)], device=self.device)
         else:
-            action = torch.argmax(self.policy_net(state), dim=1).to(self.device)
+            with torch.no_grad():
+                action = torch.argmax(self.policy_net(self.state), dim=1).to(self.device)
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
         reward = torch.tensor(self.env.getReward(), device=self.device)  # 0 or -1
-        self.memory.add(state, action, reward, next_state, reward)
+        self.memory.add(self.state, action, reward, next_state)
         if self.HER:
-            self.episode_buffer.append((state[:, 0:3, :, :], action, next_state[:, 0:3, :, :], self.env.getGoalAchieved()))
+            self.episode_buffer.append((self.state[:, 0:3, :, :], action, next_state[:, 0:3, :, :], self.env.getGoalAchieved()))
+        self.state = next_state
         return reward, reward == 0
 
     def optimizeModel(self):
@@ -499,7 +503,7 @@ if __name__ == "__main__":
     for _ in range(5):
         trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
                           push=args.push, slide=args.slide, place=args.place)
-        trainer.prefetch(hyperparams['replay_size'])
+        trainer.prefetch(1000)
         start = time.time()
         trainer.train(5, 200)
         times.append(time.time() - start)

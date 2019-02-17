@@ -232,7 +232,6 @@ class Trainer(object):
         self.drop_height = 0.44  # when putting down an object, you can be no higher than this
         self.preparatory_height = 0.48057
 
-
     def makeEnv(self):
         initial_qpos = {
             'robot0:slide0': 0.405,
