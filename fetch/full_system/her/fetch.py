@@ -328,6 +328,7 @@ class Trainer(object):
         if random.random() > 0.1:
             Image.fromarray(state).show()
         import pdb; pdb.set_trace()
+        # we need: [3, 127, 102]
         state = state[230:435, 50:460]
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
