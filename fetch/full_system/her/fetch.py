@@ -363,6 +363,7 @@ class Trainer(object):
         goal_zeros = np.zeros([1, 1, 102, 127], dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
+        import pdb; pdb.set_trace()
         return torch.cat([state, goal], dim=1)
 
     def addExperience(self):
