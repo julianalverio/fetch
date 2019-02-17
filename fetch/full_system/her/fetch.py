@@ -329,7 +329,7 @@ class Trainer(object):
         Image.fromarray(state).show()
         state2 = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.uint8)
         Image.fromarray(state2).show()
-        state3 = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.uint8)
+        state3 = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_NEAREST).astype(np.uint8)
         Image.fromarray(state3).show()
 
         import pdb; pdb.set_trace()
