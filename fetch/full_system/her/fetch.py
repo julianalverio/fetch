@@ -495,6 +495,7 @@ if __name__ == "__main__":
     # trainer.prefetch(MAX_ITERATIONS)
     # trainer.train()
     import time
+    print('now timing stuff')
     times = []
     for _ in range(5):
         trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
