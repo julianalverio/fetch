@@ -173,10 +173,6 @@ class LinearScheduler(object):
 
 class Trainer(object):
     def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
-        self.time1 = 0.
-        self.time2 = 0.
-        self.time3 = 0.
-        self.time4 = 0.
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -440,8 +436,7 @@ class Trainer(object):
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
                 if done or iteration == max_iterations - 1:
-                    print(len(self.memory))
-                    print('Episode Completed:', episode, 'Task:', self.task, 'Score:', reward)
+                    print('Episode Completed:', episode)
                     self.logEpisode(iteration, reward)
                     if self.HER:
                         self.HERFinal()
@@ -495,14 +490,25 @@ if __name__ == "__main__":
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     print('Creating Trainer')
-    trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
-    print('Trainer Initialized')
-    trainer.prefetch(MAX_ITERATIONS)
-    import cProfile
-    print('profiling now')
-    cProfile.run('trainer.train(5, 200)')
-    print(trainer.time1)
-    print(trainer.time2)
-    print(trainer.time3)
-    print(trainer.time4)
+    # trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
+    # print('Trainer Initialized')
+    # trainer.prefetch(MAX_ITERATIONS)
+    # trainer.train()
+    import time
+    times = []
+    for _ in range(5):
+        trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
+                          push=args.push, slide=args.slide, place=args.place)
+        trainer.prefetch(hyperparams['replay_size'])
+        start = time.time()
+        trainer.train(5, 200)
+        times.append(time.time() - start)
+    for time_instance in times:
+        print(time_instance)
+
+
+
+    # import cProfile
+    # print('profiling now')
+    # cProfile.run('trainer.train(5, 200)')
     # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
