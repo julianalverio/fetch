@@ -37,6 +37,30 @@ import time
 # 6 -- continuously try to open gripper
 # 7 -- continuously try to close gripper
 
+
+class ReplayMemory(object):
+    def __init__(self, capacity, transition):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+        self.transition = transition
+
+    def push(self, *args):
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = self.transition(*args)
+        self.position = (self.position + 1) % self.capacity
+
+    def sample(self, batch_size):
+        return random.sample(self.memory, batch_size)
+
+    def __len__(self):
+        return len(self.memory)
+
+    def showCapacity(self):
+        print('Buffer Capacity:', len(self.memory) * 1. / self.capacity)
+
+
 class DuelingDQN(nn.Module):
     def __init__(self, input_shape, num_actions):
         super(DuelingDQN, self).__init__()
