@@ -328,6 +328,7 @@ class Trainer(object):
         state = state[180:435, 50:460]
         Image.fromarray(state).show()
         other_state = cv2.resize(state, (state.shape[1]//2, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.uint8)
+        Image.fromarray(other_state).show()
         import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//2), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
