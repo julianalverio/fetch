@@ -196,12 +196,12 @@ class Trainer(object):
         # cut off 10% from the left
         # cut off 8% from the right
         self.observation_space = [3, 0, 0]
-        self.observation_space[1] = math.floor(obs.shape[0] * 0.51)
-        self.observation_space[2] = math.floor(obs.shape[1] * 0.82)
-        self.top = obs.shape[0] * 0.36
-        self.bottom = obs.shape[0] * 0.87
-        self.left = obs.shape[1] * 0.1
-        self.right = obs.shape[1] * 0.92
+        self.observation_space[1] = int(obs.shape[0] * 0.51)
+        self.observation_space[2] = int(obs.shape[1] * 0.82)
+        self.top = int(obs.shape[0] * 0.36)
+        self.bottom = int(obs.shape[0] * 0.87)
+        self.left = int(obs.shape[1] * 0.1)
+        self.right = int(obs.shape[1] * 0.92)
 
 
 
