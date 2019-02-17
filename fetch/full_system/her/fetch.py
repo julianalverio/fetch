@@ -187,7 +187,7 @@ class Trainer(object):
 
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
-        initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array')).shape()
+        initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array'))
         import pdb; pdb.set_trace()
         self.dueling = dueling
         if dueling:
