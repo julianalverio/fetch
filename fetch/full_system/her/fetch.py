@@ -188,6 +188,7 @@ class Trainer(object):
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
         initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array'))
+        import pdb; pdb.set_trace()
         self.observation_space = [initial_obs[1], initial_obs[2], initial_obs[3]]
         import pdb; pdb.set_trace()
         self.dueling = dueling
