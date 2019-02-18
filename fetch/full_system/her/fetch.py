@@ -200,7 +200,7 @@ class Trainer(object):
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
-        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state', 'task'))
+        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
         self.memory = ReplayMemory(self.params['replay_size'], self.transition)
         self.directory = self.getDirectory()
         self.cleanup()
