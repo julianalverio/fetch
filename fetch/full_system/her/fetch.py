@@ -172,13 +172,13 @@ class LinearScheduler(object):
         else:
             return max(self.value, self.stop)
 
-
+# TODO: fix stuff with dimensions and observation space
 class Trainer(object):
     def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
-        self.observation_space = [3, 127, 102]
+        # self.observation_space = [3, 127, 102]
         self.place_env_idx = None
 
         if HER:
@@ -188,6 +188,7 @@ class Trainer(object):
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
         initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array'))
+        self.observation_space = [initial_obs[1], initial_obs[2], initial_obs[3]]
         import pdb; pdb.set_trace()
         self.dueling = dueling
         if dueling:
@@ -252,7 +253,7 @@ class Trainer(object):
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
         self.state = self.prepareState()
-        # self.env.render()  # for debugging
+        self.env.render()  # for debugging
 
     # there are some additional movements here to compensate for momentum
     # WARNING: THIS METHOD HAS YET TO BE TUNED
@@ -328,6 +329,8 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
+        Image.fromarray(state).show()
+        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -360,7 +363,7 @@ class Trainer(object):
         else:
             state, goal = self.env.getStateAndGoal()
             state = self.preprocess(state)
-        goal_zeros = np.zeros([1, 1, 102, 127], dtype=np.float32)
+        goal_zeros = np.zeros([1] + self.observation_space, dtype=np.float32)
         goal_zeros[0, 0, 0, 0:3] = goal
         goal = torch.tensor(goal_zeros, device=self.device)
         import pdb; pdb.set_trace()
