@@ -252,7 +252,7 @@ class Trainer(object):
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
         self.state = self.prepareState()
-        self.env.render()  # for debugging
+        # self.env.render()  # for debugging
 
     # there are some additional movements here to compensate for momentum
     # WARNING: THIS METHOD HAS YET TO BE TUNED
@@ -445,8 +445,7 @@ class Trainer(object):
                 if frame_idx % self.params['target_net_sync'] == 0:
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
-                # if done or iteration == max_iterations - 1:
-                if iteration == max_iterations -1:
+                if done or iteration == max_iterations - 1:
                     print('Episode Completed:', episode)
                     self.logEpisode(iteration, reward)
                     if self.HER:
