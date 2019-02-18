@@ -188,9 +188,7 @@ class Trainer(object):
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
         initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array')).shape
-        import pdb; pdb.set_trace()
         self.observation_space = [initial_obs[1], initial_obs[2], initial_obs[3]]
-        import pdb; pdb.set_trace()
         self.dueling = dueling
         if dueling:
             self.policy_net = DuelingDQN(self.observation_space, self.action_space).to(self.device)
