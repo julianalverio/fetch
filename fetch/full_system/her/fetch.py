@@ -328,9 +328,6 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
-        if random.random() > 0.995:
-            Image.fromarray(state).show()
-            import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -387,7 +384,10 @@ class Trainer(object):
     def optimizeModel(self):
         import pdb; pdb.set_trace()
         batch = self.transition(*zip(*self.memory.sample(self.params['batch_size'])))
-        states, actions, rewards, next_states = batch.state, batch.action, batch.reward, batch.next_state
+        states = torch.cat(list(batch.state))
+        actions = torch.cat(list(batch.action))
+        rewards = torch.cat(list(batch.reward))
+        next_states = torch.cat(list(batch.next_state))
         # states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
         # states = torch.tensor(states, device=self.device).squeeze(1)
         # actions = torch.tensor(actions, device=self.device)
