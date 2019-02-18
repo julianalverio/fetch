@@ -514,8 +514,8 @@ if __name__ == "__main__":
         start = time.time()
         trainer.train(5, 200)
         times.append(time.time() - start)
-    for time_instance in times:
-        print(np.mean(time_instance))
+    print(np.mean(times))
+    print(np.std(times))
 
 
 
