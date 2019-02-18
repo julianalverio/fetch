@@ -385,7 +385,7 @@ class Trainer(object):
         import pdb; pdb.set_trace()
         batch = self.transition(*zip(*self.memory.sample(self.params['batch_size'])))
         states = torch.cat(list(batch.state))
-        actions = torch.cat(list(batch.action))
+        actions = torch.cat(list(batch.action)).unsqueeze(1)
         rewards = torch.cat(list(batch.reward))
         next_states = torch.cat(list(batch.next_state))
         # states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
