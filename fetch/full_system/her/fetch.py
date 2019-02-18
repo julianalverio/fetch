@@ -445,7 +445,8 @@ class Trainer(object):
                 if frame_idx % self.params['target_net_sync'] == 0:
                     self.target_net.load_state_dict(self.policy_net.state_dict())
 
-                if done or iteration == max_iterations - 1:
+                # if done or iteration == max_iterations - 1:
+                if iteration == max_iterations -1:
                     print('Episode Completed:', episode)
                     self.logEpisode(iteration, reward)
                     if self.HER:
