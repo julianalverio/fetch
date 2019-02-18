@@ -374,7 +374,7 @@ class Trainer(object):
         action_converted = self.convertAction(action)
         self.env.step(action_converted)
         next_state = self.prepareState()
-        reward = torch.tensor(self.env.getReward(), device=self.device)  # 0 or -1
+        reward = torch.tensor([self.env.getReward()], device=self.device) # 0 or -1
         self.memory.add(self.state, action, reward, next_state)
         if self.HER:
             self.episode_buffer.append((self.state[:, 0:3, :, :], action, next_state[:, 0:3, :, :], self.env.getGoalAchieved()))
