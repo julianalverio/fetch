@@ -382,7 +382,6 @@ class Trainer(object):
         return reward, reward == 0
 
     def optimizeModel(self):
-        import pdb; pdb.set_trace()
         batch = self.transition(*zip(*self.memory.sample(self.params['batch_size'])))
         states = torch.cat(list(batch.state))
         actions = torch.cat(list(batch.action)).unsqueeze(1)
