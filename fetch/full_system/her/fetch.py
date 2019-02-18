@@ -247,7 +247,7 @@ class Trainer(object):
         print('Task:', self.task)
         self.env = self.envs[self.task]
         self.env.reset()
-        self.env.sim.nsubsteps = 2
+        self.env.sim.nsubsteps = 5
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
@@ -505,8 +505,8 @@ if __name__ == "__main__":
     # trainer.prefetch(MAX_ITERATIONS)
     # trainer.train()
     import time
-    print('now timing stuff')
     times = []
+    print('now timing stuff')
     for _ in range(5):
         trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
                           push=args.push, slide=args.slide, place=args.place)
@@ -515,7 +515,7 @@ if __name__ == "__main__":
         trainer.train(5, 200)
         times.append(time.time() - start)
     for time_instance in times:
-        print(time_instance)
+        print(np.mean(time_instance))
 
 
 
