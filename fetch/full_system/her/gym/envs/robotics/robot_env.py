@@ -5,13 +5,14 @@ import numpy as np
 import gym
 from gym import error, spaces
 from gym.utils import seeding
+import sys
 
 try:
     import pdb; pdb.set_trace()
+    sys.path.insert(0, '/home/julianalverio/venv/lib/python3.5/site-packages')
     import mujoco_py
     try:
         import pdb; pdb.set_trace()
-        import sys
         sys.path.insert(0, '/home/julianalverio/venv/lib/python3.5/site-packages')
     except:
         pass
