@@ -7,6 +7,7 @@ from gym import error, spaces
 from gym.utils import seeding
 
 try:
+    import pdb; pdb.set_trace()
     import mujoco_py
     try:
         import pdb; pdb.set_trace()
