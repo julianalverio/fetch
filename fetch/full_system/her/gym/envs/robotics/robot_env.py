@@ -8,6 +8,12 @@ from gym.utils import seeding
 
 try:
     import mujoco_py
+    try:
+        import pdb; pdb.set_trace()
+        import sys
+        sys.path.insert(0, '/home/julianalverio/venv/lib/python3.5/site-packages')
+    except:
+        pass
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 

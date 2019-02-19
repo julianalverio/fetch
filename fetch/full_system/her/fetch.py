@@ -172,9 +172,8 @@ class LinearScheduler(object):
         else:
             return max(self.value, self.stop)
 
-# TODO: fix stuff with dimensions and observation space
 class Trainer(object):
-    def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False):
+    def __init__(self, hyperparams, dueling=False, HER=False, reach=False, pick=False, push=False, slide=False, place=False, resilience=False):
         self.params = hyperparams
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.action_space = 8
@@ -187,6 +186,7 @@ class Trainer(object):
 
         self.makeEnvs(reach, pick, push, slide, place)
         self.env = None
+        self.resilience = resilience
         initial_obs = self.preprocess(self.envs[0].render(mode='rgb_array')).shape
         self.observation_space = [initial_obs[1], initial_obs[2], initial_obs[3]]
         self.dueling = dueling
@@ -387,11 +387,6 @@ class Trainer(object):
         actions = torch.cat(list(batch.action)).unsqueeze(1)
         rewards = torch.cat(list(batch.reward))
         next_states = torch.cat(list(batch.next_state))
-        # states, actions, rewards, next_states, _ = self.memory.sample(self.params['batch_size'])
-        # states = torch.tensor(states, device=self.device).squeeze(1)
-        # actions = torch.tensor(actions, device=self.device)
-        # rewards = torch.tensor(rewards, device=self.device)
-        # next_states = torch.tensor(next_states, device=self.device).squeeze(1)
         state_action_values = self.policy_net(states).gather(1, actions)
         next_state_values = self.target_net(next_states).max(1)[0].detach()
         expected_state_action_values = (next_state_values * self.params['gamma']) + rewards
@@ -422,6 +417,17 @@ class Trainer(object):
         for _ in range(count):
             self.env.step(action)
 
+    def randomMove(self):
+        rand = random.random()
+        if rand > 0.01:
+            action = np.zeros(4)
+            idx = random.randrange(4)
+            if rand > 0.5:
+                action[idx] = 1
+            else:
+                action[idx] = -1
+            self.move(action, count=random.randrange(5))
+
     # 'FINAL' implementation
     def HERFinal(self):
         final_goal = self.episode_buffer[-1][-1]
@@ -451,6 +457,8 @@ class Trainer(object):
                     if self.HER:
                         self.HERFinal()
                     break
+                if self.resilience:
+                    self.randomMove()
 
     def cleanup(self):
         if os.path.isdir(self.directory):
@@ -493,6 +501,7 @@ if __name__ == "__main__":
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--slide", action="store_true")
     parser.add_argument("--place", action="store_true")
+    parser.add_argument("--resilience", action="store_true")
     parser.add_argument('gpu', type=int)
     args = parser.parse_args()
     assert args.reach or args.pick or args.slide or args.place or args.push
