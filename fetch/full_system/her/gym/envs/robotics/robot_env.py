@@ -8,7 +8,7 @@ from gym.utils import seeding
 import sys
 
 try:
-    sys.path.insert(0, '/home/julianalverio/venv/lib/python3.5/site-packages')
+    # sys.path.insert(0, '/home/julianalverio/venv/lib/python3.5/site-packages')
     import mujoco_py
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
