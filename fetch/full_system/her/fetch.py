@@ -404,6 +404,7 @@ class Trainer(object):
         self.episode_counters[self.task] += 1
 
     def prefetch(self, max_iterations):
+        print('I AM PREFETCHING')
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
