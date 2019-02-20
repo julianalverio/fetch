@@ -520,7 +520,7 @@ if __name__ == "__main__":
     for _ in range(5):
         trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
                           push=args.push, slide=args.slide, place=args.place)
-        trainer.prefetch(1000)
+        trainer.prefetch(32)
         start = time.time()
         trainer.train(5, 200)
         times.append(time.time() - start)
