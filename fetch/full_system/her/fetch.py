@@ -396,13 +396,11 @@ class Trainer(object):
         self.optimizer.step()
 
     def logEpisode(self, iteration, reward):
+        import pdb; pdb.set_trace()
         self.reward_trackers[self.task].add(reward)
         self.tb_writer.add_scalar('Steps per episode | task=%s' % self.env_names[self.task], iteration, self.episode_counters[self.task])
         self.tb_writer.add_scalar('Score | task=%s' % self.env_names[self.task], reward, self.episode_counters[self.task])
-        try:
-            self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
-        except:
-            import pdb; pdb.set_trace()
+        self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
         self.tb_writer.add_scalar('Epsilon', self.epsilon_scheduler.observeValue(), sum(self.episode_counters))
         self.episode_counters[self.task] += 1
 
