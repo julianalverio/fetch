@@ -396,8 +396,7 @@ class Trainer(object):
         self.optimizer.step()
 
     def logEpisode(self, iteration, reward):
-        import pdb; pdb.set_trace()
-        self.reward_trackers[self.task].add(reward)
+        self.reward_trackers[self.task].add(reward.item())
         self.tb_writer.add_scalar('Steps per episode | task=%s' % self.env_names[self.task], iteration, self.episode_counters[self.task])
         self.tb_writer.add_scalar('Score | task=%s' % self.env_names[self.task], reward, self.episode_counters[self.task])
         self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
@@ -458,8 +457,8 @@ class Trainer(object):
                     if self.HER:
                         self.HERFinal()
                     break
-                if self.resilience:
-                    self.randomMove()
+                # if self.resilience:
+                #     self.randomMove()
 
     def cleanup(self):
         if os.path.isdir(self.directory):
