@@ -244,7 +244,7 @@ class Trainer(object):
 
     def reset(self):
         self.task = random.randrange(0, len(self.envs))
-        print('Task:', self.task)
+        # print('Task:', self.task)
         self.env = self.envs[self.task]
         self.env.reset()
         self.env.sim.nsubsteps = 2
@@ -399,12 +399,14 @@ class Trainer(object):
         self.reward_trackers[self.task].add(reward)
         self.tb_writer.add_scalar('Steps per episode | task=%s' % self.env_names[self.task], iteration, self.episode_counters[self.task])
         self.tb_writer.add_scalar('Score | task=%s' % self.env_names[self.task], reward, self.episode_counters[self.task])
-        self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
+        try:
+            self.tb_writer.add_scalar('Average Score | task=%s' % self.env_names[self.task], self.reward_trackers[self.task].getMean(), self.episode_counters[self.task])
+        except:
+            import pdb; pdb.set_trace()
         self.tb_writer.add_scalar('Epsilon', self.epsilon_scheduler.observeValue(), sum(self.episode_counters))
         self.episode_counters[self.task] += 1
 
     def prefetch(self, max_iterations):
-        print('I AM PREFETCHING')
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
