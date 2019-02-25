@@ -409,6 +409,7 @@ class Trainer(object):
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
+                import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
                 if done:
@@ -477,12 +478,25 @@ class Trainer(object):
 #     torch.manual_seed(seed)
 #     torch.cuda.manual_seed_all(seed)
 
-def timeStuff():
+
+def timeStuff(hyperparams, args):
+    import time
+    times = []
+    print('Now timing stuff')
+    for _ in range(5):
+        trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
+                          push=args.push, slide=args.slide, place=args.place)
+        trainer.prefetch(32)
+        start = time.time()
+        trainer.train(5, 200)
+        times.append(time.time() - start)
+    print('Mean time:', np.mean(times))
+    print('Standard Dev:', np.std(times))
 
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 19000,
+        'replay_size': 50 * 10**3,
         'replay_initial': 1000,
         'target_net_sync': 500,
         'epsilon_frames': 10**5 * 2,
@@ -513,26 +527,8 @@ if __name__ == "__main__":
     print('GPU:', gpu_num)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_num)
     print('Creating Trainer')
-    # trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
-    # print('Trainer Initialized')
-    # trainer.prefetch(MAX_ITERATIONS)
-    # trainer.train()
-    import time
-    times = []
-    print('now timing stuff')
-    for _ in range(5):
-        trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick,
-                          push=args.push, slide=args.slide, place=args.place)
-        trainer.prefetch(32)
-        start = time.time()
-        trainer.train(5, 200)
-        times.append(time.time() - start)
-    print(np.mean(times))
-    print(np.std(times))
-
-
-
-    # import cProfile
-    # print('profiling now')
-    # cProfile.run('trainer.train(5, 200)')
-    # trainer.train(NUM_EPISODES, MAX_ITERATIONS)
+    trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
+    print('Trainer Initialized')
+    trainer.prefetch(hyperparams['replay_initial'])
+    trainer.prefetch(hyperparams['replay_size'])
+    trainer.train(NUM_EPISODES, MAX_ITERATIONS)
