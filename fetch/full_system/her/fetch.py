@@ -408,8 +408,6 @@ class Trainer(object):
             self.reset()
             for iteration in range(max_iterations):
                 print(len(self.memory))
-                print(torch.cuda.memory_allocated())
-                import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
                 if done:
@@ -496,7 +494,7 @@ def timeStuff(hyperparams, args):
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 50 * 10**3,
+        'replay_size': 500 * 10**3,
         'replay_initial': 1000,
         'target_net_sync': 500,
         'epsilon_frames': 10**5 * 2,
@@ -529,6 +527,6 @@ if __name__ == "__main__":
     print('Creating Trainer')
     trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
-    trainer.prefetch(hyperparams['replay_initial'])
+    # trainer.prefetch(hyperparams['replay_initial'])
     trainer.prefetch(hyperparams['replay_size'])
     trainer.train(NUM_EPISODES, MAX_ITERATIONS)
