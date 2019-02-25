@@ -408,6 +408,7 @@ class Trainer(object):
             self.reset()
             for iteration in range(max_iterations):
                 print(len(self.memory))
+                print(torch.cuda.memory_allocated())
                 import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
