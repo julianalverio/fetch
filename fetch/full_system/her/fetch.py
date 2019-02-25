@@ -152,18 +152,38 @@ class ValueTracker(object):
         return self.mean
 
 
+# class LinearScheduler(object):
+#     def __init__(self, start, stop, delta=None, timespan=None):
+#         assert delta or timespan
+#         self.value = start
+#         self.stop = stop
+#         if delta:
+#             self.delta = float(delta)
+#         elif timespan:
+#             self.delta = (stop - start) / float(timespan)
+#
+#     def updateAndGetValue(self):
+#         self.value += self.delta
+#         return self.observeValue()
+#
+#     def observeValue(self):
+#         if self.delta > 0:
+#             return min(self.value, self.stop)
+#         else:
+#             return max(self.value, self.stop)
+
+
 class LinearScheduler(object):
-    def __init__(self, start, stop, delta=None, timespan=None):
-        assert delta or timespan
-        self.value = start
-        self.stop = stop
-        if delta:
-            self.delta = float(delta)
-        elif timespan:
-            self.delta = (stop - start) / float(timespan)
+    def __init__(self):
+        self.value = 1.0
+        self.stop = 0.1
+        self.delta = (self.stop - self.value) / float(10**6)
 
     def updateAndGetValue(self):
         self.value += self.delta
+        if self.value == self.stop:
+            self.stop = 0.02
+            self.delta = (self.stop - self.value) / float(24 * 10**6)
         return self.observeValue()
 
     def observeValue(self):
@@ -254,77 +274,77 @@ class Trainer(object):
         self.state = self.prepareState()
         # self.env.render()  # for debugging
 
-    # there are some additional movements here to compensate for momentum
-    # WARNING: THIS METHOD HAS YET TO BE TUNED
-    def resetforPlacing(self):
-        object_position = self.env.sim.data.get_site_xpos('object0')
-        gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
-        starting_position = copy.deepcopy(gripper_position)
-
-        self.renderalot()
-        import pdb; pdb.set_trace()
-        # Get x just right
-        if gripper_position[0] > object_position[0]:
-            while gripper_position[0] > object_position[0]:
-                self.env.step([-1., 0., 0., 0.])
-                self.renderalot()
-            self.move([1., 0., 0., 0.], 2)
-        elif gripper_position[0] < object_position[0]:
-            while gripper_position[0] < object_position[0]:
-                self.env.step([1., 0., 0., 0.])
-                self.renderalot()
-            self.move([-1., 0., 0., 0.], 2)
-
-        # Get y just right
-        if gripper_position[1] > object_position[1]:
-            while gripper_position[1] > object_position[1]:
-                self.env.step([0., -1., 0., 0.])
-                self.renderalot()
-            self.env.step([0., 1., 0., 0.])
-
-        elif gripper_position[1] < object_position[1]:
-            while gripper_position[1] < object_position[1]:
-                self.env.step([0., 1., 0., 0.])
-                self.renderalot()
-            self.env.step([0., -1., 0., 0.])
-
-        self.env.move([0., 0., 0., 1.], count=10)  # open
-        self.renderalot()
-        self.env.move([0., 0., -1., 1.], count=20)  # drop
-        self.renderalot()
-        import pdb; pdb.set_trace()
-        self.env.move([0., 0., 0., -1.], count=15)  # close
-        self.renderalot()
-
-        # get z right
-        while gripper_position[2] < starting_position[2]:
-            self.env.step([0., 0., 1., -1.])
-            self.renderalot()
-        self.env.step([0., 0., -1., -1.])
-        self.renderalot()
-        # get y right
-        while gripper_position[1] < starting_position[1]:
-            self.env.step([0., 1., 0., -1.])
-            self.renderalot()
-        self.env.step([0., -1., 0., -1.])
-        self.renderalot()
-        while gripper_position[1] > starting_position[1]:
-            self.env.step([0., -1., 0., -1.])
-            self.renderalot()
-        self.env.step([0., 1., 0., -1.])
-        self.renderalot()
-        # get x right
-        while gripper_position[0] > starting_position[0]:
-            self.env.step([-1., 0., 0., -1.])
-            self.renderalot()
-        self.env.step([1., 0., 0., -1.])
-        self.renderalot()
-        while gripper_position[0] < starting_position[0]:
-            self.env.step([1., 0., 0, -1.])
-            self.renderalot()
-        self.env.step([-1., 0., 0., -1])
-        self.renderalot()
-        import pdb; pdb.set_trace()
+    # # there are some additional movements here to compensate for momentum
+    # # WARNING: THIS METHOD HAS YET TO BE TUNED
+    # def resetforPlacing(self):
+    #     object_position = self.env.sim.data.get_site_xpos('object0')
+    #     gripper_position = self.env.sim.data.get_site_xpos('robot0:grip')
+    #     starting_position = copy.deepcopy(gripper_position)
+    #
+    #     self.renderalot()
+    #     import pdb; pdb.set_trace()
+    #     # Get x just right
+    #     if gripper_position[0] > object_position[0]:
+    #         while gripper_position[0] > object_position[0]:
+    #             self.env.step([-1., 0., 0., 0.])
+    #             self.renderalot()
+    #         self.move([1., 0., 0., 0.], 2)
+    #     elif gripper_position[0] < object_position[0]:
+    #         while gripper_position[0] < object_position[0]:
+    #             self.env.step([1., 0., 0., 0.])
+    #             self.renderalot()
+    #         self.move([-1., 0., 0., 0.], 2)
+    #
+    #     # Get y just right
+    #     if gripper_position[1] > object_position[1]:
+    #         while gripper_position[1] > object_position[1]:
+    #             self.env.step([0., -1., 0., 0.])
+    #             self.renderalot()
+    #         self.env.step([0., 1., 0., 0.])
+    #
+    #     elif gripper_position[1] < object_position[1]:
+    #         while gripper_position[1] < object_position[1]:
+    #             self.env.step([0., 1., 0., 0.])
+    #             self.renderalot()
+    #         self.env.step([0., -1., 0., 0.])
+    #
+    #     self.env.move([0., 0., 0., 1.], count=10)  # open
+    #     self.renderalot()
+    #     self.env.move([0., 0., -1., 1.], count=20)  # drop
+    #     self.renderalot()
+    #     import pdb; pdb.set_trace()
+    #     self.env.move([0., 0., 0., -1.], count=15)  # close
+    #     self.renderalot()
+    #
+    #     # get z right
+    #     while gripper_position[2] < starting_position[2]:
+    #         self.env.step([0., 0., 1., -1.])
+    #         self.renderalot()
+    #     self.env.step([0., 0., -1., -1.])
+    #     self.renderalot()
+    #     # get y right
+    #     while gripper_position[1] < starting_position[1]:
+    #         self.env.step([0., 1., 0., -1.])
+    #         self.renderalot()
+    #     self.env.step([0., -1., 0., -1.])
+    #     self.renderalot()
+    #     while gripper_position[1] > starting_position[1]:
+    #         self.env.step([0., -1., 0., -1.])
+    #         self.renderalot()
+    #     self.env.step([0., 1., 0., -1.])
+    #     self.renderalot()
+    #     # get x right
+    #     while gripper_position[0] > starting_position[0]:
+    #         self.env.step([-1., 0., 0., -1.])
+    #         self.renderalot()
+    #     self.env.step([1., 0., 0., -1.])
+    #     self.renderalot()
+    #     while gripper_position[0] < starting_position[0]:
+    #         self.env.step([1., 0., 0, -1.])
+    #         self.renderalot()
+    #     self.env.step([-1., 0., 0., -1])
+    #     self.renderalot()
+    #     import pdb; pdb.set_trace()
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
@@ -454,6 +474,7 @@ class Trainer(object):
 
                 if done or iteration == max_iterations - 1:
                     print('Episode Completed:', episode)
+                    print('frame:', frame_idx)
                     self.logEpisode(iteration, reward)
                     if self.HER:
                         self.HERFinal()
@@ -494,11 +515,10 @@ def timeStuff(hyperparams, args):
 
 if __name__ == "__main__":
     hyperparams = {
-        'replay_size': 500 * 10**3,
+        'replay_size': 50 * 10**3,
         'replay_initial': 1000,
         'target_net_sync': 500,
-        'epsilon_frames': 10**5 * 2,
-        'total_frames': 10**6 * 6,
+        'total_frames': 10**6 * 25,
         'epsilon_start': 1.0,
         'epsilon_final': 0.02,
         'learning_rate': 5e-4,
