@@ -247,7 +247,7 @@ class Trainer(object):
         # print('Task:', self.task)
         self.env = self.envs[self.task]
         self.env.reset()
-        self.env.sim.nsubsteps = 20
+        self.env.sim.nsubsteps = 2
         if self.task == self.place_env_idx:
             self.resetforPlacing()
         self.gripper_states[self.task] = 0
@@ -328,6 +328,8 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
+        Image.fromarray(state).show()
+        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
@@ -474,6 +476,8 @@ class Trainer(object):
 #     torch.backends.cudnn.deterministic = True
 #     torch.manual_seed(seed)
 #     torch.cuda.manual_seed_all(seed)
+
+def timeStuff():
 
 
 if __name__ == "__main__":
