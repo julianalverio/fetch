@@ -174,9 +174,11 @@ class ValueTracker(object):
 
 
 class LinearScheduler(object):
-    def __init__(self):
+    def __init__(self, range1, range2):
         self.value = 1.0
         self.stop = 0.1
+        self.range1 = range1
+        self.range2 = range2
         self.delta = (self.stop - self.value) / float(10**6)
 
     def updateAndGetValue(self):
@@ -217,7 +219,7 @@ class Trainer(object):
         self.target_net = copy.deepcopy(self.policy_net)
 
         # self.epsilon_scheduler = LinearScheduler(self.params['epsilon_start'], self.params['epsilon_final'], timespan=self.params['total_frames'] * 0.15)
-        self.epsilon_scheduler = LinearScheduler()
+        self.epsilon_scheduler = LinearScheduler(hyperparams['total_frames']*0.04, hyperparams['total_frames'])
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.params['learning_rate'])
         self.reward_trackers = [ValueTracker() for _ in range(len(self.envs))]
         self.episode_counters = [0] * len(self.envs)
@@ -518,7 +520,7 @@ if __name__ == "__main__":
         'replay_size': 50 * 10**3,
         'replay_initial': 1000,
         'target_net_sync': 500,
-        'total_frames': 10**6 * 25,
+        'total_frames': 10**6 * 2,
         'epsilon_start': 1.0,
         'epsilon_final': 0.02,
         'learning_rate': 5e-4,
