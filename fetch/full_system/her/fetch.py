@@ -407,7 +407,6 @@ class Trainer(object):
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
-                print(torch.cuda.memory_allocated(self.device))
                 print(len(self.memory))
                 import pdb; pdb.set_trace()
                 reward = self.addExperience()
