@@ -328,9 +328,10 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
-        Image.fromarray(state).show()
         import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
+        state.astype(np.uint8)
+        import pdb; pdb.set_trace()
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
