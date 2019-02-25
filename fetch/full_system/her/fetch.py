@@ -428,7 +428,6 @@ class Trainer(object):
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
-                print(len(self.memory))
                 reward = self.addExperience()
                 done = reward == 0
                 if done:
@@ -549,5 +548,5 @@ if __name__ == "__main__":
     trainer = Trainer(hyperparams, dueling=args.dueling, HER=args.her, reach=args.reach, pick=args.pick, push=args.push, slide=args.slide, place=args.place)
     print('Trainer Initialized')
     # trainer.prefetch(hyperparams['replay_initial'])
-    trainer.prefetch(hyperparams['replay_size'])
+    trainer.prefetch(hyperparams['replay_initial'])
     trainer.train(NUM_EPISODES, MAX_ITERATIONS)
