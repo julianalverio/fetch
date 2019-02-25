@@ -328,10 +328,7 @@ class Trainer(object):
 
     def preprocess(self, state):
         state = state[180:435, 50:460]
-        Image.fromarray(cv2.resize(state, (state.shape[1]//5, state.shape[0]//5), interpolation=cv2.INTER_AREA).astype(np.uint8)).show()
-        import pdb; pdb.set_trace()
         state = cv2.resize(state, (state.shape[1]//4, state.shape[0]//4), interpolation=cv2.INTER_AREA).astype(np.float32)/256
-        import pdb; pdb.set_trace()
         state = np.swapaxes(state, 0, 2)
         return torch.tensor(state, device=self.device).unsqueeze(0)
 
@@ -410,6 +407,8 @@ class Trainer(object):
         while len(self.memory) < self.params['replay_initial']:
             self.reset()
             for iteration in range(max_iterations):
+                print(torch.cuda.memory_allocated(self.device))
+                print(len(self.memory))
                 import pdb; pdb.set_trace()
                 reward = self.addExperience()
                 done = reward == 0
